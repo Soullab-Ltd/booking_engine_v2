@@ -1,0 +1,57 @@
+[
+  {
+    "id": "pA",
+    "title": "Plan A: PVI Dorms",
+    "thumbnail": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - Dorm Accommodation (1 bed per person).",
+    "fullDescription": "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the traditional Annadana hall.",
+    "discountedPrice": 9000,
+    "finalPrice": 7000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
+  },
+  {
+    "id": "pB",
+    "title": "Plan B: Deluxe Rooms",
+    "thumbnail": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - 1 Bed for 2 Guests with attached bath.",
+    "fullDescription": "Upgrade to Deluxe Rooms for more privacy and attached facilities. These rooms are perfect for couples or friends traveling together. Daily housekeeping and consistent hot water in the mornings.",
+    "discountedPrice": 22000,
+    "finalPrice": 19000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
+  },
+  {
+    "id": "pC",
+    "title": "Plan C: Premium Triple",
+    "thumbnail": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - Premium Triple Occupancy at Soul Nest.",
+    "fullDescription": "Experience the premium hospitality of PVI at Soul Nest. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the exclusive Soul Nest dining.",
+    "discountedPrice": 25000,
+    "finalPrice": 21000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Soul Nest", "Free WiFi in Room", "Swimming Pool Access"]
+  },
+  {
+    "id": "pD",
+    "title": "Plan D: Premium Double",
+    "thumbnail": "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - King Size Bed for 2 Guests.",
+    "fullDescription": "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Soul Nest.",
+    "discountedPrice": 48000,
+    "finalPrice": 40000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
+  },
+  {
+    "id": "pE",
+    "title": "Plan E: Premium Single",
+    "thumbnail": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - Private King Size Bed for 1 Guest.",
+    "fullDescription": "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Soul Nest at your disposal.",
+    "discountedPrice": 48000,
+    "finalPrice": 40000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
+  }
+]

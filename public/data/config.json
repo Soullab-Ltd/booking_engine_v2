@@ -1,0 +1,29 @@
+{
+  "TAX_RATE": 0.18,
+  "STUDENT_DISCOUNT_PERCENT": 0.10,
+  "SERVICE_DISCOUNT_PERCENT": 0.15,
+  "KIDS_DISCOUNT_PERCENT": 0.20,
+  "ADDONS": {
+    "FOOD_PASS": 2500,
+    "ADVENTURE_PASS": 5000,
+    "EXTRA_STAY_BASE": 1800
+  },
+  "COUPONS": [
+    { "name": "Early Seeker Discount", "code": "SDFEARLY", "discount": 5, "description": "For early registrations." },
+    { "name": "Group Manifestation", "code": "POWER3", "discount": 10, "description": "Register 3 or more seekers." }
+  ],
+  "ROOM_TYPES": [
+    {
+      "name": "PVI Dorms",
+      "price": 1500,
+      "desc": "Clean bunk beds in a community setting.",
+      "img": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&auto=format&fit=crop"
+    },
+    {
+      "name": "Deluxe Suite",
+      "price": 3500,
+      "desc": "Comfortable attached bathroom suite.",
+      "img": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&auto=format&fit=crop"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "Remix: EventBook Pro",
+  "description": "A comprehensive event booking engine with multi-step guest registration, automated pricing, document uploads for discounts, and post-purchase management.",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}

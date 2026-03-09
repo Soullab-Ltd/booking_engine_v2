@@ -1,0 +1,173 @@
+{
+  "landingPage": {
+    "hero": {
+      "badge": "Exclusive Workshop & Retreat",
+      "cta": "Choose Your Stay"
+    },
+    "about": {
+      "label": "About the retreat"
+    },
+    "schedule": {
+      "label": "Event Schedule",
+      "title": "5 Days of Transformation",
+      "location": "PVI"
+    },
+    "mentors": {
+      "label": "Meet the Mentors",
+      "title": "Guided by Shreans Daga"
+    },
+    "sidebar": {
+      "title": "Ready for Awakening?",
+      "features": [
+        "Quantum Insights",
+        "Pyramid Meditation",
+        "Pyramid Valley, BLR"
+      ],
+      "cta": "Select Plan",
+      "footer": "Shreans Daga Foundation",
+      "community": {
+        "title": "Join the Community",
+        "subtitle": "High-Vibrational Tribe",
+        "count": "+5k"
+      },
+      "mapsCta": "Open PVI in Maps"
+    }
+  },
+  "planSelection": {
+    "title": "Choose Plan",
+    "badge": "Most Serene",
+    "cta": "Book now"
+  },
+  "guestForm": {
+    "header": {
+      "title": "Guests detail",
+      "subtitle": "Join us at PVI for life changing experience",
+      "addGuest": "Add Guest"
+    },
+    "guestCard": {
+      "label": "Guest",
+      "fields": {
+        "name": "Full Name",
+        "namePlaceholder": "Legal Name",
+        "phone": "Contact Number",
+        "phonePlaceholder": "+91 00000 00000",
+        "email": "Email Address",
+        "emailPlaceholder": "wisdom@retreat.co",
+        "age": "Age",
+        "agePlaceholder": "Years",
+        "food": "Food preference",
+        "travel": "Travel assistance"
+      },
+      "addons": {
+        "label": "Add-ons",
+        "foodPass": "Soulnest Food Pass",
+        "adventurePass": "Adventure pass",
+        "extraStay": "Extend Pre/Post PVI Stay"
+      },
+      "extraStay": {
+        "startDate": "Start Date",
+        "duration": "Duration",
+        "periodLabel": "Stay period"
+      },
+      "remark": "Add Remark",
+      "remarkPlaceholder": "Physical limitations, specific intentions or allergies..."
+    },
+    "addPartner": "Add Journey Partner",
+    "footer": {
+      "back": "Back",
+      "proceed": "Proceed"
+    },
+    "modals": {
+      "food": {
+        "title": "Sattvic Nutrition Pass",
+        "img": "https://images.unsplash.com/photo-1547592166-23ac45744acd?q=80&w=800&auto=format&fit=crop",
+        "desc": "A specialized dietary track designed to cleanse the body and sharpen the mind. Includes 5 customized Ayurvedic meals, cold-pressed juices, and herbal decoctions."
+      },
+      "adventure": {
+        "title": "Mindfulness Toolkit",
+        "img": "https://images.unsplash.com/photo-1545202989-724df73c6905?q=80&w=800&auto=format&fit=crop",
+        "desc": "Receive a curated kit containing an organic meditation cushion, a rosewood mala, a leather-bound gratitude journal, and therapeutic essential oils."
+      },
+      "stay": {
+        "title": "Sanctuary Extensions",
+        "img": "https://images.unsplash.com/photo-1566073771259-6a8506099945?q=80&w=800&auto=format&fit=crop",
+        "desc": "Stay longer pre or post retreat to deepen your practice. Our Zen Cottages offer the perfect environment for self-reflection and solitary study."
+      },
+      "junior": {
+        "title": "Young Mind Initiative",
+        "img": "https://images.unsplash.com/photo-1551632811-561732d1e306?w=800&auto=format&fit=crop",
+        "desc": "We've noticed participants under 18. They qualify for the 'Young Mind Awakening' pricing with a 20% reduction in base fees and specialized youth-friendly meditation guidance.",
+        "cta": "Switch to Kids Plan",
+        "back": "Back"
+      }
+    }
+  },
+  "bookingSummary": {
+    "header": {
+      "bookingDateLabel": "Booking Date"
+    },
+    "guestSummary": {
+      "title": "Guest-wise Summary",
+      "viewDetails": "View Guest Details",
+      "hideDetails": "Hide Details",
+      "table": {
+        "particulars": "Particulars",
+        "count": "No. of Guests",
+        "amount": "Amount",
+        "subtotal": "Subtotal",
+        "totalWithDiscount": "Total with discount",
+        "gst": "GST Amount (18%)",
+        "totalWithGst": "Total with GST",
+        "payable": "Payable Amount"
+      }
+    },
+    "discounts": {
+      "title": "Discount offers",
+      "subtitle": "Claim eligibility for special categories. ID verification required.",
+      "student": {
+        "title": "Student Discount",
+        "subtitle": "Requires Valid College/University ID",
+        "value": "10%"
+      },
+      "service": {
+        "title": "Service Personnel Discount",
+        "subtitle": "Armed Forces, Govt. or First Responders",
+        "value": "15%"
+      },
+      "uploadPrompt": "📎 “Please upload a valid ID to claim this discount.”",
+      "uploadCta": "Upload Valid ID Card",
+      "uploadingLabel": "Analyzing Proof...",
+      "note": "Validation Note:",
+      "noteText": "Discount will be applied after ID verification. Invalid documents may lead to the cancellation of the discount."
+    },
+    "coupons": {
+      "title": "Available Promo Codes",
+      "subtitle": "Stackable with one verification discount.",
+      "remove": "Remove Coupon",
+      "placeholder": "Manual promo code",
+      "apply": "Apply"
+    },
+    "sidebar": {
+      "title": "Final Step",
+      "subtotal": "Subtotal",
+      "savings": "Applied Savings",
+      "gst": "GST (18%)",
+      "total": "Final Total",
+      "terms": "I agree to the Terms & Conditions (link).",
+      "refund": "I accept the Refund & Cancellation Policy (link).",
+      "payCta": "Pay"
+    },
+    "tax80G": {
+      "label": "I want to claim an 80G donation receipt",
+      "fields": {
+        "name": "Full Name (text)",
+        "pan": "PAN Number (text)",
+        "address": "Address (textarea)",
+        "panUpload": "Upload PAN Card",
+        "aadharUpload": "Upload Address (Aadhar)"
+      },
+      "saveCta": "✅ Save & Continue",
+      "note": "Note/disclaimer: “80G receipts will be sent to your registered email post-event. Ensure accurate details for eligibility.”"
+    }
+  }
+}
