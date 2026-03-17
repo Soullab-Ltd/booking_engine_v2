@@ -49,28 +49,48 @@ export const getAllData = async (eventId: string | number) => {
     fetchData<AppConfig>('config.json')
   ]);
 
+  // Transform Event Data safely
   const eventData: EventResponse = {
     event: {
-      id: apiData.EventID, // This will now work perfectly
-      title: apiData.EventName,
-      banner: apiData.bannerImage,
-      date: `${apiData.EventStartDate} to ${apiData.EventEndDate}`,
-      time: apiData.time || "06:00 AM",
-      venue: apiData.venue || "PVI Bengaluru",
-      description: apiData.description
+      id: apiData.EventID,
+      title: apiData.EventName || "Untitled Event",
+      banner: apiData.bannerImage || "https://picsum.photos/seed/event/1200/600",
+      date: apiData.EventStartDate && apiData.EventEndDate 
+            ? `${apiData.EventStartDate} to ${apiData.EventEndDate}` 
+            : "Dates TBD",
+      time: apiData.time || "06:00 AM Daily",
+      venue: apiData.venue || apiData.Location || "Venue TBD",
+      description: apiData.description || ""
     },
-    schedule: apiData.schedules || [], 
-    mentors: apiData.mentors,
-    insights: apiData.insights || []
+    // Ensure schedule is parsed if it comes as a JSON string from MySQL
+    schedule: (apiData.schedules || []).map((s: any) => ({
+      ...s,
+      slots: typeof s.slots === 'string' ? JSON.parse(s.slots) : (s.slots || [])
+    })),
+    // Safe parse for mentors and insights
+    mentors: typeof apiData.mentors === 'string' ? JSON.parse(apiData.mentors) : (apiData.mentors || { main: {}, others: [] }),
+    insights: typeof apiData.insights === 'string' ? JSON.parse(apiData.insights) : (apiData.insights || [])
   };
 
-  const plans: Plan[] = apiData.plans.map((p: any) => ({
-    ...p,
-    id: p.planID.toString(),
-    thumbnail: p.bannerImage,
-    finalPrice: p.PlanPrice,
-    amenities: p.icons ? p.icons.map((i: any) => i.Title) : []
-  }));
+  // Transform Plans safely to avoid .toLocaleString() null errors
+  const plans: Plan[] = (apiData.plans || []).map((p: any) => {
+    // Logic: If OfferPrice exists and isn't 0, that's our final price. 
+    // Otherwise, use the base PlanPrice.
+    const hasOffer = p.OfferPrice !== null && p.OfferPrice !== undefined && p.OfferPrice > 0;
+    
+    return {
+      id: p.planID.toString(),
+      title: p.PlanTitle || "Standard Plan",
+      thumbnail: p.bannerImage || "https://picsum.photos/seed/plan/800/600",
+      description: p.PlanSubtitle || p.PlanDescription?.substring(0, 100) || "",
+      fullDescription: p.PlanDescription || p.fullDescription || "",
+      // Fixes the crash: ensure these are always valid numbers
+      discountedPrice: Number(p.PlanPrice) || 0,
+      finalPrice: hasOffer ? Number(p.OfferPrice) : Number(p.PlanPrice),
+      gstDetails: p.gstType === 'inclusive' ? 'Inclusive of GST' : `+ ${p.gstRate || 0}% GST`,
+      amenities: p.icons ? p.icons.map((i: any) => i.Title) : ["Standard Amenities"]
+    };
+  });
 
   return {
     eventData,
@@ -80,6 +100,22 @@ export const getAllData = async (eventId: string | number) => {
   };
 };
 
+
+export const getApplicableCoupons = async (eventId: string | number, planId: string | number) => {
+  try {
+    const response = await fetch(`http://localhost:8081/coupons/applicable?eventId=${eventId}&planId=${planId}`);
+    if (!response.ok) return [];
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching coupons:", error);
+    return [];
+  }
+};
+
+
+
+
+
 export const createBooking = async (bookingData: any) => {
   const response = await fetch('https://bookingapi.thriive.in/bookings', { 
     method: 'POST',
@@ -87,10 +123,27 @@ export const createBooking = async (bookingData: any) => {
     body: JSON.stringify(bookingData),
   });
 
+  // We must await the json() here so the component gets the actual data
+  const result = await response.json(); 
+  
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to create booking');
+    throw new Error(result.message || 'Failed to create booking');
   }
 
-  return response.json();
+  return result; // This now contains { bookingId: "BK..." }
+};
+
+
+
+export const fetchActiveEvents = async () => {
+  try {
+    const response = await fetch('http://localhost:8081/events');
+    if (!response.ok) throw new Error('Failed to fetch events list');
+    const data = await response.json();
+    
+    return data.filter((event: any) => event.isActive !== false);
+  } catch (error) {
+    console.error("Discovery Fetch Error:", error);
+    return [];
+  }
 };

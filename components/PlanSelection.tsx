@@ -50,12 +50,17 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
 
               <div className="mt-auto flex items-end justify-between pt-6 border-t border-stone-50">
                 <div>
-                  <span className="text-stone-400 line-through text-sm font-bold">₹{plan.discountedPrice.toLocaleString()}</span>
-                  <div className="flex items-baseline gap-2">
-                    <span className="text-3xl font-black text-stone-900">₹{plan.finalPrice.toLocaleString()}</span>
-                    <span className="text-xs text-emerald-600 font-bold">{plan.gstDetails}</span>
-                  </div>
-                </div>
+  <span className="text-stone-400 line-through text-sm font-bold">
+    {/* Use Optional Chaining and a fallback value */}
+    ₹{(plan.discountedPrice || 0).toLocaleString()}
+  </span>
+  <div className="flex items-baseline gap-2">
+    <span className="text-3xl font-black text-stone-900">
+      ₹{(plan.finalPrice || 0).toLocaleString()}
+    </span>
+    <span className="text-xs text-emerald-600 font-bold">{plan.gstDetails}</span>
+  </div>
+</div>
                 <button 
                   onClick={() => onSelect(plan)}
                   className="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-teal-100"

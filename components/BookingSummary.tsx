@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
-import { BookingState, DiscountInfo, Guest, EventData } from '../types';
-import { createBooking } from '../src/services/dataService';
-import { CreditCard, ChevronLeft, Heart } from 'lucide-react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { BookingState, Guest, EventData } from '../types';
+import { createBooking, getApplicableCoupons } from '../src/services/dataService'; // Added getApplicableCoupons
+import { CreditCard, ChevronLeft, Heart, Tag, Sparkles } from 'lucide-react'; // Added icons
 
 interface BookingSummaryProps {
   bookingState: BookingState;
@@ -13,9 +13,22 @@ interface BookingSummaryProps {
 }
 
 const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui, config, onConfirm, onBack }) => {
-  const [expandedGuests, setExpandedGuests] = useState(false);
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  
+  // NEW STATE: For dynamic coupons
+  const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
+  const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+
+  // FETCH: Coupons on component mount
+  useEffect(() => {
+    const loadCoupons = async () => {
+      const planId = bookingState.selectedPlan?.id?.toString().replace('p', '') || "1";
+      const data = await getApplicableCoupons(event.id, planId);
+      setAvailableCoupons(data);
+    };
+    if (event.id) loadCoupons();
+  }, [event.id, bookingState.selectedPlan?.id]);
 
   const getGuestAddOnTotal = (guest: Guest) => {
     let total = 0;
@@ -29,58 +42,92 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
   };
 
   const totals = useMemo(() => {
-    if (!bookingState || !bookingState.guests) return { basePrice: 0, subtotal: 0, tax: 0, total: 0 };
+    if (!bookingState || !bookingState.guests) return { basePrice: 0, subtotal: 0, discount: 0, tax: 0, total: 0 };
+    
     const basePrice = bookingState.plan?.finalPrice || 0;
     const totalAddOns = bookingState.guests.reduce((sum, g) => sum + getGuestAddOnTotal(g), 0);
     const subtotal = (basePrice * bookingState.guests.length) + totalAddOns;
-    const tax = subtotal * (config?.TAX_RATE || 0.18);
-    return { basePrice, subtotal, tax, total: subtotal + tax };
-  }, [bookingState, config]);
+    
+    // CALCULATE DISCOUNT
+    let discount = 0;
+    if (appliedCoupon) {
+      if (appliedCoupon.discount_type === 'PERCENTAGE') {
+        discount = subtotal * (Number(appliedCoupon.value) / 100);
+      } else {
+        discount = Number(appliedCoupon.value);
+      }
+    }
+
+    const discountedSubtotal = Math.max(0, subtotal - discount);
+    const tax = discountedSubtotal * (config?.TAX_RATE || 0.18);
+    
+    return { 
+      basePrice, 
+      subtotal, 
+      discount, 
+      tax, 
+      total: discountedSubtotal + tax 
+    };
+  }, [bookingState, config, appliedCoupon]);
+
+  const handleApplyCoupon = (coupon: any) => {
+    // If clicking same coupon, deselect it
+    if (appliedCoupon?.id === coupon.id) {
+      setAppliedCoupon(null);
+    } else {
+      setAppliedCoupon(coupon);
+    }
+    setCouponError('');
+  };
 
   const handlePayment = async () => {
     setIsProcessing(true);
     setCouponError('');
 
     try {
-      const payload = {
-        eventId: Number(event.id), // Dynamic ID from backend fetch
-        planId: Number(bookingState.selectedPlan?.id?.toString().replace('p', '')) || 1,
-        startDate: new Date(bookingState.guests[0]?.addOns?.extraStay?.startDate || Date.now()).toISOString(),
-        endDate: new Date().toISOString(),
-        guestsCount: bookingState.guests.length,
-        grossAmount: Math.round(totals.subtotal),
-        discountAmount: 0,
-        totalAmount: Math.round(totals.total),
-        paymentId: "MOCK_PAY_" + Date.now(),
-        guests: bookingState.guests.map(g => ({
-          name: g.name,
-          email: g.email,
-          phone_number: g.phone,
-          age: Number(g.age),
-          gender: "Male",
-          food_prefs: g.foodPreference,
-          travel_asst: g.travelAssistance ? "Yes" : "No",
-          remarks: g.remark || "",
-          id_image_url: ""
-        })),
-        addon: {
-          adultPassQty: bookingState.guests.filter(g => g.addOns.foodPass).length,
-          kidPassQty: 0,
-          adultSeasonQty: bookingState.guests.filter(g => g.addOns.adventurePass).length,
-        }
-      };
+
+const payload = {
+  eventId: Number(event.id),
+  planId: Number(bookingState.selectedPlan?.id?.toString().replace('p', '')) || 1,
+  startDate: new Date(bookingState.guests[0]?.addOns?.extraStay?.startDate || Date.now()).toISOString(),
+  endDate: new Date().toISOString(),
+  
+  
+  grossAmount: Math.round(totals.subtotal),
+  discountAmount: Math.round(totals.discount),
+  totalAmount: Math.round(totals.total),
+  
+  couponCode: appliedCoupon?.code || "", 
+  
+  paymentId: "MOCK_PAY_" + Date.now(),
+  guests: bookingState.guests.map(g => ({
+    name: g.name,
+    email: g.email,
+    phone_number: g.phone,
+    age: Number(g.age),
+    gender: "Male",
+    food_prefs: g.foodPreference,
+    travel_asst: g.travelAssistance ? "Yes" : "No",
+    remarks: g.remark || "",
+    id_image_url: ""
+  })),
+  addon: {
+    adultPassQty: bookingState.guests.filter(g => g.addOns.foodPass).length,
+    kidPassQty: 0,
+    adultSeasonQty: bookingState.guests.filter(g => g.addOns.adventurePass).length,
+  }
+};
 
       const response = await createBooking(payload);
-
-      if (response.bookingId) {
-        // Simulated 2-second delay for processing effect
-        setTimeout(() => {
-          onConfirm();
-        }, 2000);
-      }
+      console.log("Response from Service:", response);
+      if (response && response.bookingId) {
+      setTimeout(() => {
+        onConfirm(response.bookingId);
+      }, 2000);
+    }
     } catch (err: any) {
       setCouponError("Submission Error: " + err.message);
-      setIsProcessing(false);
+    setIsProcessing(false);
     }
   };
 
@@ -88,6 +135,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 w-full animate-fadeIn pb-32">
+      {/* Banner Section */}
       <div className="mb-10 bg-white rounded-[32px] overflow-hidden shadow-sm border border-stone-100">
         <div className="h-48 relative">
           <img src={event.banner} className="w-full h-full object-cover brightness-75" alt="" />
@@ -99,6 +147,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-8">
+          {/* Billing Details */}
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8">
             <h4 className="text-lg font-bold flex items-center gap-2 mb-6"><Heart className="w-5 h-5 text-teal-700" /> Review Billing</h4>
             <div className="border border-stone-100 rounded-2xl overflow-hidden">
@@ -114,6 +163,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
                     <td className="px-6 py-3 text-xs font-bold text-stone-500 uppercase">Subtotal</td>
                     <td className="px-6 py-3 text-right font-bold">₹{totals.subtotal.toLocaleString()}</td>
                   </tr>
+                  {/* Dynamic Discount Row */}
+                  {totals.discount > 0 && (
+                    <tr className="bg-emerald-50">
+                      <td className="px-6 py-3 text-xs font-bold text-emerald-700 uppercase">Discount Applied ({appliedCoupon?.code})</td>
+                      <td className="px-6 py-3 text-right font-bold text-emerald-700">- ₹{totals.discount.toLocaleString()}</td>
+                    </tr>
+                  )}
                   <tr className="bg-white">
                     <td className="px-6 py-3 text-xs font-bold text-stone-400 uppercase">GST (18%)</td>
                     <td className="px-6 py-3 text-right font-bold text-stone-500">₹{totals.tax.toLocaleString()}</td>
@@ -126,8 +182,52 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
               </table>
             </div>
           </div>
+
+          {/* Coupon Display Section */}
+          {availableCoupons.length > 0 && (
+            <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8">
+              <h4 className="text-lg font-bold flex items-center gap-2 mb-6">
+                <Tag className="w-5 h-5 text-teal-700" /> Exclusive Offers
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {availableCoupons.map((coupon) => (
+                  <div 
+                    key={coupon.id} 
+                    onClick={() => handleApplyCoupon(coupon)}
+                    className={`cursor-pointer p-5 rounded-2xl border-2 transition-all group ${
+                      appliedCoupon?.id === coupon.id 
+                        ? 'border-teal-600 bg-teal-50/50' 
+                        : 'border-dashed border-stone-200 hover:border-teal-300'
+                    }`}
+                  >
+                    <div className="flex justify-between items-center mb-3">
+                      <span className={`font-mono font-black text-sm px-3 py-1 rounded-lg ${
+                        appliedCoupon?.id === coupon.id ? 'bg-teal-700 text-white' : 'bg-stone-100 text-stone-600'
+                      }`}>
+                        {coupon.code}
+                      </span>
+                      {appliedCoupon?.id === coupon.id && <Sparkles className="w-4 h-4 text-teal-600" />}
+                    </div>
+                    <p className="font-black text-stone-900 text-sm leading-tight mb-1">{coupon.title}</p>
+                    <p className="text-stone-500 text-[10px] leading-snug">{coupon.description}</p>
+                    <div className="mt-4 flex items-center justify-between">
+                      <span className="text-[10px] font-black text-teal-700 uppercase tracking-widest">
+                        {coupon.discount_type === 'PERCENTAGE' ? `${coupon.value}% OFF` : `₹${coupon.value} OFF`}
+                      </span>
+                      <span className={`text-[9px] font-bold uppercase ${
+                        appliedCoupon?.id === coupon.id ? 'text-teal-700' : 'text-stone-400'
+                      }`}>
+                        {appliedCoupon?.id === coupon.id ? 'Applied' : 'Tap to apply'}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
+        {/* Sidebar / CTA */}
         <div className="lg:col-span-4">
           <div className="bg-white rounded-[40px] p-8 shadow-2xl border border-stone-100 sticky top-24">
             <h3 className="text-xl font-black mb-8">Confirm Booking</h3>
@@ -135,6 +235,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
               {isProcessing ? <><div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</> : <><CreditCard className="w-6 h-6" /> Confirm & Pay</>}
             </button>
             {couponError && <p className="text-red-500 text-[10px] mt-4 font-bold text-center">{couponError}</p>}
+            <p className="text-[9px] text-stone-400 mt-6 text-center leading-relaxed font-medium uppercase tracking-tight">
+              By clicking pay, you agree to our <span className="underline">Terms</span> and <span className="underline">Refund Policy</span>.
+            </p>
           </div>
         </div>
       </div>

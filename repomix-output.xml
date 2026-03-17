@@ -78,31 +78,8 @@ This section contains the contents of the repository's files.
 <file path="components/BookingSummary.tsx">
 import React, { useState, useMemo } from 'react';
 import { BookingState, DiscountInfo, Guest, EventData } from '../types';
-import { 
-  CreditCard, 
-  Upload, 
-  CheckCircle2, 
-  X, 
-  ArrowRight, 
-  ChevronDown, 
-  ChevronUp, 
-  FileCheck,
-  Percent,
-  AlertCircle,
-  ShieldCheck,
-  Info,
-  Heart,
-  Tag,
-  Trash2,
-  FileText,
-  User,
-  Paperclip,
-  Sparkles,
-  GraduationCap,
-  Shield,
-  ChevronLeft
-} from 'lucide-react';
-import { STUDENT_DISCOUNT_PERCENT, SERVICE_DISCOUNT_PERCENT, TAX_RATE, MOCK_EVENT, MOCK_COUPONS } from '../constants';
+import { createBooking } from '../src/services/dataService';
+import { CreditCard, ChevronLeft, Heart } from 'lucide-react';
 
 interface BookingSummaryProps {
   bookingState: BookingState;
@@ -115,250 +92,131 @@ interface BookingSummaryProps {
 
 const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui, config, onConfirm, onBack }) => {
   const [expandedGuests, setExpandedGuests] = useState(false);
-  const [couponCode, setCouponCode] = useState("");
-  const [appliedCoupon, setAppliedCoupon] = useState<DiscountInfo | null>(null);
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const calculateAddOns = (guest: Guest) => {
+  const getGuestAddOnTotal = (guest: Guest) => {
     let total = 0;
-    if (guest.addOns.foodPass) total += config.addOnPrices.foodPass;
-    if (guest.addOns.adventurePass) total += config.addOnPrices.adventurePass;
-    if (guest.addOns.extraStay.enabled) {
-      const room = config.roomTypes.find((r: any) => r.name === guest.addOns.extraStay.type);
-      if (room) {
-        total += room.price * guest.addOns.extraStay.days;
-      }
+    if (guest.addOns.foodPass) total += config?.ADDONS?.FOOD_PASS || 2500;
+    if (guest.addOns.adventurePass) total += config?.ADDONS?.ADVENTURE_PASS || 5000;
+    if (guest.addOns.extraStay.enabled && config?.ROOM_TYPES) {
+      const room = config.ROOM_TYPES.find((r: any) => r.name === guest.addOns.extraStay.type);
+      if (room) total += room.price * guest.addOns.extraStay.days;
     }
     return total;
   };
 
-  const basePrice = bookingState.plan?.finalPrice || 0;
-  const totalAddOns = bookingState.guests.reduce((sum, guest) => sum + calculateAddOns(guest), 0);
-  const subtotal = (basePrice * bookingState.guests.length) + totalAddOns;
-  
-  const discount = appliedCoupon 
-    ? (appliedCoupon.type === 'percentage' ? (subtotal * appliedCoupon.value / 100) : appliedCoupon.value)
-    : 0;
-    
-  const tax = (subtotal - discount) * config.taxRate;
-  const total = subtotal - discount + tax;
+  const totals = useMemo(() => {
+    if (!bookingState || !bookingState.guests) return { basePrice: 0, subtotal: 0, tax: 0, total: 0 };
+    const basePrice = bookingState.plan?.finalPrice || 0;
+    const totalAddOns = bookingState.guests.reduce((sum, g) => sum + getGuestAddOnTotal(g), 0);
+    const subtotal = (basePrice * bookingState.guests.length) + totalAddOns;
+    const tax = subtotal * (config?.TAX_RATE || 0.18);
+    return { basePrice, subtotal, tax, total: subtotal + tax };
+  }, [bookingState, config]);
 
-  const handleApplyCoupon = () => {
-    const coupon = config.coupons.find((c: any) => c.code.toUpperCase() === couponCode.toUpperCase());
-    if (coupon) {
-      setAppliedCoupon(coupon);
-      setCouponError('');
-    } else {
-      setCouponError(ui.payment.coupon.error);
-      setAppliedCoupon(null);
+  const handlePayment = async () => {
+    setIsProcessing(true);
+    setCouponError('');
+
+    try {
+      const payload = {
+        eventId: Number(event.id), // Dynamic ID from backend fetch
+        planId: Number(bookingState.selectedPlan?.id?.toString().replace('p', '')) || 1,
+        startDate: new Date(bookingState.guests[0]?.addOns?.extraStay?.startDate || Date.now()).toISOString(),
+        endDate: new Date().toISOString(),
+        guestsCount: bookingState.guests.length,
+        grossAmount: Math.round(totals.subtotal),
+        discountAmount: 0,
+        totalAmount: Math.round(totals.total),
+        paymentId: "MOCK_PAY_" + Date.now(),
+        guests: bookingState.guests.map(g => ({
+          name: g.name,
+          email: g.email,
+          phone_number: g.phone,
+          age: Number(g.age),
+          gender: "Male",
+          food_prefs: g.foodPreference,
+          travel_asst: g.travelAssistance ? "Yes" : "No",
+          remarks: g.remark || "",
+          id_image_url: ""
+        })),
+        addon: {
+          adultPassQty: bookingState.guests.filter(g => g.addOns.foodPass).length,
+          kidPassQty: 0,
+          adultSeasonQty: bookingState.guests.filter(g => g.addOns.adventurePass).length,
+        }
+      };
+
+      const response = await createBooking(payload);
+
+      if (response.bookingId) {
+        // Simulated 2-second delay for processing effect
+        setTimeout(() => {
+          onConfirm();
+        }, 2000);
+      }
+    } catch (err: any) {
+      setCouponError("Submission Error: " + err.message);
+      setIsProcessing(false);
     }
   };
 
-  const handlePayment = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      onConfirm();
-    }, 2000);
-  };
-
-  const bookingDate = useMemo(() => new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' }), []);
+  if (!bookingState || !bookingState.guests) return <div className="p-20 text-center">Loading...</div>;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-12 w-full animate-fadeIn pb-32">
-      {/* Banner & Title Section */}
       <div className="mb-10 bg-white rounded-[32px] overflow-hidden shadow-sm border border-stone-100">
         <div className="h-48 relative">
           <img src={event.banner} className="w-full h-full object-cover brightness-75" alt="" />
-          <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent flex items-end p-8">
-            <div className="text-white">
-              <h2 className="text-3xl font-black tracking-tight">{event.title}</h2>
-              <div className="flex flex-wrap items-center gap-4 text-xs font-bold uppercase tracking-widest mt-2 text-stone-200">
-                <span>{event.date}</span>
-                <span className="w-1.5 h-1.5 rounded-full bg-stone-400"></span>
-                <span>Booking Date: {bookingDate}</span>
-              </div>
-            </div>
+          <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent flex items-end p-8 text-white">
+            <h2 className="text-3xl font-black">{event.title}</h2>
           </div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-8">
-          {/* Guest-wise Summary Table */}
-          <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 overflow-hidden">
-             <div className="p-8">
-                <div className="flex justify-between items-center mb-6">
-                   <h4 className="text-lg font-bold flex items-center gap-2 text-stone-900">
-                      <Heart className="w-5 h-5 text-teal-700" /> {ui.sections.guests.title}
-                   </h4>
-                   <button 
-                     onClick={() => setExpandedGuests(!expandedGuests)}
-                     className="text-teal-700 text-[10px] font-black uppercase tracking-widest bg-teal-50 px-4 py-2 rounded-xl hover:bg-teal-100 transition-all flex items-center gap-2"
-                   >
-                     {expandedGuests ? <><ChevronUp className="w-3 h-3" /> {ui.sections.guests.hideDetails}</> : <><ChevronDown className="w-3 h-3" /> {ui.sections.guests.viewDetails}</>}
-                   </button>
-                </div>
-
-                <div className="overflow-hidden border border-stone-100 rounded-2xl">
-                   <table className="w-full text-left text-sm border-collapse">
-                      <thead className="bg-stone-50 text-stone-500 font-bold uppercase text-[10px] tracking-widest">
-                         <tr>
-                            <th className="px-6 py-4">{ui.table.particulars}</th>
-                            <th className="px-6 py-4 text-center">{ui.table.guests}</th>
-                            <th className="px-6 py-4 text-right">{ui.table.amount}</th>
-                         </tr>
-                      </thead>
-                      <tbody className="divide-y divide-stone-50">
-                         {bookingState.guests.map((g, idx) => (
-                           <React.Fragment key={g.id}>
-                             <tr className={`bg-white hover:bg-stone-50/50 transition-colors ${g.age < 18 ? 'bg-teal-50/10' : ''}`}>
-                                <td className="px-6 py-4">
-                                   <p className="font-bold text-stone-900">{g.name}</p>
-                                   <p className="text-[10px] text-stone-400 font-medium">
-                                     {g.age < 18 ? 'Young Mind Plan' : 'Standard Plan'} ({bookingState.plan?.title})
-                                   </p>
-                                </td>
-                                <td className="px-6 py-4 text-center font-bold text-stone-600">1</td>
-                                <td className="px-6 py-4 text-right">
-                                   <p className="font-black text-stone-900">₹{(basePrice + calculateAddOns(g)).toLocaleString()}</p>
-                                   <p className="text-[9px] text-stone-400 font-bold uppercase tracking-tight">
-                                     Base: ₹{basePrice.toLocaleString()} {calculateAddOns(g) > 0 ? `+ Add-ons: ₹${calculateAddOns(g).toLocaleString()}` : ''}
-                                   </p>
-                                </td>
-                             </tr>
-                             {expandedGuests && (
-                               <tr className="bg-stone-50/30">
-                                 <td colSpan={3} className="px-10 py-3">
-                                   <div className="text-[10px] space-y-1">
-                                      <div className="grid grid-cols-2 gap-x-8">
-                                         <p className="text-stone-500">Age: <span className="font-bold text-stone-900">{g.age}</span></p>
-                                         <p className="text-stone-500">Contact: <span className="font-bold text-stone-900">{g.phone}</span></p>
-                                      </div>
-                                      {g.remark && (
-                                        <div className="mt-2 pt-2 border-t border-stone-100">
-                                          <p className="font-black text-stone-300 uppercase text-[8px] mb-0.5">Remark Box</p>
-                                          <p className="italic text-stone-400">"{g.remark}"</p>
-                                        </div>
-                                      )}
-                                   </div>
-                                 </td>
-                               </tr>
-                             )}
-                           </React.Fragment>
-                         ))}
-
-                         <tr className="bg-stone-50/50">
-                            <td className="px-6 py-4 font-black text-stone-500 text-[10px] uppercase tracking-widest">{ui.payment.breakdown.subtotal}</td>
-                            <td className="px-6 py-4 text-center font-bold text-stone-500">{bookingState.guests.length}</td>
-                            <td className="px-6 py-4 text-right font-black text-stone-900">₹{subtotal.toLocaleString()}</td>
-                         </tr>
-
-                         {discount > 0 && (
-                           <tr className="bg-emerald-50/30">
-                              <td className="px-6 py-4">
-                                 <p className="font-bold text-emerald-800">{ui.payment.coupon.applied}</p>
-                                 <p className="text-[10px] text-emerald-600 font-black uppercase tracking-widest">{appliedCoupon?.code}</p>
-                              </td>
-                              <td className="px-6 py-4"></td>
-                              <td className="px-6 py-4 text-right font-black text-emerald-600">- ₹{discount.toLocaleString()}</td>
-                          </tr>
-                         )}
-
-                         <tr className="bg-white">
-                            <td className="px-6 py-4 font-bold text-stone-400 text-xs uppercase tracking-tighter">{ui.payment.breakdown.tax} ({(config.taxRate * 100).toFixed(0)}%)</td>
-                            <td className="px-6 py-4"></td>
-                            <td className="px-6 py-4 text-right font-bold text-stone-500">₹{tax.toLocaleString()}</td>
-                         </tr>
-
-                         <tr className="bg-stone-900 text-white">
-                            <td className="px-6 py-5">
-                               <p className="font-black uppercase tracking-[0.2em] text-[10px]">{ui.payment.breakdown.totalLabel}</p>
-                               <p className="text-[8px] text-stone-500 uppercase">Payable Amount</p>
-                            </td>
-                            <td className="px-6 py-5"></td>
-                            <td className="px-6 py-5 text-right text-2xl font-black text-teal-400">₹{total.toLocaleString()}</td>
-                         </tr>
-                      </tbody>
-                   </table>
-                </div>
-             </div>
+          <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8">
+            <h4 className="text-lg font-bold flex items-center gap-2 mb-6"><Heart className="w-5 h-5 text-teal-700" /> Review Billing</h4>
+            <div className="border border-stone-100 rounded-2xl overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <tbody className="divide-y divide-stone-50">
+                  {bookingState.guests.map((g) => (
+                    <tr key={g.id}>
+                      <td className="px-6 py-4 font-bold">{g.name}<span className="block text-[10px] text-stone-400 font-normal">Base + Add-ons</span></td>
+                      <td className="px-6 py-4 text-right">₹{(totals.basePrice + getGuestAddOnTotal(g)).toLocaleString()}</td>
+                    </tr>
+                  ))}
+                  <tr className="bg-stone-50/50">
+                    <td className="px-6 py-3 text-xs font-bold text-stone-500 uppercase">Subtotal</td>
+                    <td className="px-6 py-3 text-right font-bold">₹{totals.subtotal.toLocaleString()}</td>
+                  </tr>
+                  <tr className="bg-white">
+                    <td className="px-6 py-3 text-xs font-bold text-stone-400 uppercase">GST (18%)</td>
+                    <td className="px-6 py-3 text-right font-bold text-stone-500">₹{totals.tax.toLocaleString()}</td>
+                  </tr>
+                  <tr className="bg-stone-900 text-white font-black">
+                    <td className="px-6 py-5">Total Payable</td>
+                    <td className="px-6 py-5 text-right text-2xl text-teal-400">₹{totals.total.toLocaleString()}</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
 
-        {/* Right Column: Payment Sidebar */}
-        <div className="lg:col-span-4 relative">
-           <div className="sticky top-24 space-y-6">
-              <div className="bg-white rounded-[40px] p-8 shadow-2xl shadow-stone-200 border border-stone-100">
-                <h3 className="text-xl font-black text-stone-900 mb-8 tracking-tight">{ui.payment.title}</h3>
-                
-                {/* Coupon Input */}
-                <div className="mb-8">
-                  <div className="flex gap-2">
-                    <input 
-                      type="text" 
-                      value={couponCode}
-                      onChange={e => setCouponCode(e.target.value)}
-                      placeholder={ui.payment.coupon.placeholder}
-                      className="flex-1 bg-stone-50 border-2 border-stone-100 rounded-xl px-4 py-3 text-sm font-bold focus:border-teal-700 outline-none transition-all uppercase placeholder:normal-case"
-                    />
-                    <button 
-                      onClick={handleApplyCoupon}
-                      className="bg-stone-900 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest hover:bg-black transition-all"
-                    >
-                      {ui.payment.coupon.cta}
-                    </button>
-                  </div>
-                  {couponError && <p className="text-red-500 text-[10px] font-bold mt-2 ml-1">{couponError}</p>}
-                </div>
-
-                <button 
-                  onClick={handlePayment}
-                  disabled={isProcessing}
-                  className="w-full bg-teal-700 hover:bg-teal-800 disabled:bg-stone-200 text-white py-5 rounded-3xl font-black text-lg transition-all shadow-xl shadow-teal-100 flex items-center justify-center gap-3 group relative overflow-hidden"
-                >
-                  {isProcessing ? (
-                    <div className="flex items-center gap-3">
-                      <div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin"></div>
-                      <span>{ui.payment.processing}</span>
-                    </div>
-                  ) : (
-                    <>
-                      <CreditCard className="w-6 h-6" /> {ui.payment.cta}
-                    </>
-                  )}
-                </button>
-                
-                <div className="mt-6 flex items-center justify-center gap-6 opacity-40">
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5e/Visa_Inc._logo.svg/2560px-Visa_Inc._logo.svg.png" className="h-3 object-contain" alt="Visa" />
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2a/Mastercard-logo.svg/1280px-Mastercard-logo.svg.png" className="h-5 object-contain" alt="Mastercard" />
-                  <img src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b5/PayPal.svg/1200px-PayPal.svg.png" className="h-4 object-contain" alt="PayPal" />
-                </div>
-              </div>
-
-              <div className="bg-stone-50 rounded-3xl p-6 border border-stone-100">
-                 <div className="flex items-start gap-4">
-                    <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center shrink-0 shadow-sm">
-                       <ShieldCheck className="w-6 h-6 text-teal-700" />
-                    </div>
-                    <div>
-                       <h5 className="text-sm font-black text-stone-900 mb-1">{ui.payment.security.title}</h5>
-                       <p className="text-[10px] text-stone-500 font-medium leading-relaxed">{ui.payment.security.desc}</p>
-                    </div>
-                 </div>
-              </div>
-           </div>
+        <div className="lg:col-span-4">
+          <div className="bg-white rounded-[40px] p-8 shadow-2xl border border-stone-100 sticky top-24">
+            <h3 className="text-xl font-black mb-8">Confirm Booking</h3>
+            <button onClick={handlePayment} disabled={isProcessing} className="w-full bg-teal-700 hover:bg-teal-800 text-white py-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-xl disabled:bg-stone-200">
+              {isProcessing ? <><div className="w-5 h-5 border-4 border-white/30 border-t-white rounded-full animate-spin" /> Processing...</> : <><CreditCard className="w-6 h-6" /> Confirm & Pay</>}
+            </button>
+            {couponError && <p className="text-red-500 text-[10px] mt-4 font-bold text-center">{couponError}</p>}
+          </div>
         </div>
       </div>
-
-      {/* Back Button */}
-      <button 
-        onClick={onBack}
-        className="mt-12 flex items-center gap-2 text-stone-400 hover:text-stone-900 font-black text-xs uppercase tracking-widest transition-all"
-      >
-        <ChevronLeft className="w-5 h-5" /> {ui.footer.back}
-      </button>
+      <button onClick={onBack} className="mt-12 flex items-center gap-2 text-stone-400 hover:text-stone-900 font-black text-xs uppercase"><ChevronLeft className="w-5 h-5" /> Back</button>
     </div>
   );
 };
@@ -1311,17 +1169,17 @@ import { BookingState, EventData } from '../types';
 import { 
   CheckCircle, 
   ArrowRight, 
-  Download, 
   Mail, 
+  Ticket, 
+  X, 
+  FileCheck, 
+  ShieldCheck, 
+  Flower2, 
+  Clock, 
+  Sparkles,
   FileText,
-  Calendar,
-  Ticket,
-  X,
-  FileCheck,
-  ShieldCheck,
-  Flower2,
-  Clock,
-  Sparkles
+  Download,
+  Calendar
 } from 'lucide-react';
 
 interface PaymentStatusProps {
@@ -1334,6 +1192,14 @@ interface PaymentStatusProps {
 
 const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, event, ui, onDashboard }) => {
   const [showConfetti, setShowConfetti] = useState(false);
+
+  // SAFETY GUARD: If App.tsx passes ui.bookingSummary as 'ui', 
+  // we extract the payment object safely.
+  const paymentUI = ui?.payment || {};
+  const statusUI = paymentUI?.status || {
+      success: { title: "Success!", desc: "Booking confirmed.", emailSent: "Email sent to", cta: "Go to Dashboard" },
+      failed: { title: "Payment Failed", desc: "Please try again.", cta: "Retry" }
+  };
 
   useEffect(() => {
     if (success) {
@@ -1348,14 +1214,14 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
       <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[30px] flex items-center justify-center mx-auto mb-8 shadow-inner rotate-12">
         <X className="w-12 h-12" />
       </div>
-      <h2 className="text-4xl font-black mb-4 tracking-tighter text-stone-900">{ui.payment.status.failed.title}</h2>
-      <p className="text-stone-500 mb-8 font-medium">{ui.payment.status.failed.desc}</p>
+      <h2 className="text-4xl font-black mb-4 tracking-tighter text-stone-900">{statusUI.failed.title}</h2>
+      <p className="text-stone-50 mb-8 font-medium">{statusUI.failed.desc}</p>
       <div className="flex flex-col gap-3">
         <button 
           onClick={() => window.location.reload()}
           className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all"
         >
-          {ui.payment.status.failed.cta}
+          {statusUI.failed.cta}
         </button>
       </div>
     </div>
@@ -1364,7 +1230,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
   return (
     <div className="max-w-2xl mx-auto py-12 px-6 w-full animate-fadeIn pb-32">
       <div className="text-center mb-12">
-        <div className="w-28 h-28 bg-emerald-100 text-emerald-500 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner shadow-emerald-200 relative">
+        <div className="w-28 h-28 bg-emerald-100 text-emerald-500 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner relative">
           <CheckCircle className="w-14 h-14" />
           {showConfetti && (
             <div className="absolute -inset-4 pointer-events-none">
@@ -1373,44 +1239,30 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
             </div>
           )}
         </div>
-        <h2 className="text-5xl font-black mb-3 tracking-tighter text-stone-900">{ui.payment.status.success.title}</h2>
-        <p className="text-stone-500 text-lg font-medium">{ui.payment.status.success.desc}</p>
+        <h2 className="text-5xl font-black mb-3 tracking-tighter text-stone-900">{statusUI.success.title}</h2>
+        <p className="text-stone-500 text-lg font-medium">{statusUI.success.desc}</p>
         
         <div className="mt-8 flex flex-col items-center gap-3">
            <span className="flex items-center gap-2 bg-teal-50 text-teal-700 px-5 py-2.5 rounded-2xl font-bold text-sm border border-teal-100/50 shadow-sm">
-             <Mail className="w-4 h-4" /> {ui.payment.status.success.emailSent} {bookingState.guests[0].email}
+             <Mail className="w-4 h-4" /> {statusUI.success.emailSent} {bookingState.guests[0]?.email}
            </span>
-           
-           {bookingState.is80GRequired && (
-              <div className="bg-amber-50 border border-amber-100 p-4 rounded-2xl max-w-sm animate-slideUp">
-                <p className="flex items-center justify-center gap-2 text-amber-700 font-black text-[10px] uppercase tracking-widest mb-1">
-                  <FileCheck className="w-4 h-4" /> {ui.payment.status.success.taxReceipt.title}
-                </p>
-                <p className="text-[10px] text-amber-600 font-medium leading-tight">
-                  "{ui.payment.status.success.taxReceipt.desc}"
-                </p>
-              </div>
-           )}
         </div>
       </div>
 
       <div className="bg-white rounded-[40px] shadow-2xl shadow-stone-100 overflow-hidden border border-stone-100 mb-10">
         <div className="bg-stone-900 p-10 text-white relative">
-          <div className="absolute top-0 right-0 p-8 opacity-5">
-             <Ticket className="w-40 h-40" />
-          </div>
           <div className="relative z-10">
              <div className="flex justify-between items-start mb-10">
                <div>
                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-teal-400">Booking ID</span>
-                 <p className="text-2xl font-mono font-bold">#ZEN-2025-Q{Math.floor(100 + Math.random() * 900)}</p>
+                 <p className="text-2xl font-mono font-bold">#ZEN-CONFIRMED</p>
                </div>
                <div className="text-right">
                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-teal-400">Reserved On</span>
-                 <p className="text-lg font-bold">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                 <p className="text-lg font-bold">{new Date().toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
                </div>
              </div>
-             <h3 className="text-3xl font-black mb-2">{bookingState.plan?.title}</h3>
+             <h3 className="text-3xl font-black mb-2">{bookingState.selectedPlan?.title}</h3>
              <div className="flex flex-wrap gap-4 mt-4">
                 <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/5"><Calendar className="w-4 h-4 text-teal-400" /> {event.date}</span>
                 <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/5"><ShieldCheck className="w-4 h-4 text-teal-400" /> Fully Confirmed</span>
@@ -1419,60 +1271,40 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
         </div>
         
         <div className="p-10">
-          <h4 className="text-[10px] font-black text-stone-300 uppercase tracking-[0.2em] mb-6">Downloadable Documents</h4>
+          <h4 className="text-[10px] font-black text-stone-300 uppercase tracking-[0.2em] mb-6">Documents</h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <button className="flex items-center justify-between p-5 rounded-2xl border-2 border-stone-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group">
+            <div className="flex items-center justify-between p-5 rounded-2xl border-2 border-stone-50">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-stone-50 rounded-xl group-hover:bg-white transition-all">
+                <div className="p-2.5 bg-stone-50 rounded-xl">
                   <Ticket className="w-5 h-5 text-teal-700" />
                 </div>
                 <div className="text-left">
                   <span className="block text-xs font-black text-stone-900">E-Ticket PDF</span>
-                  <span className="block text-[9px] text-stone-400 font-bold uppercase">Ready to download</span>
+                  <span className="block text-[9px] text-stone-400 font-bold uppercase">Ready</span>
                 </div>
               </div>
-              <Download className="w-4 h-4 text-stone-300 group-hover:text-teal-700" />
-            </button>
-            
-            <button className="flex items-center justify-between p-5 rounded-2xl border-2 border-stone-50 hover:border-teal-100 hover:bg-teal-50/30 transition-all group">
+            </div>
+            <div className="flex items-center justify-between p-5 rounded-2xl border-2 border-stone-50">
               <div className="flex items-center gap-3">
-                <div className="p-2.5 bg-stone-50 rounded-xl group-hover:bg-white transition-all">
+                <div className="p-2.5 bg-stone-50 rounded-xl">
                   <FileText className="w-5 h-5 text-teal-700" />
                 </div>
                 <div className="text-left">
                   <span className="block text-xs font-black text-stone-900">Invoice PDF</span>
-                  <span className="block text-[9px] text-stone-400 font-bold uppercase">Tax Compliant</span>
+                  <span className="block text-[9px] text-stone-400 font-bold uppercase">Generated</span>
                 </div>
               </div>
-              <Download className="w-4 h-4 text-stone-300 group-hover:text-teal-700" />
-            </button>
-
-            {bookingState.is80GRequired && (
-              <div className="col-span-1 sm:col-span-2 p-5 rounded-2xl bg-amber-50/50 border-2 border-amber-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="p-2.5 bg-white rounded-xl">
-                    <Clock className="w-5 h-5 text-amber-600" />
-                  </div>
-                  <div className="text-left">
-                    <span className="block text-xs font-black text-stone-900">80G Receipt</span>
-                    <span className="block text-[9px] text-stone-500 font-bold uppercase">Will be emailed 2-3 days post-event</span>
-                  </div>
-                </div>
-                <span className="text-[8px] font-black text-amber-600 bg-amber-100 px-2 py-1 rounded-md uppercase tracking-widest">Processing</span>
-              </div>
-            )}
+            </div>
           </div>
         </div>
       </div>
 
-      <div className="space-y-4">
-        <button 
-          onClick={onDashboard}
-          className="w-full bg-teal-700 text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-teal-800 transition-all shadow-xl shadow-teal-100 hover:scale-[1.01] active:scale-[0.99] group"
-        >
-          {ui.payment.status.success.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-        </button>
-      </div>
+      <button 
+        onClick={onDashboard}
+        className="w-full bg-teal-700 text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-teal-800 transition-all shadow-xl shadow-teal-100 group"
+      >
+        {statusUI.success.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
+      </button>
     </div>
   );
 };
@@ -2096,6 +1928,10 @@ export default PlanSelection;
 <file path="src/services/dataService.ts">
 import { EventData, Plan } from '../../types';
 
+// 1. Locally extend EventData so TypeScript knows about 'id'
+// without having to modify the external types file.
+type EventDataWithId = EventData & { id: number | string };
+
 export interface UIContent {
   landingPage: any;
   planSelection: any;
@@ -2118,7 +1954,7 @@ export interface AppConfig {
 }
 
 export interface EventResponse {
-  event: EventData;
+  event: EventDataWithId; // Use our local type here
   schedule: any[];
   mentors: any;
   insights: any[];
@@ -2126,19 +1962,43 @@ export interface EventResponse {
 
 export const fetchData = async <T>(path: string): Promise<T> => {
   const response = await fetch(`/data/${path}`);
-  if (!response.ok) {
-    throw new Error(`Failed to fetch ${path}`);
-  }
+  if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
 
-export const getAllData = async () => {
-  const [eventData, plans, uiContent, config] = await Promise.all([
-    fetchData<EventResponse>('event.json'),
-    fetchData<Plan[]>('plans.json'),
+export const getAllData = async (eventId: string | number) => {
+  const apiResponse = await fetch(`http://localhost:8081/events/${eventId}/details`);
+  
+  if (!apiResponse.ok) throw new Error('Event not found or API down');
+  const apiData = await apiResponse.json();
+
+  const [uiContent, config] = await Promise.all([
     fetchData<UIContent>('ui-content.json'),
     fetchData<AppConfig>('config.json')
   ]);
+
+  const eventData: EventResponse = {
+    event: {
+      id: apiData.EventID, // This will now work perfectly
+      title: apiData.EventName,
+      banner: apiData.bannerImage,
+      date: `${apiData.EventStartDate} to ${apiData.EventEndDate}`,
+      time: apiData.time || "06:00 AM",
+      venue: apiData.venue || "PVI Bengaluru",
+      description: apiData.description
+    },
+    schedule: apiData.schedules || [], 
+    mentors: apiData.mentors,
+    insights: apiData.insights || []
+  };
+
+  const plans: Plan[] = apiData.plans.map((p: any) => ({
+    ...p,
+    id: p.planID.toString(),
+    thumbnail: p.bannerImage,
+    finalPrice: p.PlanPrice,
+    amenities: p.icons ? p.icons.map((i: any) => i.Title) : []
+  }));
 
   return {
     eventData,
@@ -2146,6 +2006,21 @@ export const getAllData = async () => {
     uiContent,
     config
   };
+};
+
+export const createBooking = async (bookingData: any) => {
+  const response = await fetch('http://localhost:8081/bookings', { 
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bookingData),
+  });
+
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.message || 'Failed to create booking');
+  }
+
+  return response.json();
 };
 </file>
 
@@ -2189,21 +2064,11 @@ dist-ssr
 
 <file path="App.tsx">
 import React, { useState, useEffect } from 'react';
-import { 
-  ChevronLeft, 
-  ChevronRight, 
-  Ticket, 
-  Users, 
-  CreditCard, 
-  CheckCircle,
-  FileText,
-  Loader2
-} from 'lucide-react';
+import { ChevronLeft, CheckCircle, Loader2 } from 'lucide-react';
 import { createEmptyGuest } from './constants';
-import { BookingState, Guest, Plan, FoodPreference, DiscountInfo } from './types';
+import { BookingState, Guest, Plan } from './types';
 import { getAllData, EventResponse, UIContent, AppConfig } from './src/services/dataService';
 
-// Page Components
 import LandingPage from './components/LandingPage';
 import PlanSelection from './components/PlanSelection';
 import PlanDetail from './components/PlanDetail';
@@ -2228,11 +2093,7 @@ const App: React.FC = () => {
     guests: [createEmptyGuest()],
     discounts: { type: 'NONE', amount: 0 },
     is80GRequired: false,
-    taxInfo: {
-      panNumber: "",
-      fullName: "",
-      address: ""
-    }
+    taxInfo: { panNumber: "", fullName: "", address: "" }
   });
 
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'FAILED' | null>(null);
@@ -2240,11 +2101,12 @@ const App: React.FC = () => {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const allData = await getAllData();
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id') || '1'; // Dynamic ID from URL
+        const allData = await getAllData(eventId);
         setData(allData);
       } catch (err) {
-        setError('Failed to load application data. Please try again later.');
-        console.error(err);
+        setError('Failed to load event data. Please ensure the URL is correct.');
       } finally {
         setLoading(false);
       }
@@ -2256,15 +2118,7 @@ const App: React.FC = () => {
   const prevStep = () => setBookingState(prev => ({ ...prev, currentStep: Math.max(1, prev.currentStep - 1) }));
 
   const selectPlan = (plan: Plan) => {
-    setBookingState(prev => ({ 
-      ...prev, 
-      selectedPlan: plan, 
-      currentStep: 3 
-    }));
-  };
-
-  const updateGuests = (guests: Guest[]) => {
-    setBookingState(prev => ({ ...prev, guests }));
+    setBookingState(prev => ({ ...prev, selectedPlan: plan, currentStep: 3 }));
   };
 
   const handlePayment = (success: boolean) => {
@@ -2277,153 +2131,75 @@ const App: React.FC = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="text-center">
-          <Loader2 className="w-12 h-12 text-teal-700 animate-spin mx-auto mb-4" />
-          <p className="text-stone-600 font-bold">Loading your experience...</p>
-        </div>
+  if (loading) return (
+    <div className="min-h-screen flex items-center justify-center bg-stone-50">
+      <div className="text-center">
+        <Loader2 className="w-12 h-12 text-teal-700 animate-spin mx-auto mb-4" />
+        <p className="text-stone-600 font-bold">Loading Experience...</p>
       </div>
-    );
-  }
+    </div>
+  );
 
-  if (error || !data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-stone-50">
-        <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md text-center border border-stone-100">
-          <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
-            <CheckCircle className="w-8 h-8 rotate-45" />
-          </div>
-          <h2 className="text-2xl font-black text-stone-900 mb-4">Oops!</h2>
-          <p className="text-stone-500 font-medium mb-8">{error || 'Something went wrong.'}</p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="w-full bg-stone-900 text-white py-4 rounded-2xl font-black hover:bg-black transition-all"
-          >
-            Retry
-          </button>
-        </div>
+  if (error || !data) return (
+    <div className="min-h-screen flex items-center justify-center bg-stone-50 p-6">
+      <div className="bg-white p-8 rounded-3xl shadow-xl max-w-md text-center">
+        <h2 className="text-2xl font-black text-stone-900 mb-4">Oops!</h2>
+        <p className="text-stone-500 mb-8">{error}</p>
+        <button onClick={() => window.location.reload()} className="bg-stone-900 text-white px-8 py-3 rounded-xl">Retry</button>
       </div>
-    );
-  }
+    </div>
+  );
 
-  // Rendering logic based on step
   const renderStep = () => {
     switch (bookingState.currentStep) {
       case 1:
-        return (
-          <LandingPage 
-            event={data.eventData.event} 
-            schedule={data.eventData.schedule}
-            mentors={data.eventData.mentors}
-            insights={data.eventData.insights}
-            ui={data.uiContent.landingPage}
-            onProceed={nextStep} 
-          />
-        );
+        return <LandingPage event={data.eventData.event} schedule={data.eventData.schedule} mentors={data.eventData.mentors} insights={data.eventData.insights} ui={data.uiContent.landingPage} onProceed={nextStep} />;
       case 2:
-        return (
-          <PlanSelection 
-            plans={data.plans} 
-            ui={data.uiContent.planSelection}
-            onSelect={selectPlan} 
-            onBack={prevStep} 
-          />
-        );
+        return <PlanSelection plans={data.plans} ui={data.uiContent.planSelection} onSelect={selectPlan} onBack={prevStep} />;
       case 3:
-        return (
-          <PlanDetail 
-            plan={bookingState.selectedPlan!} 
-            onProceed={nextStep} 
-            onBack={prevStep} 
-          />
-        );
+        return <PlanDetail plan={bookingState.selectedPlan!} onProceed={nextStep} onBack={prevStep} />;
       case 4:
-        return (
-          <GuestForm 
-            guests={bookingState.guests} 
-            setGuests={updateGuests} 
-            ui={data.uiContent.guestForm}
-            roomTypes={data.config.ROOM_TYPES}
-            onProceed={nextStep} 
-            onBack={prevStep} 
-          />
-        );
+        return <GuestForm guests={bookingState.guests} setGuests={(g) => setBookingState(p => ({...p, guests: g}))} ui={data.uiContent.guestForm} roomTypes={data.config.ROOM_TYPES || []} onProceed={nextStep} onBack={prevStep} />;
       case 5:
         return (
           <BookingSummary 
-            booking={bookingState} 
-            setBooking={setBookingState} 
+            bookingState={{ ...bookingState, plan: bookingState.selectedPlan }} 
             ui={data.uiContent.bookingSummary}
             config={data.config}
             event={data.eventData.event}
-            onProceed={() => handlePayment(true)} 
+            onConfirm={() => handlePayment(true)} 
             onBack={prevStep} 
           />
         );
       case 6:
         return paymentResult === 'SUCCESS' 
-          ? <PaymentStatus success={true} booking={bookingState} onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))} />
-          : <BookingSummary 
-              booking={bookingState} 
-              setBooking={setBookingState} 
-              ui={data.uiContent.bookingSummary}
-              config={data.config}
-              event={data.eventData.event}
-              onProceed={() => handlePayment(true)} 
-              onBack={() => setBookingState(prev => ({ ...prev, currentStep: 5 }))} 
-            />;
+          ? <PaymentStatus success={true} bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))} />
+          : <div className="text-center py-20">Payment Failed. Please try again.</div>;
       case 7:
-        return <DownloadsDashboard booking={bookingState} />;
+        return <DownloadsDashboard bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} />;
       default:
-        return (
-          <LandingPage 
-            event={data.eventData.event} 
-            schedule={data.eventData.schedule}
-            mentors={data.eventData.mentors}
-            insights={data.eventData.insights}
-            ui={data.uiContent.landingPage}
-            onProceed={nextStep} 
-          />
-        );
+        return <LandingPage event={data.eventData.event} schedule={data.eventData.schedule} mentors={data.eventData.mentors} insights={data.eventData.insights} ui={data.uiContent.landingPage} onProceed={nextStep} />;
     }
   };
 
   return (
     <div className="min-h-screen flex flex-col">
-      {/* Header Navigation */}
       {bookingState.currentStep > 1 && bookingState.currentStep < 6 && (
         <header className="bg-white border-b sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
-            <button 
-              onClick={prevStep}
-              className="p-2 hover:bg-gray-100 rounded-full transition-colors"
-            >
-              <ChevronLeft className="w-6 h-6 text-gray-600" />
-            </button>
+            <button onClick={prevStep} className="p-2 hover:bg-gray-100 rounded-full"><ChevronLeft className="w-6 h-6 text-gray-600" /></button>
             <div className="flex space-x-2">
               {[1, 2, 3, 4, 5].map((s) => (
-                <div 
-                  key={s} 
-                  className={`h-1.5 w-12 rounded-full transition-all duration-300 ${
-                    s <= bookingState.currentStep ? 'bg-indigo-600' : 'bg-gray-200'
-                  }`}
-                />
+                <div key={s} className={`h-1.5 w-12 rounded-full transition-all duration-300 ${s <= bookingState.currentStep ? 'bg-teal-700' : 'bg-gray-200'}`} />
               ))}
             </div>
-            <div className="w-10" /> {/* Spacer */}
+            <div className="w-10" />
           </div>
         </header>
       )}
-
-      <main className="flex-1 w-full flex flex-col overflow-x-hidden">
-        {renderStep()}
-      </main>
-
-      {/* Footer Branding */}
-      <footer className="py-6 text-center text-gray-500 text-sm border-t bg-white">
-        © 2025 EventBook Pro. Secure Payments Guaranteed.
+      <main className="flex-1 w-full overflow-x-hidden">{renderStep()}</main>
+      <footer className="py-6 text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
+        © 2025 EventBook Pro. Built for {data.eventData.event.title}
       </footer>
     </div>
   );
