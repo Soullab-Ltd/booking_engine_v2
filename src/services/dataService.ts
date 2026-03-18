@@ -39,7 +39,7 @@ export const fetchData = async <T>(path: string): Promise<T> => {
 };
 
 export const getAllData = async (eventId: string | number) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/${eventId}/details`);
+  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/${eventId}/details`);
   
   if (!apiResponse.ok) throw new Error('Event not found or API down');
   const apiData = await apiResponse.json();
@@ -81,7 +81,7 @@ export const getAllData = async (eventId: string | number) => {
 };
 
 export const createBooking = async (bookingData: any) => {
-  const response = await fetch('http://localhost:4000/bookings', { 
+  const response = await fetch('https://bookingapi.thriive.in/bookings', { 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bookingData),
