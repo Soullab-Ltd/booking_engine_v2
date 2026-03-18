@@ -59,7 +59,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({ bookingState, e
   return (
     <div className="max-w-6xl mx-auto px-4 py-16 w-full animate-fadeIn pb-32">
       <div className="mb-12">
-        <h2 className="text-5xl font-black text-stone-900 mb-3 tracking-tighter">{ui.dashboard.title}</h2>
+        <h2 className="text-5xl font-black text-stone-900 mb-3 tracking-tighter">{ui?.dashboard?.title}</h2>
         <p className="text-stone-500 font-medium text-lg max-w-2xl leading-relaxed">
           {ui.dashboard.desc} <a href="mailto:support@retreat.co" className="text-teal-700 underline font-bold underline-offset-4 decoration-teal-700/30 hover:decoration-teal-700 transition-all">[Contact Support]</a>
         </p>
