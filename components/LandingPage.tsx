@@ -160,16 +160,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
                   <div className="absolute top-0 right-0 w-96 h-96 bg-teal-700/20 rounded-full blur-3xl -m-32"></div>
                   <div className="relative z-10 flex flex-col lg:flex-row gap-12 items-center">
                      <div className="w-full lg:w-80 h-96 rounded-[40px] overflow-hidden border-8 border-white/10 shadow-2xl shrink-0">
-                        <img src={mentors.main.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={mentors.main.name} />
+                        <img src={mentors?.main?.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={mentors?.main?.name} />
                      </div>
                      <div className="space-y-6">
                         <div className="inline-flex items-center gap-2 bg-teal-700 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                            <Heart className="w-4 h-4 fill-current" />
                         </div>
-                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter">{mentors.main.name}</h3>
-                        <p className="text-teal-200 text-sm font-bold uppercase tracking-widest">{mentors.main.role}</p>
+                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter">{mentors?.main?.name}</h3>
+                        <p className="text-teal-200 text-sm font-bold uppercase tracking-widest">{mentors?.main?.role}</p>
                         <p className="text-lg text-teal-100/80 leading-relaxed font-medium">
-                           {mentors.main.bio}
+                           {mentors?.main?.bio}
                         </p>
                      </div>
                   </div>
@@ -177,23 +177,34 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
 
                {/* Others Grid */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                  {mentors.others.map((mentor: any, idx: number) => (
-                    <div key={idx} className="bg-white p-8 rounded-[40px] border border-stone-100 shadow-sm hover:shadow-2xl hover:border-teal-100 transition-all group">
-                       <div className="flex items-center gap-6 mb-8">
-                          <div className="w-24 h-24 rounded-[28px] overflow-hidden border-4 border-stone-50 shadow-md shrink-0">
-                             <img src={mentor.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={mentor.name} />
-                          </div>
-                          <div>
-                             <h4 className="text-xl font-black text-stone-900">{mentor.name}</h4>
-                             <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest mt-1">{mentor.role}</p>
-                          </div>
-                       </div>
-                       <p className="text-sm text-stone-500 leading-relaxed font-medium">
-                          {mentor.bio}
-                       </p>
-                    </div>
-                  ))}
-               </div>
+  {(mentors?.others || []).map((mentor: any, idx: number) => (
+    <div
+      key={idx}
+      className="bg-white p-8 rounded-[40px] border border-stone-100 shadow-sm hover:shadow-2xl hover:border-teal-100 transition-all group"
+    >
+      <div className="flex items-center gap-6 mb-8">
+        <div className="w-24 h-24 rounded-[28px] overflow-hidden border-4 border-stone-50 shadow-md shrink-0">
+          <img
+            src={mentor?.img || "/default-mentor.jpg"}
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+            alt={mentor?.name || "mentor"}
+          />
+        </div>
+        <div>
+          <h4 className="text-xl font-black text-stone-900">
+            {mentor?.name || "Mentor Name"}
+          </h4>
+          <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest mt-1">
+            {mentor?.role || ""}
+          </p>
+        </div>
+      </div>
+      <p className="text-sm text-stone-500 leading-relaxed font-medium">
+        {mentor?.bio || ""}
+      </p>
+    </div>
+  ))}
+</div>
             </section>
           </div>
 
