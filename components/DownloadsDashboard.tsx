@@ -61,7 +61,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({ bookingState, e
       <div className="mb-12">
         <h2 className="text-5xl font-black text-stone-900 mb-3 tracking-tighter">{ui?.dashboard?.title}</h2>
         <p className="text-stone-500 font-medium text-lg max-w-2xl leading-relaxed">
-          {ui.dashboard.desc} <a href="mailto:support@retreat.co" className="text-teal-700 underline font-bold underline-offset-4 decoration-teal-700/30 hover:decoration-teal-700 transition-all">[Contact Support]</a>
+          {ui?.dashboard?.desc} <a href="mailto:support@retreat.co" className="text-teal-700 underline font-bold underline-offset-4 decoration-teal-700/30 hover:decoration-teal-700 transition-all">[Contact Support]</a>
         </p>
       </div>
 
@@ -119,10 +119,10 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({ bookingState, e
           <section>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
                <h3 className="text-2xl font-black text-stone-900 flex items-center gap-3">
-                  <Download className="w-7 h-7 text-teal-600" /> {ui.dashboard.downloads.title}
+                  <Download className="w-7 h-7 text-teal-600" /> {ui?.dashboard?.downloads.title}
                </h3>
                <button className="w-full sm:w-auto bg-stone-900 text-white px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-lg group">
-                  <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> {ui.dashboard.downloads.cta}
+                  <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> {ui?.dashboard?.downloads?.cta}
                </button>
             </div>
             
@@ -169,7 +169,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({ bookingState, e
              <div className="absolute top-0 right-0 -m-12 w-48 h-48 bg-teal-700/20 rounded-full blur-3xl"></div>
              
              <h4 className="text-xl font-black mb-8 flex items-center gap-3">
-                <Compass className="w-6 h-6 text-teal-400" /> {ui.dashboard.logistics.title}
+                <Compass className="w-6 h-6 text-teal-400" /> {ui?.dashboard?.logistics?.title}
              </h4>
              <div className="space-y-8 relative z-10">
                 <div className="flex items-start gap-4 group">
@@ -201,7 +201,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({ bookingState, e
              </div>
              
              <button className="w-full mt-12 bg-white text-stone-900 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-teal-50 transition-all shadow-xl active:scale-95">
-                {ui.dashboard.logistics.cta} <Navigation className="w-4 h-4" />
+                {ui?.dashboard?.logistics?.cta} <Navigation className="w-4 h-4" />
              </button>
           </div>
 
