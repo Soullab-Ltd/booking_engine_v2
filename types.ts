@@ -33,24 +33,137 @@ export interface Guest {
 }
 
 export interface Plan {
-  id: string;
-  title: string;
-  thumbnail: string;
-  description: string;
-  fullDescription: string;
-  discountedPrice: number;
-  finalPrice: number;
-  gstDetails: string;
-  amenities: string[];
+  planID?: number;
+
+  // Core fields
+  PlanTitle: string;
+  stayRoomType: string;
+  PlanPrice: number;
+  eventIds: number[];
+
+  // Relations
+  parentPlans?: {
+    planID: number;
+    PlanTitle?: string;
+  }[];
+
+  childPlans?: {
+    planID: number;
+    PlanTitle?: string;
+  }[];
+
+  // Optional fields
+  OfferPrice?: number;
+  Duration?: number;
+  PlanDescription?: string;
+  PlanName?: string;
+  PlanSubtitle?: string;
+  bannerImage?: string | null;
+  planColor?: string | null;
+  isPureVeg?: boolean;
+  isActive: boolean;
+  tag?: 'Adult' | 'Kid' | string;
+
+  parentPlanIds?: number[];
+  iconIds?: number[];
+
+  // Special plan logic
+  isSpecialPlan?: boolean;
+  applyToAllPlans?: boolean;
+  specialCriteriaAgeMin?: number;
+  specialCriteriaAgeMax?: number;
+
+  // Inventory
+  inventory: {
+    totalRooms: number;
+    totalBeds: number;
+    maxQuantity?: number;
+    remainingInventory?: number;
+  };
+
+  remainingInventory?: number;
+  maxPax?: number | null;
+
+  // Age range
+  ageRangeMin?: number;
+  ageRangeMax?: number;
+
+  // Pricing / GST
+  discountedPrice?: number;
+  gstType?: 'inclusive' | 'exclusive';
+  gstRate?: number;
+  gstDetails?: string;
+
+  // Descriptions
+  fullDescription?: string | null;
+
+  // Icons
+  icons?: {
+    id: number;
+    Title: string;
+    IconUrl?: string;
+    Type?: string;
+    selected?: boolean;
+    PlanID?: number;
+  }[];
+
+  customIcons?: {
+    id: number;
+    Title: string;
+    IconUrl?: string;
+    Type?: string;
+  }[];
+
+  // Images
+  images?: {
+    id: number;
+    planID?: number;
+    imageUrl?: string;
+    url?: string;
+    isMain?: boolean | number;
+    isThumbnail?: boolean | number;
+  }[];
 }
 
 export interface EventData {
   title: string;
-  banner: string;
+  bannerImage: string | null;
   date: string;
   time: string;
   venue: string;
   description: string;
+}
+export interface EventImage {
+  id: number;
+  url: string;
+  isMain: boolean;
+  isThumbnail: boolean;
+}
+
+export interface EventTemplateFile {
+  file: string | null;
+  templateUrl: string | null;
+}
+
+export interface EventTemplates {
+  invoice: EventTemplateFile;
+  ticket: EventTemplateFile;
+  certificate: EventTemplateFile;
+}
+
+export interface EventScheduleItem {
+  id: string;
+  date: string;
+  time: string;
+  title: string;
+  description: string;
+}
+
+export interface AdditionalAsset {
+  id: number;
+  type: string;
+  title: string;
+  url: string;
 }
 
 export interface DiscountInfo {

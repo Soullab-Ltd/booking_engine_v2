@@ -25,21 +25,56 @@ export interface AppConfig {
   ROOM_TYPES: any[];
 }
 
+export interface EventImage {
+  id: number;
+  url: string;
+  isMain: boolean;
+  isThumbnail: boolean;
+}
+
+export interface EventTemplateFile {
+  file: string | null;
+  templateUrl: string | null;
+}
+
+export interface EventTemplates {
+  invoice: EventTemplateFile;
+  ticket: EventTemplateFile;
+  certificate: EventTemplateFile;
+}
+
+export interface EventScheduleItem {
+  id: string;
+  date: string;
+  time: string;
+  title: string;
+  description: string;
+}
+
+export interface AdditionalAsset {
+  id: number;
+  type: string;
+  title: string;
+  url: string;
+}
+
+
+
 export interface EventResponse {
-  event: EventDataWithId; // Use our local type here
-  schedule: any[];
-  mentors: any;
+  event: EventDataWithId;
+  schedule: EventScheduleItem[];
+  mentors: any[];
   insights: any[];
 }
 
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`/data/${path}`);
+  const response = await fetch(`https://booking-engine.thriive.in/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
 
 export const getAllData = async (eventId: string | number) => {
-  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/${eventId}/details`);
+  const apiResponse = await fetch(`http://localhost:4000/events/${eventId}/details`);
   
   if (!apiResponse.ok) throw new Error('Event not found or API down');
   const apiData = await apiResponse.json();
@@ -49,20 +84,20 @@ export const getAllData = async (eventId: string | number) => {
     fetchData<AppConfig>('config.json')
   ]);
 
-  const eventData: EventResponse = {
-    event: {
-      id: apiData.EventID, // This will now work perfectly
-      title: apiData.EventName,
-      banner: apiData.bannerImage,
-      date: `${apiData.EventStartDate} to ${apiData.EventEndDate}`,
-      time: apiData.time || "06:00 AM",
-      venue: apiData.venue || "PVI Bengaluru",
-      description: apiData.description
-    },
-    schedule: apiData.schedules || [], 
-    mentors: apiData.mentors,
-    insights: apiData.insights || []
-  };
+const eventData: EventResponse = {
+  event: {
+    id: apiData.EventID,
+    title: apiData.EventName,
+    bannerImage: apiData.bannerImage,
+    date: `${apiData.EventStartDate} to ${apiData.EventEndDate}`,
+    time: apiData.time || "06:00 AM",
+    venue: apiData.venue || "PVI Bengaluru",
+    description: apiData.description
+  },
+  schedule: apiData.schedules || [],
+  mentors: apiData.mentors,
+  insights: apiData.insights || []
+};
 
   const plans: Plan[] = apiData.plans.map((p: any) => ({
     ...p,
