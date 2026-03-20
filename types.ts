@@ -56,7 +56,7 @@ export interface Plan {
   OfferPrice?: number;
   Duration?: number;
   PlanDescription?: string;
-  PlanName?: string;
+ // PlanName?: string;
   PlanSubtitle?: string;
   bannerImage?: string | null;
   planColor?: string | null;
