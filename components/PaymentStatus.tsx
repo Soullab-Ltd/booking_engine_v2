@@ -89,7 +89,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
              <div className="flex justify-between items-start mb-10">
                <div>
                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-teal-400">Booking ID</span>
-                 <p className="text-2xl font-mono font-bold">#ZEN-CONFIRMED</p>
+                 <p className="text-2xl font-mono font-bold">#{bookingState.bookingId || "ZEN-CONFIRMED"}</p>
                </div>
                <div className="text-right">
                  <span className="text-[10px] font-black uppercase tracking-[0.3em] text-teal-400">Reserved On</span>

@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { Calendar, Clock, MapPin, ArrowRight, ShieldCheck, Zap, Heart, Camera, Sun, Wind, Cloud, Info, Star, Users, Sprout, Sparkles, Flower2, Navigation } from 'lucide-react';
 import { EventData } from '../types';
+import { MOCK_SCHEDULE, MOCK_MENTORS, MOCK_INSIGHTS } from '../constants';
 
 interface LandingPageProps {
   event: EventData;
@@ -12,7 +13,7 @@ interface LandingPageProps {
   onProceed: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, insights, ui, onProceed }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, insights, ui, onProceed }) => {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
 
   return (
@@ -20,7 +21,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
       {/* Hero Section */}
       <div className="relative h-[600px] md:h-[850px] w-full overflow-hidden">
         <img 
-          src={event.banner} 
+            src={event.banner || "https://via.placeholder.com/1200x600?text=No+Image"}
+ 
           alt={event.title} 
           className="w-full h-full object-cover scale-105 opacity-90"
         />
@@ -104,7 +106,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
                 
                 {/* Day Filter / Tabs */}
                 <div className="flex flex-wrap justify-center gap-3 mb-12">
-                  {schedule.map((dayData: any, idx: number) => (
+                  {event.schedules?.map((dayData: any, idx: number)  => (
                     <button
                       key={idx}
                       onClick={() => setActiveDayIndex(idx)}
@@ -125,20 +127,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
                 {/* Active Day Content */}
                 <div key={activeDayIndex} className="animate-fadeIn space-y-6">
                   <div className="flex items-center gap-4 mb-8">
-                    <span className="text-4xl font-black text-teal-100 uppercase tracking-tighter">{schedule[activeDayIndex].day}</span>
+                    <span className="text-4xl font-black text-teal-100 uppercase tracking-tighter">
+                      {schedules?.[activeDayIndex]?.day || ""}
+                    </span>
                     <div className="h-px bg-teal-100 flex-1"></div>
                     <span className="text-sm font-bold text-teal-400">{ui.schedule.location}</span>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    {schedule[activeDayIndex].slots.map((slot: any, sIdx: number) => (
+                    {schedules[activeDayIndex].slots.map((slot: any, sIdx: number) => (
                       <div key={sIdx} className="bg-white p-6 rounded-[28px] border border-stone-100 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
                         <div className="md:w-32 shrink-0 flex items-center md:justify-center">
                           <span className="text-sm font-black text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>
                         </div>
                         <div className="flex-1">
                           <h4 className="text-xl font-black text-stone-900 mb-1 group-hover:text-teal-700 transition-colors">{slot.title}</h4>
-                          <p className="text-stone-500 text-sm font-medium">{slot.desc}</p>
+                          <p className="text-stone-500 text-sm font-medium">{slot.description}</p>
                         </div>
                       </div>
                     ))}
@@ -159,16 +163,16 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
                   <div className="absolute top-0 right-0 w-96 h-96 bg-teal-700/20 rounded-full blur-3xl -m-32"></div>
                   <div className="relative z-10 flex flex-col lg:flex-row gap-12 items-center">
                      <div className="w-full lg:w-80 h-96 rounded-[40px] overflow-hidden border-8 border-white/10 shadow-2xl shrink-0">
-                        <img src={mentors?.main?.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={mentors?.main?.name} />
+                        <img src={mentors.main.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={mentors.main.name} />
                      </div>
                      <div className="space-y-6">
                         <div className="inline-flex items-center gap-2 bg-teal-700 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                            <Heart className="w-4 h-4 fill-current" />
                         </div>
-                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter">{mentors?.main?.name}</h3>
-                        <p className="text-teal-200 text-sm font-bold uppercase tracking-widest">{mentors?.main?.role}</p>
+                        <h3 className="text-4xl md:text-5xl font-black tracking-tighter">{mentors.main.name}</h3>
+                        <p className="text-teal-200 text-sm font-bold uppercase tracking-widest">{mentors.main.role}</p>
                         <p className="text-lg text-teal-100/80 leading-relaxed font-medium">
-                           {mentors?.main?.bio}
+                           {mentors.main.bio}
                         </p>
                      </div>
                   </div>
@@ -176,34 +180,23 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
 
                {/* Others Grid */}
                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-  {(mentors?.others || []).map((mentor: any, idx: number) => (
-    <div
-      key={idx}
-      className="bg-white p-8 rounded-[40px] border border-stone-100 shadow-sm hover:shadow-2xl hover:border-teal-100 transition-all group"
-    >
-      <div className="flex items-center gap-6 mb-8">
-        <div className="w-24 h-24 rounded-[28px] overflow-hidden border-4 border-stone-50 shadow-md shrink-0">
-          <img
-            src={mentor?.img || "/default-mentor.jpg"}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-            alt={mentor?.name || "mentor"}
-          />
-        </div>
-        <div>
-          <h4 className="text-xl font-black text-stone-900">
-            {mentor?.name || "Mentor Name"}
-          </h4>
-          <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest mt-1">
-            {mentor?.role || ""}
-          </p>
-        </div>
-      </div>
-      <p className="text-sm text-stone-500 leading-relaxed font-medium">
-        {mentor?.bio || ""}
-      </p>
-    </div>
-  ))}
-</div>
+                  {mentors.others.map((mentor: any, idx: number) => (
+                    <div key={idx} className="bg-white p-8 rounded-[40px] border border-stone-100 shadow-sm hover:shadow-2xl hover:border-teal-100 transition-all group">
+                       <div className="flex items-center gap-6 mb-8">
+                          <div className="w-24 h-24 rounded-[28px] overflow-hidden border-4 border-stone-50 shadow-md shrink-0">
+                             <img src={mentor.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt={mentor.name} />
+                          </div>
+                          <div>
+                             <h4 className="text-xl font-black text-stone-900">{mentor.name}</h4>
+                             <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest mt-1">{mentor.role}</p>
+                          </div>
+                       </div>
+                       <p className="text-sm text-stone-500 leading-relaxed font-medium">
+                          {mentor.bio}
+                       </p>
+                    </div>
+                  ))}
+               </div>
             </section>
           </div>
 

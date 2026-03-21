@@ -28,7 +28,8 @@ const App: React.FC = () => {
     guests: [createEmptyGuest()],
     discounts: { type: 'NONE', amount: 0 },
     is80GRequired: false,
-    taxInfo: { panNumber: "", fullName: "", address: "" }
+    taxInfo: { panNumber: "", fullName: "", address: "" },
+    bookingId: undefined
   });
 
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'FAILED' | null>(null);
@@ -36,30 +37,23 @@ const App: React.FC = () => {
 useEffect(() => {
   const loadData = async () => {
     try {
-      console.log("🚀 loadData triggered");
+      console.log("🚀 Starting data fetch...");
 
       const urlParams = new URLSearchParams(window.location.search);
-      const eventId = urlParams.get('id') || '1';
+      const eventId = urlParams.get('id') || '41';
+
       console.log("📌 Event ID:", eventId);
 
       const allData = await getAllData(eventId);
-      console.log("📦 Full API Response:", allData);
 
-      console.log("📊 Plans from API:", allData?.plans);
-      console.log("📊 Plans length:", allData?.plans?.length);
-
-      if (!allData?.plans || allData.plans.length === 0) {
-        console.warn("⚠️ No plans found for this event");
-      }
+      console.log("✅ API Response:", allData);
 
       setData(allData);
-      console.log("✅ Data set in state");
-
     } catch (err) {
-      console.error("❌ Error loading data:", err);
+      console.error("❌ Error fetching data:", err);
       setError('Failed to load event data. Please ensure the URL is correct.');
     } finally {
-      console.log("🏁 Loading finished");
+      console.log("🏁 Data fetch completed");
       setLoading(false);
     }
   };
@@ -74,15 +68,19 @@ useEffect(() => {
     setBookingState(prev => ({ ...prev, selectedPlan: plan, currentStep: 3 }));
   };
 
-  const handlePayment = (success: boolean) => {
-    if (success) {
-      setPaymentResult('SUCCESS');
-      setBookingState(prev => ({ ...prev, currentStep: 6 }));
-    } else {
-      setPaymentResult('FAILED');
-      setBookingState(prev => ({ ...prev, currentStep: 5 }));
-    }
-  };
+  const handlePayment = (success: boolean, bookingId?: string | number) => {
+  if (success) {
+    setPaymentResult('SUCCESS');
+    setBookingState(prev => ({
+      ...prev,
+      bookingId: bookingId ?? prev.bookingId,
+      currentStep: 6
+    }));
+  } else {
+    setPaymentResult('FAILED');
+    setBookingState(prev => ({ ...prev, currentStep: 5 }));
+  }
+};
 
   if (loading) return (
     <div className="min-h-screen flex items-center justify-center bg-stone-50">
@@ -106,27 +104,41 @@ useEffect(() => {
   const renderStep = () => {
     switch (bookingState.currentStep) {
       case 1:
-        return <LandingPage event={data.eventData.event} schedule={data.eventData.schedule} mentors={data.eventData.mentors} insights={data.eventData.insights} ui={data.uiContent.landingPage} onProceed={nextStep} />;
+        return <LandingPage
+    event={data.eventData.event}
+    schedules={data.eventData.schedules}
+    mentors={data.eventData.mentors}
+      plans={data.plans} 
+    insights={data.eventData.insights}
+    ui={data.uiContent.landingPage}
+    onProceed={nextStep}
+  />;
       case 2:
         return <PlanSelection plans={data.plans} ui={data.uiContent.planSelection} onSelect={selectPlan} onBack={prevStep} />;
       case 3:
-        return <PlanDetail plan={bookingState.selectedPlan!} onProceed={nextStep} onBack={prevStep} />;
+        return <PlanDetail plan={bookingState.selectedPlan!} onProceed={(apiGuests) => {
+  setBookingState((p) => ({
+    ...p,
+    guestsPayload: apiGuests
+  }));
+  nextStep();
+}}  onBack={prevStep} />;
       case 4:
         return <GuestForm guests={bookingState.guests} setGuests={(g) => setBookingState(p => ({...p, guests: g}))} ui={data.uiContent.guestForm} roomTypes={data.config.ROOM_TYPES || []} onProceed={nextStep} onBack={prevStep} />;
       case 5:
-        return (
-          <BookingSummary 
-            bookingState={{ ...bookingState, plan: bookingState.selectedPlan }} 
-            ui={data.uiContent.bookingSummary}
-            config={data.config}
-            event={data.eventData.event}
-            onConfirm={() => handlePayment(true)} 
-            onBack={prevStep} 
-          />
-        );
+      return (
+        <BookingSummary
+          bookingState={{ ...bookingState, plan: bookingState.selectedPlan }}
+          ui={data.uiContent.bookingSummary}
+          config={data.config}
+          event={data.eventData.event}
+          onConfirm={handlePayment}
+          onBack={prevStep}
+        />
+      );
       case 6:
         return paymentResult === 'SUCCESS' 
-          ? <PaymentStatus success={true} bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))} />
+          ? <PaymentStatus success={true}  bookingId={bookingState.bookingId} bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))} />
           : <div className="text-center py-20">Payment Failed. Please try again.</div>;
       case 7:
         return <DownloadsDashboard bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} />;
@@ -151,8 +163,8 @@ useEffect(() => {
         </header>
       )}
       <main className="flex-1 w-full overflow-x-hidden">{renderStep()}</main>
-      <footer className="py-6 text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
-        © 2025 EventBook Pro. Built for {data.eventData.event.title}
+      <footer className="py-6 <text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
+        © 2025 EventBook Pro. Built for {data.eventData.EventName}
       </footer>
     </div>
   );

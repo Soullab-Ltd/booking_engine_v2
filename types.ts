@@ -112,4 +112,5 @@ export interface BookingState {
     panFile?: string;
     aadharFile?: string;
   };
+  bookingId?: string | number;
 }
