@@ -13,7 +13,7 @@ interface LandingPageProps {
   onProceed: () => void;
 }
 
-const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, insights, ui, onProceed }) => {
+const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, insights, ui, onProceed }) => {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
 
   return (
@@ -21,7 +21,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
       {/* Hero Section */}
       <div className="relative h-[600px] md:h-[850px] w-full overflow-hidden">
         <img 
-          src={event.banner} 
+            src={event.banner || "https://via.placeholder.com/1200x600?text=No+Image"}
+ 
           alt={event.title} 
           className="w-full h-full object-cover scale-105 opacity-90"
         />
@@ -105,7 +106,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
                 
                 {/* Day Filter / Tabs */}
                 <div className="flex flex-wrap justify-center gap-3 mb-12">
-                  {schedule.map((dayData: any, idx: number) => (
+                  {event.schedules?.map((dayData: any, idx: number)  => (
                     <button
                       key={idx}
                       onClick={() => setActiveDayIndex(idx)}
@@ -126,20 +127,22 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedule, mentors, ins
                 {/* Active Day Content */}
                 <div key={activeDayIndex} className="animate-fadeIn space-y-6">
                   <div className="flex items-center gap-4 mb-8">
-                    <span className="text-4xl font-black text-teal-100 uppercase tracking-tighter">{schedule[activeDayIndex].day}</span>
+                    <span className="text-4xl font-black text-teal-100 uppercase tracking-tighter">
+                      {schedules?.[activeDayIndex]?.day || ""}
+                    </span>
                     <div className="h-px bg-teal-100 flex-1"></div>
                     <span className="text-sm font-bold text-teal-400">{ui.schedule.location}</span>
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    {schedule[activeDayIndex].slots.map((slot: any, sIdx: number) => (
+                    {schedules[activeDayIndex].slots.map((slot: any, sIdx: number) => (
                       <div key={sIdx} className="bg-white p-6 rounded-[28px] border border-stone-100 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
                         <div className="md:w-32 shrink-0 flex items-center md:justify-center">
                           <span className="text-sm font-black text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>
                         </div>
                         <div className="flex-1">
                           <h4 className="text-xl font-black text-stone-900 mb-1 group-hover:text-teal-700 transition-colors">{slot.title}</h4>
-                          <p className="text-stone-500 text-sm font-medium">{slot.desc}</p>
+                          <p className="text-stone-500 text-sm font-medium">{slot.description}</p>
                         </div>
                       </div>
                     ))}

@@ -31,7 +31,13 @@ export interface Guest {
   };
   remark: string;
 }
-
+export interface PlanIcon {
+  id: number;
+  title: string;
+  iconUrl: string;
+  type: string;
+  planID: number;
+}
 export interface Plan {
   id: string;
   title: string;
@@ -41,16 +47,49 @@ export interface Plan {
   discountedPrice: number;
   finalPrice: number;
   gstDetails: string;
-  amenities: string[];
+  amenities: PlanIcon[];
+//  icons: PlanIcon[];
+}
+
+export interface ScheduleSlot {
+  time: string;
+  title: string;
+  description: string;
+}
+
+export interface ScheduleDay {
+  day: string;
+  date: string;
+  slots: ScheduleSlot[];
+}
+
+export interface Plan {
+  planID: number;
+  PlanTitle: string;
+  PlanPrice: number;
+  OfferPrice: number;
+  PlanDescription: string;
+  banner: string | null;
+  images: {
+    id: number;
+    imageUrl: string;
+    isMain: boolean;
+    isThumbnail: boolean;
+  }[];
 }
 
 export interface EventData {
+  id: string;
   title: string;
   banner: string;
   date: string;
   time: string;
   venue: string;
   description: string;
+
+  // ✅ Added fields
+  schedules: ScheduleDay[];
+  plans: Plan[];
 }
 
 export interface DiscountInfo {

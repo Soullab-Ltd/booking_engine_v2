@@ -42,14 +42,22 @@ const AmenityIcon = ({ name }: { name: string }) => {
   return <CheckCircle className="w-6 h-6" />;
 };
 
+const getPlanImage = (plan: any) => {
+  return (
+    plan.images?.find((img: any) => img.isMain)?.imageUrl ||
+    plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
+    plan.images?.[0]?.imageUrl ||
+    "https://via.placeholder.com/1200x600?text=No+Image"
+  );
+};
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
   return (
     <div className="animate-fadeIn pb-32 bg-white">
       {/* Immersive Hero */}
       <div className="relative h-[450px] w-full overflow-hidden">
         <img 
-          src={plan.thumbnail} 
-          alt={plan.title} 
+          src={getPlanImage(plan)} 
+          alt={plan.PlanName} 
           className="w-full h-full object-cover brightness-75 scale-105" 
         />
         <div className="absolute inset-0 bg-gradient-to-t from-white via-black/20 to-transparent" />
@@ -67,7 +75,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               Accommodation Tier
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
-              {plan.title}
+              {plan.PlanTitle}
             </h1>
           </div>
         </div>
@@ -82,7 +90,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Plan Details</h2>
             </div>
             <p className="text-2xl text-stone-700 leading-relaxed font-medium">
-              {plan.fullDescription}
+              {plan.PlanDescription}
             </p>
           </section>
 
@@ -92,15 +100,14 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               <div className="w-12 h-1 rounded-full bg-teal-700"></div>
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Amenities</h2>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
-              {plan.amenities.map((item, idx) => (
-                <div key={idx} className="group p-8 bg-stone-50 rounded-[32px] border border-stone-100 transition-all hover:bg-white hover:shadow-2xl hover:border-teal-100 flex flex-col items-center text-center">
-                  <div className="w-16 h-16 rounded-[24px] bg-white shadow-sm flex items-center justify-center text-teal-700 mb-6 group-hover:scale-110 group-hover:bg-teal-700 group-hover:text-white transition-all duration-500">
-                    <AmenityIcon name={item} />
-                  </div>
-                  <h4 className="text-sm font-black text-stone-900 leading-tight">
-                    {item}
-                  </h4>
+           <div className="grid grid-cols-2 gap-y-3 mb-6">
+              {plan.amenities.slice(0, 4).map((amenity) => (
+                <div
+                  key={amenity.id}
+                  className="flex items-center gap-2 text-sm text-stone-600 font-medium"
+                >
+                  <AmenityIcon name={amenity.title} />
+                  <span>{amenity.title}</span>
                 </div>
               ))}
             </div>
@@ -130,12 +137,12 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             <div className="space-y-6 mb-12">
                <div className="flex justify-between items-baseline">
                   <span className="text-sm font-bold text-stone-400">Price</span>
-                  <span className="text-lg font-bold text-stone-400 line-through">₹{plan.discountedPrice.toLocaleString()}</span>
+                  <span className="text-lg font-bold text-stone-400 line-through">₹ {plan.finalPrice.toLocaleString()}</span>
                </div>
                <div className="flex justify-between items-end">
                   <span className="text-sm font-black text-teal-700 uppercase tracking-tighter">Retreat Offering</span>
                   <div className="text-right">
-                    <span className="text-5xl font-black text-stone-900">₹{plan.finalPrice.toLocaleString()}</span>
+                    <span className="text-5xl font-black text-stone-900">₹ {plan.discountedPrice.toLocaleString()}</span>
                     <p className="text-[10px] font-black text-emerald-600 mt-1 uppercase tracking-widest">{plan.gstDetails}</p>
                   </div>
                </div>
