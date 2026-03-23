@@ -85,7 +85,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({ bookingState, e
                   </div>
                   <div className="flex flex-col items-end shrink-0">
                     <p className="text-[10px] font-black text-stone-300 uppercase tracking-widest mb-1">Booking ID</p>
-                    <p className="text-xl font-mono font-black text-stone-900">#SDF-7294-A</p>
+                    <p className="text-xl font-mono font-black text-stone-900">#{bookingState.bookingId}</p>
                   </div>
                </div>
 

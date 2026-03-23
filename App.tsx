@@ -41,7 +41,8 @@ useEffect(() => {
 
       const urlParams = new URLSearchParams(window.location.search);
       const eventId = urlParams.get('id') || '41';
-
+      const bookingIdFromUrl = urlParams.get("booking");
+      const view = urlParams.get("view");
       console.log("📌 Event ID:", eventId);
 
       const allData = await getAllData(eventId);
@@ -49,6 +50,16 @@ useEffect(() => {
       console.log("✅ API Response:", allData);
 
       setData(allData);
+       // Open dashboard directly from QR/public link
+      if (bookingIdFromUrl && view === "dashboard") {
+        setBookingState((prev) => ({
+          ...prev,
+          bookingId: bookingIdFromUrl,
+          currentStep: 7,
+        }));
+
+        setPaymentResult("SUCCESS");
+      }
     } catch (err) {
       console.error("❌ Error fetching data:", err);
       setError('Failed to load event data. Please ensure the URL is correct.');
@@ -151,7 +162,7 @@ const handlePayment = (success: boolean, bookingId?: string | number) => {
           ? <PaymentStatus success={true}  bookingId={bookingState.bookingId} bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))} />
           : <div className="text-center py-20">Payment Failed. Please try again.</div>;
       case 7:
-        return <DownloadsDashboard bookingState={bookingState} event={data.eventData.event} ui={data.uiContent.bookingSummary} />;
+        return <DownloadsDashboard bookingState={bookingState} bookingId={bookingState.bookingId} event={data.eventData.event} ui={data.uiContent.bookingSummary} />;
       default:
         return <LandingPage event={data.eventData.event} schedule={data.eventData.schedule} mentors={data.eventData.mentors} insights={data.eventData.insights} ui={data.uiContent.landingPage} onProceed={nextStep} />;
     }
