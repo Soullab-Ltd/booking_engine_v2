@@ -11,8 +11,8 @@ interface PlanSelectionProps {
 }
 const getPlanImage = (plan: any) => {
   return (
-    plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-    plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
+    plan.images?.find((img: any) => img.isMain === true || img.isMain === 1)?.imageUrl ||
+    plan.images?.find((img: any) => img.isThumbnail === true || img.isThumbnail === 1)?.imageUrl ||
     plan.images?.[0]?.imageUrl ||
     "https://via.placeholder.com/1200x600?text=No+Image"
   );
@@ -35,17 +35,17 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
         className="bg-white rounded-3xl overflow-hidden shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
       >
         <div className="w-full md:w-72 h-56 md:h-auto overflow-hidden relative">
-          <img
-            src={getPlanImage(plan)}
-            alt={plan.PlanName}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-          />
-          <div className="absolute top-4 left-4">
-            <span className="bg-teal-700 text-white text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-widest flex items-center gap-1 shadow-lg">
-              <Sparkles className="w-3 h-3" /> {ui.badge}
-            </span>
-          </div>
-        </div>
+  <img
+    src={getPlanImage(plan)}
+    alt={plan.PlanTitle || plan.PlanName || "Plan Image"}
+    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+  />
+  <div className="absolute top-4 left-4">
+    <span className="bg-teal-700 text-white text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-widest flex items-center gap-1 shadow-lg">
+      <Sparkles className="w-3 h-3" /> {ui.badge}
+    </span>
+  </div>
+</div>
 
         <div className="flex-1 p-6 md:p-8 flex flex-col">
           <div className="flex justify-between items-start mb-4">

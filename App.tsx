@@ -40,7 +40,7 @@ useEffect(() => {
       console.log("🚀 Starting data fetch...");
 
       const urlParams = new URLSearchParams(window.location.search);
-      const eventId = urlParams.get('id') || '1';
+      const eventId = urlParams.get('id') || '41';
 
       console.log("📌 Event ID:", eventId);
 
