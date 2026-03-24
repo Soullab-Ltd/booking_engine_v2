@@ -30,13 +30,13 @@ export interface EventResponse {
 }
 
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`https://booking-engine.thriive.in/data/${path}`);
+  const response = await fetch(`/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
 
 export const getAllData = async (eventId: string | number) => {
-  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/${eventId}`);
+  const apiResponse = await fetch(`http://localhost:8081/events/${eventId}`);
   
   if (!apiResponse.ok) throw new Error('Event not found or API down');
   const apiData = await apiResponse.json();
