@@ -9,14 +9,14 @@ interface PlanSelectionProps {
   onSelect: (plan: Plan) => void;
   onBack: () => void;
 }
-const getPlanImage = (plan: any) => {
-  return (
-    plan.images?.find((img: any) => img.isMain === true || img.isMain === 1)?.imageUrl ||
-    plan.images?.find((img: any) => img.isThumbnail === true || img.isThumbnail === 1)?.imageUrl ||
-    plan.images?.[0]?.imageUrl ||
-    "https://via.placeholder.com/1200x600?text=No+Image"
-  );
-};
+// const getPlanImage = (plan: any) => {
+//   return (
+//     plan.images?.find((img: any) => img.isMain === true || img.isMain === 1)?.imageUrl ||
+//     plan.images?.find((img: any) => img.isThumbnail === true || img.isThumbnail === 1)?.imageUrl ||
+//     plan.images?.[0]?.imageUrl ||
+//     "https://via.placeholder.com/1200x600?text=No+Image"
+//   );
+// };
 const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBack }) => {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 w-full animate-fadeIn">
@@ -36,7 +36,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
       >
         <div className="w-full md:w-72 h-56 md:h-auto overflow-hidden relative">
   <img
-    src={getPlanImage(plan)}
+    src={plan.thumbnail}
     alt={plan.PlanTitle || plan.PlanName || "Plan Image"}
     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
   />

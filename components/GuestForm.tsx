@@ -25,6 +25,18 @@ import {
   Sun
 } from 'lucide-react';
 
+
+const INDIAN_STATES = [
+  "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", 
+  "Chandigarh", "Chhattisgarh", "Dadra and Nagar Haveli", "Daman and Diu", "Delhi", 
+  "Goa", "Gujarat", "Haryana", "Himachal Pradesh", "Jammu and Kashmir", "Jharkhand", 
+  "Karnataka", "Kerala", "Ladakh", "Lakshadweep", "Madhya Pradesh", "Maharashtra", 
+  "Manipur", "Meghalaya", "Mizoram", "Nagaland", "Odisha", "Puducherry", "Punjab", 
+  "Rajasthan", "Sikkim", "Tamil Nadu", "Telangana", "Tripura", "Uttar Pradesh", 
+  "Uttarakhand", "West Bengal"
+];
+
+
 interface GuestFormProps {
   guests: Guest[];
   setGuests: (guests: Guest[]) => void;
@@ -181,6 +193,27 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                 />
               </div>
 
+
+
+              <div className="space-y-1">
+    <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Gender</label>
+    <div className="flex gap-2">
+      {['Male', 'Female', 'Prefer not to say'].map(gender => (
+        <label key={gender} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[10px] text-center ${guest.gender === gender ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
+          <input 
+            type="radio" 
+            name={`gender-${guest.id}`} 
+            checked={guest.gender === gender}
+            onChange={() => updateGuest(guest.id, { gender })}
+            className="hidden" 
+          />
+          {gender}
+        </label>
+      ))}
+    </div>
+  </div>
+
+
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.food}</label>
                 <div className="flex gap-2">
@@ -198,6 +231,36 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                   ))}
                 </div>
               </div>
+
+
+  <div className="space-y-1">
+    <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">City</label>
+    <input 
+      type="text" 
+      value={guest.city}
+      onChange={e => updateGuest(guest.id, { city: e.target.value })}
+      placeholder="e.g. Mumbai"
+      className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300"
+    />
+  </div>
+
+  <div className="space-y-1">
+    <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">State</label>
+    <select 
+      value={guest.state}
+      onChange={e => updateGuest(guest.id, { state: e.target.value })}
+      className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm appearance-none cursor-pointer"
+    >
+      <option value="" disabled>Select State</option>
+      {INDIAN_STATES.map(state => (
+        <option key={state} value={state}>{state}</option>
+      ))}
+    </select>
+  </div>
+
+
+
+
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.travel}</label>

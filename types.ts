@@ -30,7 +30,14 @@ export interface Guest {
     };
   };
   remark: string;
+
+  gender: 'Male' | 'Female' | 'Prefer not to say' | ''; 
+  city: string;  
+  state: string; 
 }
+
+
+
 export interface PlanIcon {
   id: number;
   title: string;

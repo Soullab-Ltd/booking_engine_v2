@@ -6,7 +6,7 @@ import { MOCK_SCHEDULE, MOCK_MENTORS, MOCK_INSIGHTS } from '../constants';
 
 interface LandingPageProps {
   event: EventData;
-  schedule: any[];
+  schedules: any[];
   mentors: any;
   insights: any[];
   ui: any;
@@ -15,6 +15,11 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, insights, ui, onProceed }) => {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
+
+
+  if (!schedules || schedules.length === 0) {
+    return <div className="min-h-screen flex items-center justify-center">Loading Schedule...</div>;
+  }
 
   return (
     <div className="flex flex-col animate-fadeIn bg-white overflow-x-hidden">
