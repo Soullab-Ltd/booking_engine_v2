@@ -192,7 +192,10 @@ export const createEmptyGuest = (): Guest => ({
       startDate: new Date().toISOString().split('T')[0]
     }
   },
-  remark: ""
+  remark: "",
+  gender: '',
+  city: '',
+  state: '',
 });
 
 export const TAX_RATE = 0.18;

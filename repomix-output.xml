@@ -2961,7 +2961,7 @@ export interface EventResponse {
 }
 
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`http://localhost:8081/data/${path}`);
+  const response = await fetch(`/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };

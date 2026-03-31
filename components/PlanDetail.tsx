@@ -42,21 +42,21 @@ const AmenityIcon = ({ name }: { name: string }) => {
   return <CheckCircle className="w-6 h-6" />;
 };
 
-const getPlanImage = (plan: any) => {
-  return (
-    plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-    plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-    plan.images?.[0]?.imageUrl ||
-    "https://via.placeholder.com/1200x600?text=No+Image"
-  );
-};
+// const getPlanImage = (plan: any) => {
+//   return (
+//     plan.images?.find((img: any) => img.isMain)?.imageUrl ||
+//     plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
+//     plan.images?.[0]?.imageUrl ||
+//     "https://via.placeholder.com/1200x600?text=No+Image"
+//   );
+// };
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
   return (
     <div className="animate-fadeIn pb-32 bg-white">
       {/* Immersive Hero */}
       <div className="relative h-[450px] w-full overflow-hidden">
         <img 
-          src={getPlanImage(plan)} 
+          src={plan.thumbnail} 
           alt={plan.PlanName} 
           className="w-full h-full object-cover brightness-75 scale-105" 
         />
@@ -90,7 +90,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Plan Details</h2>
             </div>
             <p className="text-2xl text-stone-700 leading-relaxed font-medium">
-              {plan.PlanDescription}
+              {plan.fullDescription}
             </p>
           </section>
 

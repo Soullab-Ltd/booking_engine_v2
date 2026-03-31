@@ -37,7 +37,6 @@ export const fetchData = async <T>(path: string): Promise<T> => {
 
 export const getAllData = async (eventId: string | number) => {
   const apiResponse = await fetch(`http://localhost:8081/events/${eventId}`);
-  
   if (!apiResponse.ok) throw new Error('Event not found or API down');
   const apiData = await apiResponse.json();
 
@@ -45,46 +44,18 @@ export const getAllData = async (eventId: string | number) => {
     fetchData<UIContent>('ui-content.json'),
     fetchData<AppConfig>('config.json')
   ]);
-const mappedMentors = {
-  main: apiData.mentors?.[0]
-    ? {
-        name: apiData.mentors[0].name || "",
-        role: apiData.mentors[0].role || "",
-        bio: apiData.mentors[0].bio || "",
-        img: apiData.mentors[0].img || "https://placehold.co/400x500?text=Mentor",
-      }
-    : {
-        name: "Coming Soon",
-        role: "",
-        bio: "",
-        img: "https://placehold.co/400x500?text=Mentor",
-      },
 
-  others: (apiData.mentors || []).slice(1).map((mentor: any) => ({
-    name: mentor.name || "",
-    role: mentor.role || "",
-    bio: mentor.bio || "",
-    img: mentor.img || "https://via.placeholder.com/200x200?text=Mentor",
-  })),
-};
-const mappedPlans: Plan[] = (apiData.plans || []).map((plan: any) => {
-  console.log("RAW PLAN:", plan);
-  console.log("RAW ICONS:", plan.amenities);
-
-  return {
+  // 1. Map Plans (Using the "banner" key from your JSON)
+  const mappedPlans: Plan[] = (apiData.plans || []).map((plan: any) => ({
     id: String(plan.planID),
     title: plan.PlanTitle || "",
-    thumbnail:
-      plan.banner ||
-      plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-      plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
+    // Your JSON uses "banner" for the Picsum link
+    thumbnail: plan.banner || `https://picsum.photos/seed/plan${plan.planID}/800/600`,
     description: plan.PlanDescription || "",
     fullDescription: plan.fullDescription || "",
     discountedPrice: Number(plan.OfferPrice || 0),
     finalPrice: Number(plan.PlanPrice || 0),
-    gstDetails: plan.gstDetails || "",
-
+    gstDetails: plan.gstDetails || "Inclusive of GST",
     amenities: (plan.amenities || []).map((icon: any) => ({
       id: icon.id,
       title: icon.title || "",
@@ -92,59 +63,40 @@ const mappedPlans: Plan[] = (apiData.plans || []).map((plan: any) => {
       type: icon.type || "",
       planID: icon.planID,
     })),
-   /*  icons: (plan.icons || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })), */
-  };
-});
-const eventData: EventResponse = {
-  event: {
-    id: apiData.EventID,
-    title: apiData.EventName,
-    banner:
-      apiData.banner ||
-      apiData.images?.find((img: any) => img.isMain)?.url ||
-      apiData.images?.find((img: any) => img.isThumbnail)?.url ||
-      "",
-    date: `${apiData.startDate} to ${apiData.endDate}`,
-    time: apiData.time || "06:00 AM",
-    venue: apiData.venue || "PVI Bengaluru",
-    description: apiData.description,
+  }));
+
+  // 2. Map Event Data (Using the top-level "banner" and "schedules")
+  const eventData: EventResponse = {
+    event: {
+      id: apiData.EventID,
+      title: apiData.EventName,
+      banner: apiData.banner || "https://picsum.photos/seed/event41/1200/600",
+      date: `${apiData.startDate} to ${apiData.endDate}`,
+      time: apiData.time || "06:00 AM",
+      venue: apiData.venue || "PVI Bengaluru",
+      description: apiData.description,
+      schedules: apiData.schedules || [],
+      plans: mappedPlans,
+    },
     schedules: apiData.schedules || [],
-    plans: mappedPlans || [],
-  },
-  schedules: apiData.schedules || [],
-  mentors: mappedMentors,
-  insights: apiData.insights || []
-};
+    mentors: {
+      main: apiData.mentors?.[0] || null,
+      others: apiData.mentors?.slice(1) || []
+    },
+    insights: apiData.insights || []
+  };
 
-  const plans: Plan[] = apiData.plans.map((p: any) => ({
-    ...p,
-    id: p.planID.toString(),
-    thumbnail: p.bannerImage,
-    finalPrice: p.PlanPrice,
-   amenities: (p.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })), }));
-
+  // 3. RETURN: Crucial to use mappedPlans here
   return {
     eventData,
-    plans,
+    plans: mappedPlans, 
     uiContent,
     config
   };
 };
 
 export const createBooking = async (bookingData: any) => {
-  const response = await fetch('https://bookingapi.thriive.in/bookings', { 
+  const response = await fetch('http://localhost:8081/bookings', { 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bookingData),
