@@ -31,7 +31,7 @@ const App: React.FC = () => {
     taxInfo: { panNumber: "", fullName: "", address: "" },
     bookingId: undefined
   });
-
+  
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'FAILED' | null>(null);
 
 useEffect(() => {
@@ -177,7 +177,7 @@ const handlePayment = (success: boolean, bookingId?: string | number) => {
           ui={data.uiContent.bookingSummary}
           onDashboard={async () => {
             try {
-              const res = await fetch(`https://bookingapi.thriive.in/bookings/${bookingState.bookingId}`);
+              const res = await fetch(`http://localhost:4000/bookings/${bookingState.bookingId}`);
               if (!res.ok) throw new Error("Failed to fetch booking details");
 
               const bookingData = await res.json();
