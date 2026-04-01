@@ -1,30 +1,22 @@
-
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Guest, FoodPreference } from '../types';
-import { createEmptyGuest, MOCK_ROOM_TYPES } from '../constants';
+import { createEmptyGuest } from '../constants';
 import { 
-  UserPlus, 
   Trash2, 
   Info, 
   X, 
   ChevronRight, 
   PlusCircle, 
-  AlertTriangle, 
   Calendar,
-  BedDouble,
   Clock,
   CheckCircle2,
-  Utensils,
-  MapPin,
   Sparkles,
   ArrowRight,
   Minus,
-  Baby,
-  Flower2,
-  Wind,
-  Sun
+  Globe,
+  Search,
+  ChevronDown
 } from 'lucide-react';
-
 
 const INDIAN_STATES = [
   "Andaman and Nicobar Islands", "Andhra Pradesh", "Arunachal Pradesh", "Assam", "Bihar", 
@@ -36,6 +28,95 @@ const INDIAN_STATES = [
   "Uttarakhand", "West Bengal"
 ];
 
+const COUNTRIES = [
+  "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", 
+  "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", 
+  "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Cabo Verde", "Cambodia", 
+  "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", 
+  "Croatia", "Cuba", "Cyprus", "Czech Republic", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", 
+  "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", 
+  "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", 
+  "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", 
+  "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Korea, North", "Korea, South", "Kosovo", "Kuwait", "Kyrgyzstan", "Laos", 
+  "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", 
+  "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", 
+  "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", 
+  "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine", 
+  "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", 
+  "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent", "Samoa", "San Marino", "Sao Tome and Principe", 
+  "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", 
+  "Somalia", "South Africa", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", 
+  "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", 
+  "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", 
+  "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+];
+
+const CountrySelector = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [search, setSearch] = useState("");
+
+  const filteredCountries = useMemo(() => 
+    COUNTRIES.filter(c => c.toLowerCase().includes(search.toLowerCase())),
+    [search]
+  );
+
+  return (
+    <div className="relative">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 flex items-center justify-between font-bold text-stone-900 text-sm h-[42px] transition-all hover:border-stone-200"
+      >
+        <span className="flex items-center gap-2 truncate">
+          <Globe className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+          {value || "Select Country"}
+        </span>
+        <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <>
+          <div className="fixed inset-0 z-[140]" onClick={() => setIsOpen(false)} />
+          <div className="absolute z-[150] mt-2 w-full bg-white border border-stone-200 rounded-2xl shadow-xl overflow-hidden animate-fadeIn">
+            <div className="p-2 border-b border-stone-100 bg-stone-50">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-stone-400" />
+                <input
+                  autoFocus
+                  type="text"
+                  placeholder="Search countries..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full pl-9 pr-4 py-2 rounded-lg border border-stone-200 text-xs font-bold focus:outline-none focus:border-teal-500 bg-white"
+                />
+              </div>
+            </div>
+            <div className="max-h-60 overflow-y-auto custom-scrollbar">
+              {filteredCountries.length > 0 ? (
+                filteredCountries.map(country => (
+                  <button
+                    key={country}
+                    type="button"
+                    onClick={() => {
+                      onChange(country);
+                      setIsOpen(false);
+                      setSearch("");
+                    }}
+                    className={`w-full text-left px-4 py-2.5 text-xs font-bold hover:bg-teal-50 transition-all ${value === country ? 'bg-teal-50 text-teal-700' : 'text-stone-700'}`}
+                  >
+                    {country}
+                  </button>
+                ))
+              ) : (
+                <div className="p-4 text-center text-[10px] text-stone-400 uppercase font-black">No results found</div>
+              )}
+            </div>
+          </div>
+        </>
+      )}
+    </div>
+  );
+};
 
 interface GuestFormProps {
   guests: Guest[];
@@ -104,7 +185,15 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const isValid = guests.every(g => g.name && g.email && g.phone && g.age > 0);
+  const isValid = guests.every(g => 
+    g.name && 
+    g.email && 
+    g.phone && 
+    g.age > 0 && 
+    g.country && 
+    g.state && 
+    g.city
+  );
 
   const getInfoContent = (type: string) => {
     return ui.modals[type];
@@ -112,7 +201,6 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 w-full animate-fadeIn pb-40">
-      {/* Header Area */}
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-200 pb-6">
         <div>
           <h2 className="text-2xl font-black text-stone-900 tracking-tight">{ui.header.title}</h2>
@@ -156,7 +244,7 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                   value={guest.name}
                   onChange={e => updateGuest(guest.id, { name: e.target.value })}
                   placeholder={ui.guestCard.fields.namePlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300"
+                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
                 />
               </div>
 
@@ -167,7 +255,7 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                   value={guest.phone}
                   onChange={e => updateGuest(guest.id, { phone: e.target.value })}
                   placeholder={ui.guestCard.fields.phonePlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300"
+                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
                 />
               </div>
 
@@ -178,7 +266,7 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                   value={guest.email}
                   onChange={e => updateGuest(guest.id, { email: e.target.value })}
                   placeholder={ui.guestCard.fields.emailPlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300"
+                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
                 />
               </div>
 
@@ -189,36 +277,33 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                   value={guest.age || ''}
                   onChange={e => updateGuest(guest.id, { age: parseInt(e.target.value) || 0 })}
                   placeholder={ui.guestCard.fields.agePlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300"
+                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
                 />
               </div>
 
-
-
               <div className="space-y-1">
-    <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Gender</label>
-    <div className="flex gap-2">
-      {['Male', 'Female', 'Prefer not to say'].map(gender => (
-        <label key={gender} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[10px] text-center ${guest.gender === gender ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
-          <input 
-            type="radio" 
-            name={`gender-${guest.id}`} 
-            checked={guest.gender === gender}
-            onChange={() => updateGuest(guest.id, { gender })}
-            className="hidden" 
-          />
-          {gender}
-        </label>
-      ))}
-    </div>
-  </div>
-
+                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Gender</label>
+                <div className="flex gap-2">
+                  {['Male', 'Female', 'Prefer not to say'].map(gender => (
+                    <label key={gender} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[10px] text-center h-[42px] ${guest.gender === gender ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
+                      <input 
+                        type="radio" 
+                        name={`gender-${guest.id}`} 
+                        checked={guest.gender === gender}
+                        onChange={() => updateGuest(guest.id, { gender })}
+                        className="hidden" 
+                      />
+                      {gender}
+                    </label>
+                  ))}
+                </div>
+              </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.food}</label>
                 <div className="flex gap-2">
                   {[FoodPreference.REGULAR, FoodPreference.JAIN].map(pref => (
-                    <label key={pref} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] ${guest.foodPreference === pref ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
+                    <label key={pref} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] h-[42px] ${guest.foodPreference === pref ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
                       <input 
                         type="radio" 
                         name={`food-${guest.id}`} 
@@ -232,41 +317,57 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                 </div>
               </div>
 
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Country</label>
+                <CountrySelector 
+                  value={guest.country || ""} 
+                  onChange={(val) => updateGuest(guest.id, { country: val, state: "" })} 
+                />
+              </div>
 
-  <div className="space-y-1">
-    <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">City</label>
-    <input 
-      type="text" 
-      value={guest.city}
-      onChange={e => updateGuest(guest.id, { city: e.target.value })}
-      placeholder="e.g. Mumbai"
-      className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300"
-    />
-  </div>
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">State / Province</label>
+                {guest.country === "India" ? (
+                  <div className="relative">
+                    <select 
+                      value={guest.state}
+                      onChange={e => updateGuest(guest.id, { state: e.target.value })}
+                      className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none font-bold text-stone-900 text-sm appearance-none cursor-pointer h-[42px]"
+                    >
+                      <option value="" disabled>Select State</option>
+                      {INDIAN_STATES.map(state => (
+                        <option key={state} value={state}>{state}</option>
+                      ))}
+                    </select>
+                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                  </div>
+                ) : (
+                  <input 
+                    type="text" 
+                    value={guest.state}
+                    onChange={e => updateGuest(guest.id, { state: e.target.value })}
+                    placeholder="Enter state/province"
+                    className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
+                  />
+                )}
+              </div>
 
-  <div className="space-y-1">
-    <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">State</label>
-    <select 
-      value={guest.state}
-      onChange={e => updateGuest(guest.id, { state: e.target.value })}
-      className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm appearance-none cursor-pointer"
-    >
-      <option value="" disabled>Select State</option>
-      {INDIAN_STATES.map(state => (
-        <option key={state} value={state}>{state}</option>
-      ))}
-    </select>
-  </div>
-
-
-
-
+              <div className="space-y-1">
+                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">City</label>
+                <input 
+                  type="text" 
+                  value={guest.city}
+                  onChange={e => updateGuest(guest.id, { city: e.target.value })}
+                  placeholder="e.g. Mumbai"
+                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
+                />
+              </div>
 
               <div className="space-y-1">
                 <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.travel}</label>
                 <div className="flex gap-2">
                   {[true, false].map(val => (
-                    <label key={val ? 'y' : 'n'} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] ${guest.travelAssistance === val ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
+                    <label key={val ? 'y' : 'n'} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] h-[42px] ${guest.travelAssistance === val ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
                       <input 
                         type="radio" 
                         name={`assist-${guest.id}`} 
@@ -281,7 +382,6 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
               </div>
             </div>
 
-            {/* Enhancements */}
             <div className="mt-8 pt-6 border-t border-stone-100">
                <h4 className="text-[10px] font-black text-teal-700 uppercase tracking-widest mb-4 flex items-center gap-2">
                  <CheckCircle2 className="w-3.5 h-3.5" /> {ui.guestCard.addons.label}
@@ -321,7 +421,6 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
                </div>
             </div>
 
-            {/* Extra Stay Logic */}
             <div className="mt-6 bg-stone-50 rounded-2xl p-4 border border-stone-100">
               <label className="flex items-center gap-3 cursor-pointer group mb-4">
                 <input 
@@ -426,7 +525,6 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
         </button>
       </div>
 
-      {/* Footer Controls */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200 p-6 z-[100] shadow-2xl">
         <div className="max-w-4xl mx-auto flex gap-4">
           <button 
@@ -445,7 +543,6 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
         </div>
       </div>
 
-      {/* Info Modals */}
       {showAddOnInfo && (
         <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
           <div className="bg-white rounded-[32px] overflow-hidden max-w-sm w-full shadow-2xl animate-scaleUp">
@@ -472,7 +569,6 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
         </div>
       )}
 
-      {/* Junior Pricing Pop-up */}
       {agePricingModal.show && (
         <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-[210] flex items-center justify-center p-6">
           <div className="bg-white rounded-[32px] overflow-hidden max-w-sm w-full shadow-2xl animate-scaleUp">
