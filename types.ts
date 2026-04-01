@@ -17,6 +17,7 @@ export interface Guest {
   phone: string;
   email: string;
   age: number;
+  isKidsPlanOpted: boolean;
   foodPreference: FoodPreference;
   travelAssistance: boolean;
   addOns: {
@@ -34,6 +35,7 @@ export interface Guest {
   gender: 'Male' | 'Female' | 'Prefer not to say' | ''; 
   city: string;  
   state: string; 
+  country: string;
 }
 
 
@@ -45,18 +47,7 @@ export interface PlanIcon {
   type: string;
   planID: number;
 }
-export interface Plan {
-  id: string;
-  title: string;
-  thumbnail: string;
-  description: string;
-  fullDescription: string;
-  discountedPrice: number;
-  finalPrice: number;
-  gstDetails: string;
-  amenities: PlanIcon[];
-//  icons: PlanIcon[];
-}
+
 
 export interface ScheduleSlot {
   time: string;
@@ -71,12 +62,21 @@ export interface ScheduleDay {
 }
 
 export interface Plan {
+  id?: string;
   planID: number;
-  PlanTitle: string;
+  title?: string;
+  PlanTitle?: string;
+  thumbnail?: string;
+  banner: string | null;
+  description?: string;
+  PlanDescription?: string;
+  fullDescription?: string;
   PlanPrice: number;
   OfferPrice: number;
-  PlanDescription: string;
-  banner: string | null;
+  discountedPrice?: number;
+  finalPrice?: number;
+  gstDetails?: string;
+  amenities?: PlanIcon[];
   images: {
     id: number;
     imageUrl: string;

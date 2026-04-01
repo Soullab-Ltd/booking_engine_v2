@@ -10,12 +10,16 @@
     "lint": "tsc --noEmit"
   },
   "dependencies": {
+    "@nestjs-modules/mailer": "^2.3.4",
+    "handlebars": "^4.7.9",
     "lucide-react": "^0.562.0",
+    "nodemailer": "^8.0.4",
     "react": "^19.2.3",
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
     "@types/node": "^22.14.0",
+    "@types/nodemailer": "^7.0.11",
     "@vitejs/plugin-react": "^5.0.0",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"

@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { BookingState, Guest, EventData } from '../types';
-import { CreditCard, ChevronLeft, Heart, Sparkles, Tag, ShieldCheck, Users, CheckCircle2, AlertCircle, Ticket } from 'lucide-react';
+import { CreditCard, ChevronLeft, Heart, Sparkles, Tag, ShieldCheck, Users, CheckCircle2, AlertCircle, Ticket, Wind, Sun, Flower2, Utensils } from 'lucide-react';
 
 interface BookingSummaryProps {
   bookingState: BookingState;
@@ -15,7 +15,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   
-  // --- NEW: CUSTOM COUPON STATES ---
+  // --- CUSTOM COUPON STATES ---
   const [customCodeInput, setCustomCodeInput] = useState('');
   const [isCheckingCode, setIsCheckingCode] = useState(false);
   const [customCodeError, setCustomCodeError] = useState('');
@@ -39,7 +39,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
       try {
         const eId = event.id;
         const pId = bookingState.selectedPlan?.id?.toString().replace(/[^\d]/g, '');
-        // Note: Your backend should now filter for coupon_type = 'regular' here
         const res = await fetch(`http://localhost:8081/coupons/applicable?eventId=${eId}&planId=${pId}`);
         if (res.ok) {
           const data = await res.json();
@@ -52,7 +51,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
     fetchCoupons();
   }, [event.id, bookingState.selectedPlan]);
 
-  // --- NEW: VALIDATE CUSTOM CODE FUNCTION ---
+  // VALIDATE CUSTOM CODE FUNCTION
   const handleCheckCustomCode = async () => {
     if (!customCodeInput.trim()) return;
     
@@ -74,15 +73,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
 
       const validatedCoupon = await res.json();
 
-      // 1. Add to the list if it's a "hidden" coupon not already there
       setAvailableCoupons(prev => {
         const exists = prev.find(c => c.id === validatedCoupon.id);
         return exists ? prev : [validatedCoupon, ...prev];
       });
 
-      // 2. Automatically apply it
       setAppliedCoupon(validatedCoupon);
-      setCustomCodeInput(''); // Clear input on success
+      setCustomCodeInput('');
       
     } catch (err: any) {
       setCustomCodeError(err.message);
@@ -103,10 +100,23 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
     return total;
   };
 
-  // 3. Helper for Detailed Breakdown Display
+  // 3. Helper for Detailed Breakdown Display (MODIFIED for Kids Plan)
   const getGuestBreakdown = (guest: Guest, basePrice: number) => {
-    const names = ["BASE"];
-    const prices = [basePrice.toLocaleString()];
+    const isKidsPlan = guest.isKidsPlanOpted || (guest.age >= 4 && guest.age <= 7);
+    
+    let displayBasePrice = basePrice;
+    let baseLabel = "BASE";
+
+    if (guest.age <= 3) {
+        displayBasePrice = 0;
+        baseLabel = "INFANT (FREE)";
+    } else if (isKidsPlan) {
+        displayBasePrice = 10000;
+        baseLabel = "KIDS EXPLORER PLAN";
+    }
+
+    const names = [baseLabel];
+    const prices = [displayBasePrice.toLocaleString()];
 
     if (guest.addOns.foodPass) {
       names.push("FOOD PASS");
@@ -125,20 +135,33 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
 
     return {
       label: names.join(" + "),
-      values: prices.join(" + ")
+      values: prices.join(" + "),
+      guestTotal: displayBasePrice + getGuestAddOnTotal(guest)
     };
   };
 
-  // 4. Totals Calculation Logic
+  // 4. Totals Calculation Logic (MODIFIED for Dynamic Guest Pricing)
   const totals = useMemo(() => {
     if (!bookingState || !bookingState.guests) return { basePrice: 0, subtotal: 0, tax: 0, total: 0, discount: 0, gstRate: 0 };
     
-    const basePrice = bookingState.plan?.finalPrice || 0;
+    const defaultPlanPrice = bookingState.plan?.finalPrice || 0;
     const planGstType = bookingState.plan?.gstType; 
     const planGstRate = bookingState.plan?.gstRate || 0; 
 
-    const totalAddOns = bookingState.guests.reduce((sum, g) => sum + getGuestAddOnTotal(g), 0);
-    const subtotal = (basePrice * bookingState.guests.length) + totalAddOns;
+    // Calculate subtotal by summing each individual guest's applicable base price
+    const subtotal = bookingState.guests.reduce((sum, g) => {
+        let guestBase = defaultPlanPrice;
+        
+        if (g.age <= 3) {
+            guestBase = 0;
+        } else if (g.age >= 4 && g.age <= 7) {
+            guestBase = 10000;
+        } else if (g.age >= 8 && g.age <= 17 && g.isKidsPlanOpted) {
+            guestBase = 10000;
+        }
+
+        return sum + guestBase + getGuestAddOnTotal(g);
+    }, 0);
 
     let discount = 0;
     if (appliedCoupon) {
@@ -153,7 +176,10 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
       : 0;
     
     return { 
-      basePrice, subtotal, tax, discount, 
+      basePrice: defaultPlanPrice, 
+      subtotal, 
+      tax, 
+      discount, 
       total: discountedSubtotal + tax,
       gstRate: planGstRate
     };
@@ -193,9 +219,19 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
         panNumber: atgData.pan,
         aadharNumber: atgData.aadhar,
         guests: bookingState.guests.map(g => ({
-          name: g.name, email: g.email, phoneNumber: g.phone, gender: g.gender,
-          state: g.state, city: g.city, age: Number(g.age), food_prefs: g.foodPreference,
-          travel_asst: g.travelAssistance ? "Yes" : "No", remarks: g.remark || "", id_image_url: ""
+          name: g.name, 
+          email: g.email, 
+          phoneNumber: g.phone, 
+          gender: g.gender,
+          state: g.state, 
+          city: g.city, 
+          country: g.country,
+          age: Number(g.age), 
+          isKidsPlanOpted: g.isKidsPlanOpted ? 1 : 0, // Sending choice to backend
+          food_prefs: g.foodPreference,
+          travel_asst: g.travelAssistance ? "Yes" : "No", 
+          remarks: g.remark || "", 
+          id_image_url: ""
         })),
         addon: {
           adultPassQty: bookingState.guests.filter(g => g.addOns.foodPass).length,
@@ -257,7 +293,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
                         </td>
                         <td className="px-6 py-5 text-right align-top">
                           <span className="font-black text-stone-800 text-base">
-                            ₹{(totals.basePrice + getGuestAddOnTotal(g)).toLocaleString()}
+                            ₹{breakdown.guestTotal.toLocaleString()}
                           </span>
                           <span className="block text-[10px] text-teal-600/70 font-bold mt-1">
                             {breakdown.values}
@@ -291,7 +327,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
                         <td className="px-6 py-4 text-xs font-bold text-stone-400 uppercase tracking-widest">
                           GST ({totals.gstRate}%)
                         </td>
-                        <td className="px-6 py-4 text-right font-bold text-stone-500 text-base">
+                        <td className="px-6 py-4 text-right font-black text-stone-500 text-base">
                           ₹{totals.tax.toLocaleString()}
                         </td>
                       </>
@@ -320,7 +356,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
               )}
             </div>
 
-            {/* --- CUSTOM CODE INPUT FIELD --- */}
             <div className="space-y-3">
               <div className={`flex items-center gap-2 p-1.5 rounded-2xl border-2 transition-all ${customCodeError ? 'border-red-200 bg-red-50' : 'border-stone-100 bg-stone-50 focus-within:border-teal-600 focus-within:bg-white'}`}>
                 <div className="pl-3">
@@ -331,7 +366,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({ bookingState, event, ui
                    value={customCodeInput}
                    onChange={(e) => {
                      setCustomCodeInput(e.target.value.toUpperCase());
-                     setCustomCodeError(''); // Clear error while typing
+                     setCustomCodeError(''); 
                    }}
                    placeholder="HAVE A PROMO CODE? ENTER HERE"
                    className="flex-1 bg-transparent border-none outline-none font-black text-xs tracking-tighter text-stone-900 placeholder:text-stone-300 py-3"

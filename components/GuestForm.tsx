@@ -15,7 +15,12 @@ import {
   Minus,
   Globe,
   Search,
-  ChevronDown
+  ChevronDown,
+  Wind,
+  Sun,
+  Flower2,
+  Utensils,
+  AlertCircle // Added for validation icon
 } from 'lucide-react';
 
 const INDIAN_STATES = [
@@ -51,7 +56,17 @@ const COUNTRIES = [
   "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
 ];
 
-const CountrySelector = ({ value, onChange }: { value: string, onChange: (val: string) => void }) => {
+// Helper component for error labels
+const ErrorLabel = ({ message }: { message?: string }) => {
+  if (!message) return null;
+  return (
+    <span className="text-[9px] font-bold text-red-500 mt-1 flex items-center gap-1 animate-fadeIn">
+      <AlertCircle className="w-3 h-3" /> {message}
+    </span>
+  );
+};
+
+const CountrySelector = ({ value, onChange, hasError }: { value: string, onChange: (val: string) => void, hasError?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -65,10 +80,10 @@ const CountrySelector = ({ value, onChange }: { value: string, onChange: (val: s
       <button
         type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 flex items-center justify-between font-bold text-stone-900 text-sm h-[42px] transition-all hover:border-stone-200"
+        className={`w-full px-4 py-2 rounded-xl border-2 flex items-center justify-between font-bold text-stone-900 text-sm h-[42px] transition-all ${hasError ? 'border-red-200 bg-red-50' : 'border-stone-100 bg-stone-50 hover:border-stone-200'}`}
       >
         <span className="flex items-center gap-2 truncate">
-          <Globe className="w-3.5 h-3.5 text-teal-700 shrink-0" />
+          <Globe className={`w-3.5 h-3.5 shrink-0 ${hasError ? 'text-red-500' : 'text-teal-700'}`} />
           {value || "Select Country"}
         </span>
         <ChevronDown className={`w-4 h-4 text-stone-400 transition-transform shrink-0 ${isOpen ? 'rotate-180' : ''}`} />
@@ -129,10 +144,34 @@ interface GuestFormProps {
 
 const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes, onProceed, onBack }) => {
   const [showAddOnInfo, setShowAddOnInfo] = useState<string | null>(null);
-  const [agePricingModal, setAgePricingModal] = useState<{show: boolean, affectedGuestIds: string[]}>({ 
-    show: false, 
-    affectedGuestIds: [] 
-  });
+  const [showKidsModal, setShowKidsModal] = useState(false);
+  const [touched, setTouched] = useState(false);
+
+  // Validation function
+  const getGuestErrors = (g: Guest) => {
+    const errors: any = {};
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!g.name?.trim()) errors.name = "Name is required";
+    if (!g.email?.trim()) errors.email = "Email is required";
+    else if (!emailRegex.test(g.email)) errors.email = "Invalid email format";
+    if (!g.phone?.trim()) errors.phone = "Phone is required";
+    else if (g.phone.length < 10) errors.phone = "Min 10 digits required";
+    if (!g.age || g.age <= 0) errors.age = "Age is required";
+    if (!g.country) errors.country = "Country is required";
+    if (!g.state) errors.state = "State is required";
+    if (!g.city?.trim()) errors.city = "City is required";
+    return errors;
+  };
+
+  const allGuestsValid = useMemo(() => 
+    guests.every(g => Object.keys(getGuestErrors(g)).length === 0),
+    [guests]
+  );
+
+  const eligibleKids = useMemo(() => 
+    guests.filter(g => g.age >= 4 && g.age <= 17),
+    [guests]
+  );
 
   const updateGuest = (id: string, updates: any) => {
     setGuests(guests.map(g => {
@@ -164,10 +203,17 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
     }
   };
 
+  const toggleKidsPlan = (guestId: string, opted: boolean) => {
+    setGuests(guests.map(g => 
+      g.id === guestId ? { ...g, isKidsPlanOpted: opted } : g
+    ));
+  };
+
   const handleProceedClick = () => {
-    const juniorGuests = guests.filter(g => g.age > 0 && g.age < 18).map(g => g.id);
-    if (juniorGuests.length > 0) {
-      setAgePricingModal({ show: true, affectedGuestIds: juniorGuests });
+    setTouched(true);
+    if (!allGuestsValid) return;
+    if (eligibleKids.length > 0) {
+      setShowKidsModal(true);
     } else {
       onProceed();
     }
@@ -185,22 +231,13 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
     return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
   };
 
-  const isValid = guests.every(g => 
-    g.name && 
-    g.email && 
-    g.phone && 
-    g.age > 0 && 
-    g.country && 
-    g.state && 
-    g.city
-  );
-
   const getInfoContent = (type: string) => {
     return ui.modals[type];
   };
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8 w-full animate-fadeIn pb-40">
+      {/* Header Area */}
       <div className="mb-8 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-stone-200 pb-6">
         <div>
           <h2 className="text-2xl font-black text-stone-900 tracking-tight">{ui.header.title}</h2>
@@ -217,302 +254,321 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
       </div>
 
       <div className="space-y-6">
-        {guests.map((guest, index) => (
-          <div key={guest.id} className="bg-white rounded-3xl p-6 shadow-sm border border-stone-200 relative">
-            <div className="flex items-center justify-between mb-6">
-              <div className="flex items-center gap-3">
-                <span className="w-8 h-8 bg-stone-900 text-white rounded-lg flex items-center justify-center font-black text-sm">
-                  {index + 1}
-                </span>
-                <h3 className="font-black text-stone-800 uppercase tracking-widest text-[10px]">{ui.guestCard.label} {index + 1}</h3>
-              </div>
-              {guests.length > 1 && (
-                <button 
-                  onClick={() => removeGuest(guest.id)}
-                  className="text-stone-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition-all"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.name}</label>
-                <input 
-                  type="text" 
-                  value={guest.name}
-                  onChange={e => updateGuest(guest.id, { name: e.target.value })}
-                  placeholder={ui.guestCard.fields.namePlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.phone}</label>
-                <input 
-                  type="tel" 
-                  value={guest.phone}
-                  onChange={e => updateGuest(guest.id, { phone: e.target.value })}
-                  placeholder={ui.guestCard.fields.phonePlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.email}</label>
-                <input 
-                  type="email" 
-                  value={guest.email}
-                  onChange={e => updateGuest(guest.id, { email: e.target.value })}
-                  placeholder={ui.guestCard.fields.emailPlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.age}</label>
-                <input 
-                  type="number" 
-                  value={guest.age || ''}
-                  onChange={e => updateGuest(guest.id, { age: parseInt(e.target.value) || 0 })}
-                  placeholder={ui.guestCard.fields.agePlaceholder}
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Gender</label>
-                <div className="flex gap-2">
-                  {['Male', 'Female', 'Prefer not to say'].map(gender => (
-                    <label key={gender} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[10px] text-center h-[42px] ${guest.gender === gender ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
-                      <input 
-                        type="radio" 
-                        name={`gender-${guest.id}`} 
-                        checked={guest.gender === gender}
-                        onChange={() => updateGuest(guest.id, { gender })}
-                        className="hidden" 
-                      />
-                      {gender}
-                    </label>
-                  ))}
+        {guests.map((guest, index) => {
+          const errors = getGuestErrors(guest);
+          return (
+            <div key={guest.id} className={`bg-white rounded-3xl p-6 shadow-sm border transition-all ${touched && Object.keys(errors).length > 0 ? 'border-red-200 bg-red-50/20' : 'border-stone-200'} relative`}>
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center gap-3">
+                  <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-sm ${touched && Object.keys(errors).length > 0 ? 'bg-red-500 text-white' : 'bg-stone-900 text-white'}`}>
+                    {index + 1}
+                  </span>
+                  <h3 className="font-black text-stone-800 uppercase tracking-widest text-[10px]">{ui.guestCard.label} {index + 1}</h3>
                 </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.food}</label>
-                <div className="flex gap-2">
-                  {[FoodPreference.REGULAR, FoodPreference.JAIN].map(pref => (
-                    <label key={pref} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] h-[42px] ${guest.foodPreference === pref ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
-                      <input 
-                        type="radio" 
-                        name={`food-${guest.id}`} 
-                        checked={guest.foodPreference === pref}
-                        onChange={() => updateGuest(guest.id, { foodPreference: pref })}
-                        className="hidden" 
-                      />
-                      {pref}
-                    </label>
-                  ))}
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Country</label>
-                <CountrySelector 
-                  value={guest.country || ""} 
-                  onChange={(val) => updateGuest(guest.id, { country: val, state: "" })} 
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">State / Province</label>
-                {guest.country === "India" ? (
-                  <div className="relative">
-                    <select 
-                      value={guest.state}
-                      onChange={e => updateGuest(guest.id, { state: e.target.value })}
-                      className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none font-bold text-stone-900 text-sm appearance-none cursor-pointer h-[42px]"
-                    >
-                      <option value="" disabled>Select State</option>
-                      {INDIAN_STATES.map(state => (
-                        <option key={state} value={state}>{state}</option>
-                      ))}
-                    </select>
-                    <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
-                  </div>
-                ) : (
-                  <input 
-                    type="text" 
-                    value={guest.state}
-                    onChange={e => updateGuest(guest.id, { state: e.target.value })}
-                    placeholder="Enter state/province"
-                    className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
-                  />
+                {guests.length > 1 && (
+                  <button 
+                    onClick={() => removeGuest(guest.id)}
+                    className="text-stone-400 hover:text-red-500 p-2 hover:bg-red-50 rounded-lg transition-all"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                 )}
               </div>
 
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">City</label>
-                <input 
-                  type="text" 
-                  value={guest.city}
-                  onChange={e => updateGuest(guest.id, { city: e.target.value })}
-                  placeholder="e.g. Mumbai"
-                  className="w-full px-4 py-2 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px]"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.travel}</label>
-                <div className="flex gap-2">
-                  {[true, false].map(val => (
-                    <label key={val ? 'y' : 'n'} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] h-[42px] ${guest.travelAssistance === val ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
-                      <input 
-                        type="radio" 
-                        name={`assist-${guest.id}`} 
-                        checked={guest.travelAssistance === val}
-                        onChange={() => updateGuest(guest.id, { travelAssistance: val })}
-                        className="hidden" 
-                      />
-                      {val ? 'Yes' : 'No'}
-                    </label>
-                  ))}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-5">
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.name}</label>
+                  <input 
+                    type="text" 
+                    value={guest.name}
+                    onChange={e => updateGuest(guest.id, { name: e.target.value })}
+                    placeholder={ui.guestCard.fields.namePlaceholder}
+                    className={`w-full px-4 py-2 rounded-xl border-2 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px] ${touched && errors.name ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700'}`}
+                  />
+                  {touched && <ErrorLabel message={errors.name} />}
                 </div>
-              </div>
-            </div>
 
-            <div className="mt-8 pt-6 border-t border-stone-100">
-               <h4 className="text-[10px] font-black text-teal-700 uppercase tracking-widest mb-4 flex items-center gap-2">
-                 <CheckCircle2 className="w-3.5 h-3.5" /> {ui.guestCard.addons.label}
-               </h4>
-               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <label className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${guest.addOns.foodPass ? 'bg-teal-50 border-teal-500' : 'bg-white border-stone-100 hover:border-teal-100'}`}>
-                    <input 
-                      type="checkbox" 
-                      checked={guest.addOns.foodPass}
-                      onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, foodPass: e.target.checked } })}
-                      className="w-4 h-4 rounded-md accent-teal-700" 
-                    />
-                    <div className="flex-1">
-                       <p className="font-bold text-stone-900 text-xs flex items-center justify-between">
-                         {ui.guestCard.addons.foodPass} 
-                         <button onClick={(e) => { e.preventDefault(); setShowAddOnInfo('food'); }}><Info className="w-3.5 h-3.5 text-teal-500" /></button>
-                       </p>
-                       <p className="text-[9px] font-bold text-emerald-600 uppercase">₹2,500 Base</p>
-                    </div>
-                  </label>
-                  
-                  <label className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${guest.addOns.adventurePass ? 'bg-teal-50 border-teal-500' : 'bg-white border-stone-100 hover:border-teal-100'}`}>
-                    <input 
-                      type="checkbox" 
-                      checked={guest.addOns.adventurePass}
-                      onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, adventurePass: e.target.checked } })}
-                      className="w-4 h-4 rounded-md accent-teal-700" 
-                    />
-                    <div className="flex-1">
-                       <p className="font-bold text-stone-900 text-xs flex items-center justify-between">
-                         {ui.guestCard.addons.adventurePass}
-                         <button onClick={(e) => { e.preventDefault(); setShowAddOnInfo('adventure'); }}><Info className="w-3.5 h-3.5 text-teal-500" /></button>
-                       </p>
-                       <p className="text-[9px] font-bold text-emerald-600 uppercase">₹5,000 Base</p>
-                    </div>
-                  </label>
-               </div>
-            </div>
-
-            <div className="mt-6 bg-stone-50 rounded-2xl p-4 border border-stone-100">
-              <label className="flex items-center gap-3 cursor-pointer group mb-4">
-                <input 
-                  type="checkbox" 
-                  checked={guest.addOns.extraStay.enabled}
-                  onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, enabled: e.target.checked } } })}
-                  className="w-5 h-5 rounded-md accent-teal-700" 
-                />
-                <div className="flex-1">
-                   <span className="block font-black text-sm text-stone-900">{ui.guestCard.addons.extraStay}</span>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.phone}</label>
+                  <input 
+                    type="tel" 
+                    value={guest.phone}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, ''); // Numbers only logic
+                      updateGuest(guest.id, { phone: val });
+                    }}
+                    placeholder={ui.guestCard.fields.phonePlaceholder}
+                    className={`w-full px-4 py-2 rounded-xl border-2 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px] ${touched && errors.phone ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700'}`}
+                  />
+                  {touched && <ErrorLabel message={errors.phone} />}
                 </div>
-                <button onClick={(e) => { e.preventDefault(); setShowAddOnInfo('stay'); }} className="p-1 hover:bg-stone-200 rounded-lg"><Info className="w-4 h-4 text-teal-500" /></button>
-              </label>
 
-              {guest.addOns.extraStay.enabled && (
-                <div className="animate-slideUp space-y-4 pt-2">
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-                    {roomTypes.map((room) => (
-                      <label key={room.name} className={`flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${guest.addOns.extraStay.type === room.name ? 'border-teal-700 bg-white ring-2 ring-teal-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.email}</label>
+                  <input 
+                    type="email" 
+                    value={guest.email}
+                    onChange={e => updateGuest(guest.id, { email: e.target.value })}
+                    placeholder={ui.guestCard.fields.emailPlaceholder}
+                    className={`w-full px-4 py-2 rounded-xl border-2 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px] ${touched && errors.email ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700'}`}
+                  />
+                  {touched && <ErrorLabel message={errors.email} />}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.age}</label>
+                  <input 
+                    type="text" 
+                    value={guest.age || ''}
+                    onChange={e => {
+                      const val = e.target.value.replace(/\D/g, ''); // Numbers only logic
+                      updateGuest(guest.id, { age: parseInt(val) || 0 });
+                    }}
+                    placeholder={ui.guestCard.fields.agePlaceholder}
+                    className={`w-full px-4 py-2 rounded-xl border-2 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px] ${touched && errors.age ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700'}`}
+                  />
+                  {touched && <ErrorLabel message={errors.age} />}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Gender</label>
+                  <div className="flex gap-2">
+                    {['Male', 'Female', 'Prefer not to say'].map(gender => (
+                      <label key={gender} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[10px] text-center h-[42px] ${guest.gender === gender ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
                         <input 
                           type="radio" 
-                          name={`room-${guest.id}`} 
-                          checked={guest.addOns.extraStay.type === room.name}
-                          onChange={() => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, type: room.name } } })}
-                          className="hidden"
+                          name={`gender-${guest.id}`} 
+                          checked={guest.gender === gender}
+                          onChange={() => updateGuest(guest.id, { gender })}
+                          className="hidden" 
                         />
-                        <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                          <img src={room.img} className="w-full h-full object-cover" alt={room.name} />
-                        </div>
-                        <div className="min-w-0">
-                           <h5 className="font-bold text-stone-900 text-[9px] truncate">{room.name}</h5>
-                           <p className="text-teal-700 font-black text-[8px]">₹{room.price}/nt</p>
-                        </div>
+                        {gender}
                       </label>
                     ))}
                   </div>
+                </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4">
-                     <div className="flex-1 space-y-1">
-                        <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-                          <Calendar className="w-3 h-3 text-teal-700" /> {ui.guestCard.extraStay.startDate}
-                        </label>
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.food}</label>
+                  <div className="flex gap-2">
+                    {[FoodPreference.REGULAR, FoodPreference.JAIN].map(pref => (
+                      <label key={pref} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] h-[42px] ${guest.foodPreference === pref ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
                         <input 
-                          type="date"
-                          value={guest.addOns.extraStay.startDate}
-                          onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, startDate: e.target.value } } })}
-                          className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-teal-700 outline-none"
+                          type="radio" 
+                          name={`food-${guest.id}`} 
+                          checked={guest.foodPreference === pref}
+                          onChange={() => updateGuest(guest.id, { foodPreference: pref })}
+                          className="hidden" 
                         />
-                     </div>
-
-                     <div className="sm:w-32 space-y-1">
-                        <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-                          <Clock className="w-3 h-3 text-teal-700" /> {ui.guestCard.extraStay.duration}
-                        </label>
-                        <div className="flex items-center justify-between bg-white border-2 border-stone-100 rounded-lg px-2 py-1.5">
-                           <button 
-                             onClick={() => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, days: Math.max(1, guest.addOns.extraStay.days - 1) } } })}
-                             className="text-stone-400 hover:text-teal-700 font-black"
-                           ><Minus className="w-4 h-4" /></button>
-                           <span className="font-black text-xs text-stone-900">{guest.addOns.extraStay.days}nt</span>
-                           <button 
-                             onClick={() => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, days: guest.addOns.extraStay.days + 1 } } })}
-                             className="text-stone-400 hover:text-teal-700 font-black"
-                           ><PlusCircle className="w-4 h-4" /></button>
-                        </div>
-                     </div>
-
-                     <div className="flex-[1.2] bg-teal-700 px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
-                        <span className="text-[8px] font-black text-teal-200 uppercase tracking-widest mb-1">{ui.guestCard.extraStay.periodLabel}</span>
-                        <div className="flex items-center gap-2 text-[10px] font-black">
-                           <span>{formatDateShort(guest.addOns.extraStay.startDate)}</span>
-                           <ArrowRight className="w-3 h-3 text-teal-300" />
-                           <span>{calculateEndDate(guest.addOns.extraStay.startDate || '', guest.addOns.extraStay.days)}</span>
-                        </div>
-                     </div>
+                        {pref}
+                      </label>
+                    ))}
                   </div>
                 </div>
-              )}
-            </div>
 
-            <div className="mt-5">
-              <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-1 mb-2 block">{ui.guestCard.remark}</label>
-              <textarea 
-                value={guest.remark}
-                onChange={e => updateGuest(guest.id, { remark: e.target.value })}
-                placeholder={ui.guestCard.remarkPlaceholder}
-                rows={2}
-                className="w-full px-4 py-2.5 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all resize-none font-bold text-stone-900 text-sm placeholder:text-stone-300"
-              />
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">Country</label>
+                  <CountrySelector 
+                    value={guest.country || ""} 
+                    onChange={(val) => updateGuest(guest.id, { country: val, state: "" })}
+                    hasError={touched && !!errors.country}
+                  />
+                  {touched && <ErrorLabel message={errors.country} />}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">State / Province</label>
+                  {guest.country === "India" ? (
+                    <div className="relative">
+                      <select 
+                        value={guest.state}
+                        onChange={e => updateGuest(guest.id, { state: e.target.value })}
+                        className={`w-full px-4 py-2 rounded-xl border-2 outline-none font-bold text-stone-900 text-sm appearance-none cursor-pointer h-[42px] ${touched && errors.state ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:border-teal-700'}`}
+                      >
+                        <option value="" disabled>Select State</option>
+                        {INDIAN_STATES.map(state => (
+                          <option key={state} value={state}>{state}</option>
+                        ))}
+                      </select>
+                      <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-4 h-4 text-stone-400 pointer-events-none" />
+                    </div>
+                  ) : (
+                    <input 
+                      type="text" 
+                      value={guest.state}
+                      onChange={e => updateGuest(guest.id, { state: e.target.value })}
+                      placeholder="Enter state/province"
+                      className={`w-full px-4 py-2 rounded-xl border-2 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px] ${touched && errors.state ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:border-teal-700'}`}
+                    />
+                  )}
+                  {touched && <ErrorLabel message={errors.state} />}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">City</label>
+                  <input 
+                    type="text" 
+                    value={guest.city}
+                    onChange={e => updateGuest(guest.id, { city: e.target.value })}
+                    placeholder="e.g. Mumbai"
+                    className={`w-full px-4 py-2 rounded-xl border-2 outline-none transition-all font-bold text-stone-900 text-sm placeholder:text-stone-300 h-[42px] ${touched && errors.city ? 'border-red-200 bg-white' : 'border-stone-100 bg-stone-50 focus:border-teal-700'}`}
+                  />
+                  {touched && <ErrorLabel message={errors.city} />}
+                </div>
+
+                <div className="space-y-1">
+                  <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-0.5">{ui.guestCard.fields.travel}</label>
+                  <div className="flex gap-2">
+                    {[true, false].map(val => (
+                      <label key={val ? 'y' : 'n'} className={`flex-1 flex items-center justify-center p-2 rounded-xl border-2 cursor-pointer transition-all font-bold text-[11px] h-[42px] ${guest.travelAssistance === val ? 'bg-stone-900 border-stone-900 text-white shadow-sm' : 'bg-stone-100 border-stone-100 text-stone-600 hover:border-stone-300'}`}>
+                        <input 
+                          type="radio" 
+                          name={`assist-${guest.id}`} 
+                          checked={guest.travelAssistance === val}
+                          onChange={() => updateGuest(guest.id, { travelAssistance: val })}
+                          className="hidden" 
+                        />
+                        {val ? 'Yes' : 'No'}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* Enhancements */}
+              <div className="mt-8 pt-6 border-t border-stone-100">
+                <h4 className="text-[10px] font-black text-teal-700 uppercase tracking-widest mb-4 flex items-center gap-2">
+                  <CheckCircle2 className="w-3.5 h-3.5" /> {ui.guestCard.addons.label}
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <label className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${guest.addOns.foodPass ? 'bg-teal-50 border-teal-500' : 'bg-white border-stone-100 hover:border-teal-100'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={guest.addOns.foodPass}
+                        onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, foodPass: e.target.checked } })}
+                        className="w-4 h-4 rounded-md accent-teal-700" 
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-stone-900 text-xs flex items-center justify-between">
+                          {ui.guestCard.addons.foodPass} 
+                          <button onClick={(e) => { e.preventDefault(); setShowAddOnInfo('food'); }}><Info className="w-3.5 h-3.5 text-teal-500" /></button>
+                        </p>
+                        <p className="text-[9px] font-bold text-emerald-600 uppercase">₹2,500 Base</p>
+                      </div>
+                    </label>
+                    
+                    <label className={`flex items-center gap-3 p-3 rounded-xl border-2 transition-all cursor-pointer ${guest.addOns.adventurePass ? 'bg-teal-50 border-teal-500' : 'bg-white border-stone-100 hover:border-teal-100'}`}>
+                      <input 
+                        type="checkbox" 
+                        checked={guest.addOns.adventurePass}
+                        onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, adventurePass: e.target.checked } })}
+                        className="w-4 h-4 rounded-md accent-teal-700" 
+                      />
+                      <div className="flex-1">
+                        <p className="font-bold text-stone-900 text-xs flex items-center justify-between">
+                          {ui.guestCard.addons.adventurePass}
+                          <button onClick={(e) => { e.preventDefault(); setShowAddOnInfo('adventure'); }}><Info className="w-3.5 h-3.5 text-teal-500" /></button>
+                        </p>
+                        <p className="text-[9px] font-bold text-emerald-600 uppercase">₹5,000 Base</p>
+                      </div>
+                    </label>
+                </div>
+              </div>
+
+              {/* Extra Stay Logic */}
+              <div className="mt-6 bg-stone-50 rounded-2xl p-4 border border-stone-100">
+                <label className="flex items-center gap-3 cursor-pointer group mb-4">
+                  <input 
+                    type="checkbox" 
+                    checked={guest.addOns.extraStay.enabled}
+                    onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, enabled: e.target.checked } } })}
+                    className="w-5 h-5 rounded-md accent-teal-700" 
+                  />
+                  <div className="flex-1">
+                    <span className="block font-black text-sm text-stone-900">{ui.guestCard.addons.extraStay}</span>
+                  </div>
+                  <button onClick={(e) => { e.preventDefault(); setShowAddOnInfo('stay'); }} className="p-1 hover:bg-stone-200 rounded-lg"><Info className="w-4 h-4 text-teal-500" /></button>
+                </label>
+
+                {guest.addOns.extraStay.enabled && (
+                  <div className="animate-slideUp space-y-4 pt-2">
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {roomTypes.map((room) => (
+                        <label key={room.name} className={`flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${guest.addOns.extraStay.type === room.name ? 'border-teal-700 bg-white ring-2 ring-teal-50' : 'border-stone-200 bg-white hover:border-stone-300'}`}>
+                          <input 
+                            type="radio" 
+                            name={`room-${guest.id}`} 
+                            checked={guest.addOns.extraStay.type === room.name}
+                            onChange={() => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, type: room.name } } })}
+                            className="hidden"
+                          />
+                          <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
+                            <img src={room.img} className="w-full h-full object-cover" alt={room.name} />
+                          </div>
+                          <div className="min-w-0">
+                            <h5 className="font-bold text-stone-900 text-[9px] truncate">{room.name}</h5>
+                            <p className="text-teal-700 font-black text-[8px]">₹{room.price}/nt</p>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      <div className="flex-1 space-y-1">
+                          <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <Calendar className="w-3 h-3 text-teal-700" /> {ui.guestCard.extraStay.startDate}
+                          </label>
+                          <input 
+                            type="date"
+                            value={guest.addOns.extraStay.startDate}
+                            onChange={e => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, startDate: e.target.value } } })}
+                            className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-teal-700 outline-none"
+                          />
+                      </div>
+
+                      <div className="sm:w-32 space-y-1">
+                          <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
+                            <Clock className="w-3 h-3 text-teal-700" /> {ui.guestCard.extraStay.duration}
+                          </label>
+                          <div className="flex items-center justify-between bg-white border-2 border-stone-100 rounded-lg px-2 py-1.5">
+                            <button 
+                              onClick={() => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, days: Math.max(1, guest.addOns.extraStay.days - 1) } } })}
+                              className="text-stone-400 hover:text-teal-700 font-black"
+                            ><Minus className="w-4 h-4" /></button>
+                            <span className="font-black text-xs text-stone-900">{guest.addOns.extraStay.days}nt</span>
+                            <button 
+                              onClick={() => updateGuest(guest.id, { addOns: { ...guest.addOns, extraStay: { ...guest.addOns.extraStay, days: guest.addOns.extraStay.days + 1 } } })}
+                              className="text-stone-400 hover:text-teal-700 font-black"
+                            ><PlusCircle className="w-4 h-4" /></button>
+                          </div>
+                      </div>
+
+                      <div className="flex-[1.2] bg-teal-700 px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
+                          <span className="text-[8px] font-black text-teal-200 uppercase tracking-widest mb-1">{ui.guestCard.extraStay.periodLabel}</span>
+                          <div className="flex items-center gap-2 text-[10px] font-black">
+                            <span>{formatDateShort(guest.addOns.extraStay.startDate)}</span>
+                            <ArrowRight className="w-3 h-3 text-teal-300" />
+                            <span>{calculateEndDate(guest.addOns.extraStay.startDate || '', guest.addOns.extraStay.days)}</span>
+                          </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <div className="mt-5">
+                <label className="text-[10px] font-black text-stone-700 uppercase tracking-widest ml-1 mb-2 block">{ui.guestCard.remark}</label>
+                <textarea 
+                  value={guest.remark}
+                  onChange={e => updateGuest(guest.id, { remark: e.target.value })}
+                  placeholder={ui.guestCard.remarkPlaceholder}
+                  rows={2}
+                  className="w-full px-4 py-2.5 rounded-xl border-2 border-stone-100 bg-stone-50 focus:bg-white focus:border-teal-700 outline-none transition-all resize-none font-bold text-stone-900 text-sm placeholder:text-stone-300"
+                />
+              </div>
             </div>
-          </div>
-        ))}
+          );
+        })}
 
         <button 
           onClick={addGuest}
@@ -525,6 +581,7 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
         </button>
       </div>
 
+      {/* Footer Controls */}
       <div className="fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-md border-t border-stone-200 p-6 z-[100] shadow-2xl">
         <div className="max-w-4xl mx-auto flex gap-4">
           <button 
@@ -534,15 +591,15 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
             {ui.footer.back}
           </button>
           <button 
-            disabled={!isValid}
             onClick={handleProceedClick}
-            className="flex-[2] bg-teal-700 disabled:bg-stone-200 text-white py-3.5 rounded-xl font-black text-base flex items-center justify-center gap-2 hover:bg-teal-800 transition-all shadow-lg active:scale-95 group"
+            className={`flex-[2] py-3.5 rounded-xl font-black text-base flex items-center justify-center gap-2 transition-all shadow-lg active:scale-95 group ${!allGuestsValid && touched ? 'bg-stone-200 text-stone-400 cursor-not-allowed' : 'bg-teal-700 text-white hover:bg-teal-800'}`}
           >
             {ui.footer.proceed} <ChevronRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
           </button>
         </div>
       </div>
 
+      {/* Info Modals */}
       {showAddOnInfo && (
         <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-[200] flex items-center justify-center p-6">
           <div className="bg-white rounded-[32px] overflow-hidden max-w-sm w-full shadow-2xl animate-scaleUp">
@@ -569,42 +626,62 @@ const GuestForm: React.FC<GuestFormProps> = ({ guests, setGuests, ui, roomTypes,
         </div>
       )}
 
-      {agePricingModal.show && (
-        <div className="fixed inset-0 bg-stone-900/80 backdrop-blur-sm z-[210] flex items-center justify-center p-6">
-          <div className="bg-white rounded-[32px] overflow-hidden max-w-sm w-full shadow-2xl animate-scaleUp">
-             <div className="h-40 relative">
-               <img src={getInfoContent('junior')!.img} className="w-full h-full object-cover" alt="" />
-               <button onClick={() => setAgePricingModal({ show: false, affectedGuestIds: [] })} className="absolute top-4 right-4 bg-white/20 backdrop-blur-xl p-2 rounded-xl text-white hover:bg-white/40 transition-all">
-                 <X className="w-4 h-4" />
-               </button>
-               <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
-             </div>
-             <div className="p-8">
-                <h3 className="text-xl font-black text-stone-900 mb-4 tracking-tighter">{getInfoContent('junior')!.title}</h3>
-                <p className="text-stone-500 font-medium leading-relaxed mb-8 text-xs">
-                   {getInfoContent('junior')!.desc}
-                </p>
-                <div className="flex flex-col gap-2">
-                  <button 
-                    onClick={() => {
-                      setAgePricingModal({ show: false, affectedGuestIds: [] });
-                      onProceed();
-                    }}
-                    className="w-full bg-teal-700 text-white py-3 rounded-xl font-black text-sm hover:bg-teal-800 transition-all"
-                  >
-                    {getInfoContent('junior')!.cta}
-                  </button>
-                  <button 
-                    onClick={() => {
-                      setAgePricingModal({ show: false, affectedGuestIds: [] });
-                      onProceed();
-                    }}
-                    className="w-full bg-stone-100 text-stone-400 py-3 rounded-xl font-black text-xs hover:bg-stone-200"
-                  >
-                    {getInfoContent('junior')!.back}
-                  </button>
+      {/* Kids Plan Modal */}
+      {showKidsModal && (
+        <div className="fixed inset-0 bg-stone-900/90 backdrop-blur-md z-[300] flex items-center justify-center p-4">
+          <div className="bg-white rounded-[40px] max-w-lg w-full overflow-hidden shadow-2xl animate-scaleUp">
+            <div className="bg-teal-700 p-8 text-white">
+              <Sparkles className="w-10 h-10 text-teal-300 mb-4 opacity-70" />
+              <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">Kids Explorer Plan</h3>
+              <p className="text-teal-100 text-xs font-bold mt-2 tracking-widest uppercase opacity-80">Exclusive for ages 4-17 • ₹10,000 Flat</p>
+            </div>
+            
+            <div className="p-8 space-y-6">
+              <div className="grid grid-cols-2 gap-3">
+                {[
+                  { icon: <Wind className="w-4 h-4"/>, label: "Adventure Park" },
+                  { icon: <Sun className="w-4 h-4"/>, label: "Guided Sports" },
+                  { icon: <Flower2 className="w-4 h-4"/>, label: "Zen Arts Craft" },
+                  { icon: <Utensils className="w-4 h-4"/>, label: "Kids Buffet" }
+                ].map((item, i) => (
+                  <div key={i} className="flex items-center gap-2.5 p-3 bg-stone-50 rounded-2xl border border-stone-100">
+                    <div className="text-teal-700">{item.icon}</div>
+                    <span className="font-black text-[9px] uppercase tracking-widest text-stone-600">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-stone-100 pt-6">
+                <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-4 text-center">Opt-in for your juniors</p>
+                <div className="space-y-2 max-h-40 overflow-y-auto pr-2 custom-scrollbar">
+                  {eligibleKids.map(kid => (
+                    <div key={kid.id} className="flex items-center justify-between p-4 bg-stone-50 rounded-2xl border border-stone-200">
+                      <div>
+                        <p className="font-black text-stone-900 text-sm">{kid.name || 'Junior Guest'}</p>
+                        <p className="text-[10px] font-bold text-stone-400 uppercase">Age: {kid.age}</p>
+                      </div>
+                      <button 
+                        onClick={() => toggleKidsPlan(kid.id, !kid.isKidsPlanOpted)}
+                        className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${
+                          kid.isKidsPlanOpted 
+                          ? 'bg-teal-700 text-white shadow-md' 
+                          : 'bg-white text-stone-400 border-2 border-stone-200 hover:border-stone-300'
+                        }`}
+                      >
+                        {kid.isKidsPlanOpted ? 'Applied' : 'Add Plan'}
+                      </button>
+                    </div>
+                  ))}
                 </div>
-             </div>
+              </div>
+
+              <button 
+                onClick={onProceed}
+                className="w-full bg-stone-900 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-black transition-all shadow-xl active:scale-95"
+              >
+                Proceed to Billing
+              </button>
+            </div>
           </div>
         </div>
       )}
