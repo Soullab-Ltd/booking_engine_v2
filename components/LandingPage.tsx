@@ -140,7 +140,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                   </div>
                   
                   <div className="grid grid-cols-1 gap-4">
-                    {schedules[activeDayIndex].slots.map((slot: any, sIdx: number) => (
+                    {schedules.map((slot: any, sIdx: number) => (
                       <div key={sIdx} className="bg-white p-6 rounded-[28px] border border-stone-100 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
                         <div className="md:w-32 shrink-0 flex items-center md:justify-center">
                           <span className="text-sm font-black text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>

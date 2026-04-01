@@ -143,14 +143,14 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   <span className="text-sm font-black text-teal-700 uppercase tracking-tighter">Retreat Offering</span>
                   <div className="text-right">
                     <span className="text-5xl font-black text-stone-900">₹ {plan.discountedPrice.toLocaleString()}</span>
-                    <p className="text-[10px] font-black text-emerald-600 mt-1 uppercase tracking-widest">{plan.gstDetails}</p>
+                    <p className="text-[10px] font-black text-teal-600 mt-1 uppercase tracking-widest">{plan.gstDetails}</p>
                   </div>
                </div>
             </div>
 
             <div className="space-y-4 pt-8 border-t border-stone-50 mb-12">
                <div className="flex items-center gap-3 text-sm text-stone-500 font-medium">
-                  <ShieldCheck className="w-5 h-5 text-emerald-500" />
+                  <ShieldCheck className="w-5 h-5 text-teal-500" />
                   Flat Rs 10000 for kids aged 17 years and below!
                </div>
                <div className="flex items-center gap-3 text-sm text-stone-500 font-medium">

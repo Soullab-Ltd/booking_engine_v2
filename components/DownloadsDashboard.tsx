@@ -124,7 +124,7 @@ const documents = [
                   <div>
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">Status</span>
                     <div className="flex items-center gap-2">
-                       <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
+                       <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
                        <span className="text-xl font-black text-stone-900">Active</span>
                     </div>
                   </div>

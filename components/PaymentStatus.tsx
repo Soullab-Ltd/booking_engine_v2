@@ -64,12 +64,12 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
   return (
     <div className="max-w-2xl mx-auto py-12 px-6 w-full animate-fadeIn pb-32">
       <div className="text-center mb-12">
-        <div className="w-28 h-28 bg-emerald-100 text-emerald-500 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner relative">
+        <div className="w-28 h-28 bg-teal-100 text-teal-500 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner relative">
           <CheckCircle className="w-14 h-14" />
           {showConfetti && (
             <div className="absolute -inset-4 pointer-events-none">
-               <div className="absolute top-0 left-0 animate-ping opacity-20"><Sparkles className="w-8 h-8 text-emerald-400" /></div>
-               <div className="absolute bottom-0 right-0 animate-bounce opacity-20"><Flower2 className="w-6 h-6 text-emerald-400" /></div>
+               <div className="absolute top-0 left-0 animate-ping opacity-20"><Sparkles className="w-8 h-8 text-teal-400" /></div>
+               <div className="absolute bottom-0 right-0 animate-bounce opacity-20"><Flower2 className="w-6 h-6 text-teal-400" /></div>
             </div>
           )}
         </div>

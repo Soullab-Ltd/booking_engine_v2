@@ -71,7 +71,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
           }}
         />
       ) : (
-        <Check className="w-4 h-4 text-emerald-500" />
+        <Check className="w-4 h-4 text-teal-500" />
       )}
       <span>{amenity.title}</span>
     </div>
@@ -87,7 +87,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
                 <span className="text-3xl font-black text-stone-900">
                   ₹{plan.discountedPrice?.toLocaleString()}
                 </span>
-                <span className="text-xs text-emerald-600 font-bold">{plan.gstDetails}</span>
+                <span className="text-xs text-teal-600 font-bold">{plan.gstDetails}</span>
               </div>
             </div>
 
