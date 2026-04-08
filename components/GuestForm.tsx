@@ -24,36 +24,241 @@ import {
 } from 'lucide-react';
 
 const INDIAN_STATES = [
-  'Andaman and Nicobar Islands', 'Andhra Pradesh', 'Arunachal Pradesh', 'Assam', 'Bihar',
-  'Chandigarh', 'Chhattisgarh', 'Dadra and Nagar Haveli', 'Daman and Diu', 'Delhi',
-  'Goa', 'Gujarat', 'Haryana', 'Himachal Pradesh', 'Jammu and Kashmir', 'Jharkhand',
-  'Karnataka', 'Kerala', 'Ladakh', 'Lakshadweep', 'Madhya Pradesh', 'Maharashtra',
-  'Manipur', 'Meghalaya', 'Mizoram', 'Nagaland', 'Odisha', 'Puducherry', 'Punjab',
-  'Rajasthan', 'Sikkim', 'Tamil Nadu', 'Telangana', 'Tripura', 'Uttar Pradesh',
-  'Uttarakhand', 'West Bengal',
+  'Andaman and Nicobar Islands',
+  'Andhra Pradesh',
+  'Arunachal Pradesh',
+  'Assam',
+  'Bihar',
+  'Chandigarh',
+  'Chhattisgarh',
+  'Dadra and Nagar Haveli',
+  'Daman and Diu',
+  'Delhi',
+  'Goa',
+  'Gujarat',
+  'Haryana',
+  'Himachal Pradesh',
+  'Jammu and Kashmir',
+  'Jharkhand',
+  'Karnataka',
+  'Kerala',
+  'Ladakh',
+  'Lakshadweep',
+  'Madhya Pradesh',
+  'Maharashtra',
+  'Manipur',
+  'Meghalaya',
+  'Mizoram',
+  'Nagaland',
+  'Odisha',
+  'Puducherry',
+  'Punjab',
+  'Rajasthan',
+  'Sikkim',
+  'Tamil Nadu',
+  'Telangana',
+  'Tripura',
+  'Uttar Pradesh',
+  'Uttarakhand',
+  'West Bengal',
 ];
 
 const COUNTRIES = [
-  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
-  'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia',
-  'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
-  'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
-  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt',
-  'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon',
-  'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
-  'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan',
-  'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Korea, North', 'Korea, South', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos',
-  'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi',
-  'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
-  'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
-  'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine',
-  'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
-  'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent', 'Samoa', 'San Marino', 'Sao Tome and Principe',
-  'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands',
-  'Somalia', 'South Africa', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
-  'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey',
-  'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay',
-  'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
+  'Afghanistan',
+  'Albania',
+  'Algeria',
+  'Andorra',
+  'Angola',
+  'Antigua and Barbuda',
+  'Argentina',
+  'Armenia',
+  'Australia',
+  'Austria',
+  'Azerbaijan',
+  'Bahamas',
+  'Bahrain',
+  'Bangladesh',
+  'Barbados',
+  'Belarus',
+  'Belgium',
+  'Belize',
+  'Benin',
+  'Bhutan',
+  'Bolivia',
+  'Bosnia and Herzegovina',
+  'Botswana',
+  'Brazil',
+  'Brunei',
+  'Bulgaria',
+  'Burkina Faso',
+  'Burundi',
+  'Cabo Verde',
+  'Cambodia',
+  'Cameroon',
+  'Canada',
+  'Central African Republic',
+  'Chad',
+  'Chile',
+  'China',
+  'Colombia',
+  'Comoros',
+  'Congo',
+  'Costa Rica',
+  'Croatia',
+  'Cuba',
+  'Cyprus',
+  'Czech Republic',
+  'Denmark',
+  'Djibouti',
+  'Dominica',
+  'Dominican Republic',
+  'Ecuador',
+  'Egypt',
+  'El Salvador',
+  'Equatorial Guinea',
+  'Eritrea',
+  'Estonia',
+  'Eswatini',
+  'Ethiopia',
+  'Fiji',
+  'Finland',
+  'France',
+  'Gabon',
+  'Gambia',
+  'Georgia',
+  'Germany',
+  'Ghana',
+  'Greece',
+  'Grenada',
+  'Guatemala',
+  'Guinea',
+  'Guinea-Bissau',
+  'Guyana',
+  'Haiti',
+  'Honduras',
+  'Hungary',
+  'Iceland',
+  'India',
+  'Indonesia',
+  'Iran',
+  'Iraq',
+  'Ireland',
+  'Israel',
+  'Italy',
+  'Jamaica',
+  'Japan',
+  'Jordan',
+  'Kazakhstan',
+  'Kenya',
+  'Kiribati',
+  'Korea, North',
+  'Korea, South',
+  'Kosovo',
+  'Kuwait',
+  'Kyrgyzstan',
+  'Laos',
+  'Latvia',
+  'Lebanon',
+  'Lesotho',
+  'Liberia',
+  'Libya',
+  'Liechtenstein',
+  'Lithuania',
+  'Luxembourg',
+  'Madagascar',
+  'Malawi',
+  'Malaysia',
+  'Maldives',
+  'Mali',
+  'Malta',
+  'Marshall Islands',
+  'Mauritania',
+  'Mauritius',
+  'Mexico',
+  'Micronesia',
+  'Moldova',
+  'Monaco',
+  'Mongolia',
+  'Montenegro',
+  'Morocco',
+  'Mozambique',
+  'Myanmar',
+  'Namibia',
+  'Nauru',
+  'Nepal',
+  'Netherlands',
+  'New Zealand',
+  'Nicaragua',
+  'Niger',
+  'Nigeria',
+  'North Macedonia',
+  'Norway',
+  'Oman',
+  'Pakistan',
+  'Palau',
+  'Palestine',
+  'Panama',
+  'Papua New Guinea',
+  'Paraguay',
+  'Peru',
+  'Philippines',
+  'Poland',
+  'Portugal',
+  'Qatar',
+  'Romania',
+  'Russia',
+  'Rwanda',
+  'Saint Kitts and Nevis',
+  'Saint Lucia',
+  'Saint Vincent',
+  'Samoa',
+  'San Marino',
+  'Sao Tome and Principe',
+  'Saudi Arabia',
+  'Senegal',
+  'Serbia',
+  'Seychelles',
+  'Sierra Leone',
+  'Singapore',
+  'Slovakia',
+  'Slovenia',
+  'Solomon Islands',
+  'Somalia',
+  'South Africa',
+  'South Sudan',
+  'Spain',
+  'Sri Lanka',
+  'Sudan',
+  'Suriname',
+  'Sweden',
+  'Switzerland',
+  'Syria',
+  'Taiwan',
+  'Tajikistan',
+  'Tanzania',
+  'Thailand',
+  'Timor-Leste',
+  'Togo',
+  'Tonga',
+  'Trinidad and Tobago',
+  'Tunisia',
+  'Turkey',
+  'Turkmenistan',
+  'Tuvalu',
+  'Uganda',
+  'Ukraine',
+  'United Arab Emirates',
+  'United Kingdom',
+  'United States',
+  'Uruguay',
+  'Uzbekistan',
+  'Vanuatu',
+  'Vatican City',
+  'Venezuela',
+  'Vietnam',
+  'Yemen',
+  'Zambia',
+  'Zimbabwe',
 ];
 
 interface AddonItem {
@@ -72,9 +277,9 @@ interface AddonItem {
   KidsSeasonAmt?: number | string;
   price?: number | string;
   bannerImage?: string;
-  eventIds?: number[] | string;
-  EventID?: number[] | string;
-  planIds?: number[] | string;
+  eventIds?: number[] | string | number;
+  EventID?: number[] | string | number;
+  planIds?: number[] | string | number;
   planID?: number[] | string | number;
   isVisible?: boolean;
   isActive?: boolean | number;
@@ -90,6 +295,8 @@ interface StayPlan {
   PlanDescription?: string;
   stayRoomType?: string;
   price?: number | string;
+  OfferPrice?: number | string;
+  PlanPrice?: number | string;
   pricePerNight?: number | string;
   img?: string;
   image?: string;
@@ -102,7 +309,7 @@ interface StayPlan {
 }
 
 interface RelatedStayPlan {
-  id: number | string;
+  id: number;
   name: string;
   pricePerNight: number;
   description?: string;
@@ -123,6 +330,7 @@ interface GuestFormProps {
 
 const ErrorLabel = ({ message }: { message?: string }) => {
   if (!message) return null;
+
   return (
     <span className="mt-1 flex items-center gap-1 text-[9px] font-bold text-red-500 animate-fadeIn">
       <AlertCircle className="h-3 w-3" /> {message}
@@ -142,22 +350,29 @@ const CountrySelector = ({
   const [isOpen, setIsOpen] = useState(false);
   const [search, setSearch] = useState('');
 
-  const filteredCountries = useMemo(
-    () => COUNTRIES.filter((c) => c.toLowerCase().includes(search.toLowerCase())),
-    [search]
-  );
+  const filteredCountries = useMemo(() => {
+    return COUNTRIES.filter((country) =>
+      country.toLowerCase().includes(search.toLowerCase())
+    );
+  }, [search]);
 
   return (
     <div className="relative">
       <button
         type="button"
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => setIsOpen((prev) => !prev)}
         className={`flex h-[42px] w-full items-center justify-between rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 transition-all ${
-          hasError ? 'border-red-200 bg-red-50' : 'border-stone-100 bg-stone-50 hover:border-stone-200'
+          hasError
+            ? 'border-red-200 bg-red-50'
+            : 'border-stone-100 bg-stone-50 hover:border-stone-200'
         }`}
       >
         <span className="flex items-center gap-2 truncate">
-          <Globe className={`h-3.5 w-3.5 shrink-0 ${hasError ? 'text-red-500' : 'text-teal-700'}`} />
+          <Globe
+            className={`h-3.5 w-3.5 shrink-0 ${
+              hasError ? 'text-red-500' : 'text-teal-700'
+            }`}
+          />
           {value || 'Select Country'}
         </span>
         <ChevronDown
@@ -170,6 +385,7 @@ const CountrySelector = ({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[140]" onClick={() => setIsOpen(false)} />
+
           <div className="absolute z-[150] mt-2 w-full overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl animate-fadeIn">
             <div className="border-b border-stone-100 bg-stone-50 p-2">
               <div className="relative">
@@ -232,192 +448,145 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const [touched, setTouched] = useState(false);
 
   const parseIds = (value: any): number[] => {
+    if (value === null || value === undefined || value === '') return [];
+
     if (Array.isArray(value)) {
-      return value.map(Number).filter((n) => !isNaN(n));
+      return value
+        .map((item) => Number(item))
+        .filter((num) => Number.isFinite(num));
     }
 
     if (typeof value === 'string') {
       return value
         .split(',')
         .map((item) => Number(item.trim()))
-        .filter((n) => !isNaN(n));
+        .filter((num) => Number.isFinite(num));
     }
 
-    if (value !== null && value !== undefined && value !== '') {
-      const num = Number(value);
-      return isNaN(num) ? [] : [num];
-    }
-
-    return [];
+    const num = Number(value);
+    return Number.isFinite(num) ? [num] : [];
   };
 
- const normalizeStayPlan = (room: any): RelatedStayPlan => {
-  const planId = Number(room.planID ?? room.PlanID ?? room.id);
+  const normalizeStayPlan = (room: StayPlan): RelatedStayPlan => {
+    const rawId = room.planID ?? room.PlanID ?? room.id;
+    const parsedId = Number(rawId);
 
-  const pricePerNight = Number(
-    room.pricePerNight ??
-    room.price ??
-    room.OfferPrice ??
-    room.PlanPrice ??
-    0
-  );
-
-  return {
-    id: planId,
-    name:
-      room.stayRoomType ??
-      room.PlanTitle ??
-      room.PlanName ??
-      room.name ??
-      '',
-    pricePerNight,
-    description: room.PlanDescription ?? '',
-    image:
-      room.image ??
-      room.img ??
-      room.thumbnail ??
-      room.images?.find((img: any) => img?.isThumbnail)?.imageUrl ??
-      room.images?.find((img: any) => img?.isMain)?.imageUrl ??
-      '',
-  };
-};
- const stayAddons = useMemo(() => {
-  return (addons || []).filter((addon: any) => {
-    const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
-    const addonPlanIds = parseIds(addon.planIds ?? addon.planID);
-    const normalizedType = String(addon.type || '').trim().toLowerCase();
-
-    const eventMatch =
-      addonEventIds.length === 0 || addonEventIds.includes(Number(selectedEventId));
-
-    const planMatch =
-      addonPlanIds.length === 0 || addonPlanIds.includes(Number(selectedPlanId));
-
-    const visibleMatch =
-      addon.isVisible === undefined ||
-      addon.isVisible === null ||
-      addon.isVisible !== false;
-
-    const activeMatch =
-      addon.isActive === undefined ||
-      addon.isActive === null ||
-      Number(addon.isActive) !== 0;
-
-    const typeMatch = normalizedType === 'stay';
-
-    if (Number(addon.id ?? addon.AddonID) === 8) {
-      console.log('🛏 PVI STAY CHECK', {
-        addon,
-        normalizedType,
-        addonEventIds,
-        addonPlanIds,
-        selectedEventId,
-        selectedPlanId,
-        eventMatch,
-        planMatch,
-        visibleMatch,
-        activeMatch,
-        typeMatch,
-      });
-    }
-
-    return eventMatch && planMatch && visibleMatch && activeMatch && typeMatch;
-  });
-}, [addons, selectedEventId, selectedPlanId]);
-  const fallbackStayPlans = useMemo(() => {
-    return (roomTypes || [])
-      .map(normalizeStayPlan)
-      .filter(
-        (room: any) =>
-          !isNaN(Number(room.id)) &&
-          Number(room.pricePerNight) > 0
-      );
-  }, [roomTypes]);
-
-const globalStayPlans = useMemo(() => {
-  const allowedPlanIds = Array.from(
-    new Set(
-      stayAddons.flatMap((addon: any) =>
-        parseIds(addon.planIds ?? addon.planID).filter(
-          (id) => !isNaN(id) && id > 0
-        )
-      )
-    )
-  );
-
-  const mappedPlans = (roomTypes || []).map((room: any) => {
-    const planId = Number(room.planID ?? room.PlanID ?? room.id);
-
-    const pricePerNight = Number(
+    const rawPricePerNight =
       room.pricePerNight ??
       room.price ??
       room.OfferPrice ??
       room.PlanPrice ??
-      0
-    );
+      0;
+
+    const parsedPricePerNight = Number(rawPricePerNight);
+
+    const thumbnailImage =
+      room.image ??
+      room.img ??
+      room.thumbnail ??
+      room.images?.find((img) => img?.isThumbnail)?.imageUrl ??
+      room.images?.find((img) => img?.isMain)?.imageUrl ??
+      '';
 
     return {
-      id: planId,
+      id: Number.isFinite(parsedId) ? parsedId : 0,
       name:
         room.stayRoomType ??
         room.PlanTitle ??
         room.PlanName ??
         room.name ??
         '',
-      pricePerNight,
+      pricePerNight: Number.isFinite(parsedPricePerNight) ? parsedPricePerNight : 0,
       description: room.PlanDescription ?? '',
-      image:
-        room.image ??
-        room.img ??
-        room.thumbnail ??
-        room.images?.find((img: any) => img?.isThumbnail)?.imageUrl ??
-        room.images?.find((img: any) => img?.isMain)?.imageUrl ??
-        '',
+      image: thumbnailImage,
     };
-  });
-
-  console.log('🛏 allowedPlanIds', allowedPlanIds);
-  console.log('🛏 mappedPlans', mappedPlans);
-
-  if (allowedPlanIds.length === 0) {
-    return mappedPlans.filter(
-      (room: any) =>
-        !isNaN(Number(room.id)) &&
-        Number(room.pricePerNight) > 0
-    );
-  }
-
-  return mappedPlans.filter(
-    (room: any) =>
-      !isNaN(Number(room.id)) &&
-      allowedPlanIds.includes(Number(room.id)) &&
-      Number(room.pricePerNight) > 0
-  );
-}, [roomTypes, stayAddons]);
-  const showExtraStaySection = globalStayPlans.length > 0;
-
-const getDefaultExtraStay = () => {
-  const firstPlan = globalStayPlans[0];
-
-  return {
-    enabled: false,
-    type: firstPlan?.name || '',
-    planId: firstPlan?.id || '',
-    price: Number(firstPlan?.pricePerNight || 0),
-    startDate: '',
-    endDate: '',
-    days: 1,
   };
-};
+
+  const stayAddons = useMemo(() => {
+    return (addons || []).filter((addon) => {
+      const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
+      const addonPlanIds = parseIds(addon.planIds ?? addon.planID);
+      const normalizedType = String(addon.type || '').trim().toLowerCase();
+
+      const eventMatch =
+        addonEventIds.length === 0 ||
+        addonEventIds.includes(Number(selectedEventId));
+
+      const planMatch =
+        addonPlanIds.length === 0 ||
+        addonPlanIds.includes(Number(selectedPlanId));
+
+      const visibleMatch =
+        addon.isVisible === undefined ||
+        addon.isVisible === null ||
+        addon.isVisible !== false;
+
+      const activeMatch =
+        addon.isActive === undefined ||
+        addon.isActive === null ||
+        Number(addon.isActive) !== 0;
+
+      const typeMatch = normalizedType === 'stay';
+
+      return eventMatch && planMatch && visibleMatch && activeMatch && typeMatch;
+    });
+  }, [addons, selectedEventId, selectedPlanId]);
+
+  const globalStayPlans = useMemo(() => {
+    const allowedPlanIds = Array.from(
+      new Set(
+        stayAddons.flatMap((addon) => parseIds(addon.planIds ?? addon.planID))
+      )
+    );
+
+    const mappedPlans = (roomTypes || [])
+      .map(normalizeStayPlan)
+      .filter(
+        (plan) => Number.isFinite(plan.id) && plan.id > 0 && plan.pricePerNight > 0
+      );
+
+    console.log('🛏 stayAddons', stayAddons);
+    console.log('🛏 allowedPlanIds', allowedPlanIds);
+    console.log('🛏 mappedPlans', mappedPlans);
+
+    if (stayAddons.length > 0 && allowedPlanIds.length === 0) {
+      return [];
+    }
+
+    if (allowedPlanIds.length === 0) {
+      return mappedPlans;
+    }
+
+    return mappedPlans.filter((plan) => allowedPlanIds.includes(Number(plan.id)));
+  }, [roomTypes, stayAddons]);
+
+  const showExtraStaySection =
+    stayAddons.length > 0 && globalStayPlans.length > 0;
+
+  const getDefaultExtraStay = () => {
+    const firstPlan = globalStayPlans[0];
+
+    return {
+      enabled: false,
+      type: firstPlan?.name || '',
+      planId: firstPlan?.id || '',
+      price: Number(firstPlan?.pricePerNight || 0),
+      startDate: '',
+      endDate: '',
+      days: 1,
+    };
+  };
 
   useEffect(() => {
     if (!showExtraStaySection) return;
 
     const normalizedGuests = guests.map((guest: any) => {
       const existingExtraStay = guest?.addOns?.extraStay || {};
+      const existingPlanId = existingExtraStay?.planId;
       const matchedPlan = globalStayPlans.find(
-        (plan) => String(plan.id) === String(existingExtraStay.planId)
+        (plan) => String(plan.id) === String(existingPlanId)
       );
+      const fallback = getDefaultExtraStay();
 
       return {
         ...guest,
@@ -425,12 +594,14 @@ const getDefaultExtraStay = () => {
           ...(guest.addOns || {}),
           selectedAddons: guest.addOns?.selectedAddons || [],
           extraStay: {
-  enabled: existingExtraStay.enabled ?? false, // ✅ NEW
-  type: existingExtraStay.type || matchedPlan?.name || getDefaultExtraStay().type,
-  planId: existingExtraStay.planId || matchedPlan?.id || getDefaultExtraStay().planId,price: Number(
+            enabled:
+  existingExtraStay.enabled ?? !!existingExtraStay.planId,
+            type: existingExtraStay.type || matchedPlan?.name || fallback.type,
+            planId: existingExtraStay.planId || matchedPlan?.id || fallback.planId,
+            price: Number(
               existingExtraStay.price ??
                 matchedPlan?.pricePerNight ??
-                getDefaultExtraStay().price ??
+                fallback.price ??
                 0
             ),
             startDate: existingExtraStay.startDate || '',
@@ -441,85 +612,97 @@ const getDefaultExtraStay = () => {
       };
     });
 
-    const hasDiff = JSON.stringify(normalizedGuests) !== JSON.stringify(guests);
+    const hasDiff =
+      JSON.stringify(normalizedGuests) !== JSON.stringify(guests);
+
     if (hasDiff) {
       setGuests(normalizedGuests);
     }
   }, [showExtraStaySection, globalStayPlans]);
 
   const eventAddons = useMemo(() => {
-    return (addons || []).filter((addon: any) => {
+    return (addons || []).filter((addon) => {
       const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
       const addonPlanIds = parseIds(addon.planIds ?? addon.planID);
 
       const eventMatch =
-        addonEventIds.length === 0 || addonEventIds.includes(Number(selectedEventId));
+        addonEventIds.length === 0 ||
+        addonEventIds.includes(Number(selectedEventId));
 
       const planMatch =
-        addonPlanIds.length === 0 || addonPlanIds.includes(Number(selectedPlanId));
+        addonPlanIds.length === 0 ||
+        addonPlanIds.includes(Number(selectedPlanId));
 
       return (
         eventMatch &&
         planMatch &&
         addon.isVisible !== false &&
         Number(addon.isActive ?? 1) !== 0 &&
-        String(addon.type || '').toLowerCase() !== 'stay'
+        String(addon.type || '').trim().toLowerCase() !== 'stay'
       );
     });
   }, [addons, selectedEventId, selectedPlanId]);
 
-  const getGuestErrors = (g: Guest | any) => {
-    const errors: any = {};
+  const getGuestErrors = (guest: Guest | any) => {
+    const errors: Record<string, string> = {};
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    if (!g.name?.trim()) errors.name = 'Name is required';
-    if (!g.email?.trim()) errors.email = 'Email is required';
-    else if (!emailRegex.test(g.email)) errors.email = 'Invalid email format';
+    if (!guest.name?.trim()) errors.name = 'Name is required';
 
-    if (!g.phone?.trim()) errors.phone = 'Phone is required';
-    else if (String(g.phone).length < 10) errors.phone = 'Min 10 digits required';
+    if (!guest.email?.trim()) {
+      errors.email = 'Email is required';
+    } else if (!emailRegex.test(guest.email)) {
+      errors.email = 'Invalid email format';
+    }
 
-    if (!g.age || Number(g.age) <= 0) errors.age = 'Age is required';
-    if (!g.country) errors.country = 'Country is required';
-    if (!g.state) errors.state = 'State is required';
-    if (!g.city?.trim()) errors.city = 'City is required';
+    if (!guest.phone?.trim()) {
+      errors.phone = 'Phone is required';
+    } else if (String(guest.phone).length < 10) {
+      errors.phone = 'Min 10 digits required';
+    }
+
+    if (!guest.age || Number(guest.age) <= 0) errors.age = 'Age is required';
+    if (!guest.country) errors.country = 'Country is required';
+    if (!guest.state) errors.state = 'State is required';
+    if (!guest.city?.trim()) errors.city = 'City is required';
 
     return errors;
   };
 
-  const allGuestsValid = useMemo(
-    () => guests.every((g: any) => Object.keys(getGuestErrors(g)).length === 0),
-    [guests]
-  );
+  const allGuestsValid = useMemo(() => {
+    return guests.every((guest: any) => Object.keys(getGuestErrors(guest)).length === 0);
+  }, [guests]);
 
-  const eligibleKids = useMemo(
-    () => guests.filter((g: any) => Number(g.age) >= 4 && Number(g.age) <= 17),
-    [guests]
-  );
+  const eligibleKids = useMemo(() => {
+    return guests.filter((guest: any) => {
+      const age = Number(guest.age);
+      return age >= 4 && age <= 17;
+    });
+  }, [guests]);
 
   const updateGuest = (id: string, updates: any) => {
-    const updatedGuests = guests.map((g: any) => {
-      if (String(g.id) !== String(id)) return g;
+    const updatedGuests = guests.map((guest: any) => {
+      if (String(guest.id) !== String(id)) return guest;
 
       if (updates.addOns) {
         return {
-          ...g,
+          ...guest,
           addOns: {
-            ...(g.addOns || {}),
+            ...(guest.addOns || {}),
             ...updates.addOns,
             selectedAddons:
               updates.addOns.selectedAddons ??
-              g.addOns?.selectedAddons ??
+              guest.addOns?.selectedAddons ??
               [],
             extraStay: {
-              ...(g.addOns?.extraStay || getDefaultExtraStay()),
+              ...(guest.addOns?.extraStay || getDefaultExtraStay()),
               ...(updates.addOns.extraStay || {}),
             },
           },
         };
       }
 
-      return { ...g, ...updates };
+      return { ...guest, ...updates };
     });
 
     setGuests(updatedGuests);
@@ -529,40 +712,43 @@ const getDefaultExtraStay = () => {
     const guest = createEmptyGuest() as any;
 
     const normalizedGuest = {
-  ...guest,
-  addOns: {
-    ...(guest.addOns || {}),
-    selectedAddons: guest.addOns?.selectedAddons || [],
-    extraStay: showExtraStaySection
-      ? getDefaultExtraStay()
-      : {
-          enabled: false,
-          type: '',
-          planId: '',
-          price: 0,
-          startDate: '',
-          endDate: '',
-          days: 1,
-        },
-  },
-};
+      ...guest,
+      addOns: {
+        ...(guest.addOns || {}),
+        selectedAddons: guest.addOns?.selectedAddons || [],
+        extraStay: showExtraStaySection
+          ? getDefaultExtraStay()
+          : {
+              enabled: false,
+              type: '',
+              planId: '',
+              price: 0,
+              startDate: '',
+              endDate: '',
+              days: 1,
+            },
+      },
+    };
+
     setGuests([...guests, normalizedGuest]);
   };
 
   const removeGuest = (id: string) => {
     if (guests.length <= 1) return;
-    setGuests(guests.filter((g: any) => String(g.id) !== String(id)));
+    setGuests(guests.filter((guest: any) => String(guest.id) !== String(id)));
   };
 
   const toggleKidsPlan = (guestId: string, opted: boolean) => {
     setGuests(
-      guests.map((g: any) =>
-        String(g.id) === String(guestId) ? { ...g, isKidsPlanOpted: opted } : g
+      guests.map((guest: any) =>
+        String(guest.id) === String(guestId)
+          ? { ...guest, isKidsPlanOpted: opted }
+          : guest
       )
     );
   };
 
-  const getAddonPriceForGuest = (addon: any, guest: any) => {
+  const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
     const age = Number(guest?.age || 0);
     const isKid = age > 0 && age < 18;
 
@@ -581,8 +767,8 @@ const getDefaultExtraStay = () => {
     );
   };
 
-  const toggleGuestAddon = (guestId: string, addon: any) => {
-    const guest = guests.find((g: any) => String(g.id) === String(guestId));
+  const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
+    const guest = guests.find((item: any) => String(item.id) === String(guestId));
     if (!guest) return;
 
     const currentSelections = guest.addOns?.selectedAddons || [];
@@ -618,8 +804,10 @@ const getDefaultExtraStay = () => {
 
   const calculateEndDate = (startDate: string, days: number) => {
     if (!startDate) return '';
+
     const date = new Date(startDate);
     date.setDate(date.getDate() + Number(days || 0));
+
     return date.toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'short',
@@ -629,6 +817,7 @@ const getDefaultExtraStay = () => {
 
   const formatDateShort = (dateStr: string) => {
     if (!dateStr) return 'TBD';
+
     return new Date(dateStr).toLocaleDateString('en-IN', {
       day: 'numeric',
       month: 'short',
@@ -656,6 +845,7 @@ const getDefaultExtraStay = () => {
 
     if (type === 'extraStay' || type === 'stay') {
       const stayAddon = stayAddons[0];
+
       return {
         title:
           stayAddon?.title ??
@@ -679,13 +869,13 @@ const getDefaultExtraStay = () => {
 
     if (!allGuestsValid) return;
 
-   if (showExtraStaySection) {
-  const invalidExtraStayGuest = guests.find(
-    (g: any) =>
-      g.addOns?.extraStay?.enabled &&
-      (!g.addOns?.extraStay?.planId ||
-        !g.addOns?.extraStay?.startDate)
-  );
+    if (showExtraStaySection) {
+      const invalidExtraStayGuest = guests.find(
+        (guest: any) =>
+          guest.addOns?.extraStay?.enabled &&
+          (!guest.addOns?.extraStay?.planId ||
+            !guest.addOns?.extraStay?.startDate)
+      );
 
       if (invalidExtraStayGuest) {
         alert('Please select stay start date.');
@@ -883,7 +1073,9 @@ const getDefaultExtraStay = () => {
                           type="radio"
                           name={`food-${guest.id}`}
                           checked={guest.foodPreference === pref}
-                          onChange={() => updateGuest(guest.id, { foodPreference: pref })}
+                          onChange={() =>
+                            updateGuest(guest.id, { foodPreference: pref })
+                          }
                           className="hidden"
                         />
                         {pref}
@@ -908,6 +1100,7 @@ const getDefaultExtraStay = () => {
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
                     State / Province
                   </label>
+
                   {guest.country === 'India' ? (
                     <div className="relative">
                       <select
@@ -982,7 +1175,9 @@ const getDefaultExtraStay = () => {
                           type="radio"
                           name={`assist-${guest.id}`}
                           checked={guest.travelAssistance === val}
-                          onChange={() => updateGuest(guest.id, { travelAssistance: val })}
+                          onChange={() =>
+                            updateGuest(guest.id, { travelAssistance: val })
+                          }
                           className="hidden"
                         />
                         {val ? 'Yes' : 'No'}
@@ -1055,199 +1250,207 @@ const getDefaultExtraStay = () => {
               </div>
 
               {showExtraStaySection && (
-  <div className="mt-6 bg-stone-50 rounded-2xl p-4 border border-stone-100">
-    <label className="flex items-center gap-3 cursor-pointer group mb-4">
-      <input
-        type="checkbox"
-        checked={guest.addOns?.extraStay?.enabled || false}
-        onChange={(e) =>
-          updateGuest(guest.id, {
-            addOns: {
-              ...guest.addOns,
-              extraStay: {
-                ...guest.addOns?.extraStay,
-                enabled: e.target.checked,
-                ...(e.target.checked
-                  ? {}
-                  : {
-                      startDate: '',
-                      endDate: '',
-                    }),
-              },
-            },
-          })
-        }
-        className="w-5 h-5 rounded-md accent-teal-700"
-      />
-      <div className="flex-1">
-        <span className="block font-black text-sm text-stone-900">
-          {ui.guestCard.addons.extraStay}
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          setShowAddOnInfo('extraStay');
-        }}
-        className="p-1 hover:bg-stone-200 rounded-lg"
-      >
-        <Info className="w-4 h-4 text-teal-500" />
-      </button>
-    </label>
+                <div className="mt-6 rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                  <label className="group mb-4 flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={guest.addOns?.extraStay?.enabled || false}
+                      onChange={(e) =>
+                        updateGuest(guest.id, {
+                          addOns: {
+                            ...guest.addOns,
+                            extraStay: {
+                              ...guest.addOns?.extraStay,
+                              enabled: e.target.checked,
+                              ...(e.target.checked
+                                ? {}
+                                : {
+                                    startDate: '',
+                                    endDate: '',
+                                  }),
+                            },
+                          },
+                        })
+                      }
+                      className="h-5 w-5 rounded-md accent-teal-700"
+                    />
+                    <div className="flex-1">
+                      <span className="block text-sm font-black text-stone-900">
+                        {ui.guestCard.addons.extraStay}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowAddOnInfo('extraStay');
+                      }}
+                      className="rounded-lg p-1 hover:bg-stone-200"
+                    >
+                      <Info className="h-4 w-4 text-teal-500" />
+                    </button>
+                  </label>
 
-    {guest.addOns?.extraStay?.enabled && (
-      <div className="animate-slideUp space-y-4 pt-2">
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-          {globalStayPlans.map((room: any) => (
-            <label
-              key={String(room.id)}
-              className={`flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${
-                String(guest.addOns?.extraStay?.planId) === String(room.id)
-                  ? 'border-teal-700 bg-white ring-2 ring-teal-50'
-                  : 'border-stone-200 bg-white hover:border-stone-300'
-              }`}
-            >
-              <input
-                type="radio"
-                name={`room-${guest.id}`}
-                checked={String(guest.addOns?.extraStay?.planId) === String(room.id)}
-                onChange={() =>
-                  updateGuest(guest.id, {
-                    addOns: {
-                      ...guest.addOns,
-                      extraStay: {
-                        ...guest.addOns?.extraStay,
-                        enabled: true,
-                        type: room.name,
-                        planId: room.id,
-                        price: Number(room.pricePerNight || 0),
-                      },
-                    },
-                  })
-                }
-                className="hidden"
-              />
+                  {guest.addOns?.extraStay?.enabled && (
+                    <div className="animate-slideUp space-y-4 pt-2">
+                      <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+                        {globalStayPlans.map((room) => (
+                          <label
+                            key={String(room.id)}
+                            className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 p-2 transition-all ${
+                              String(guest.addOns?.extraStay?.planId) === String(room.id)
+                                ? 'border-teal-700 bg-white ring-2 ring-teal-50'
+                                : 'border-stone-200 bg-white hover:border-stone-300'
+                            }`}
+                          >
+                            <input
+                              type="radio"
+                              name={`room-${guest.id}`}
+                              checked={
+                                String(guest.addOns?.extraStay?.planId) ===
+                                String(room.id)
+                              }
+                              onChange={() =>
+                                updateGuest(guest.id, {
+                                  addOns: {
+                                    ...guest.addOns,
+                                    extraStay: {
+                                      ...guest.addOns?.extraStay,
+                                      enabled: true,
+                                      type: room.name,
+                                      planId: room.id,
+                                      price: Number(room.pricePerNight || 0),
+                                    },
+                                  },
+                                })
+                              }
+                              className="hidden"
+                            />
 
-              <div className="w-8 h-8 rounded-lg overflow-hidden shrink-0">
-                {room.image ? (
-                  <img
-                    src={room.image}
-                    className="w-full h-full object-cover"
-                    alt={room.name}
-                  />
-                ) : (
-                  <div className="w-full h-full bg-stone-100" />
-                )}
-              </div>
+                            <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg">
+                              {room.image ? (
+                                <img
+                                  src={room.image}
+                                  className="h-full w-full object-cover"
+                                  alt={room.name}
+                                />
+                              ) : (
+                                <div className="h-full w-full bg-stone-100" />
+                              )}
+                            </div>
 
-              <div className="min-w-0">
-                <h5 className="font-bold text-stone-900 text-[9px] truncate">
-                  {room.name}
-                </h5>
-                <p className="text-teal-700 font-black text-[8px]">
-                  ₹{room.pricePerNight}/nt
-                </p>
-              </div>
-            </label>
-          ))}
-        </div>
+                            <div className="min-w-0">
+                              <h5 className="truncate text-[9px] font-bold text-stone-900">
+                                {room.name}
+                              </h5>
+                              <p className="text-[8px] font-black text-teal-700">
+                                ₹{room.pricePerNight}/nt
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
 
-        <div className="flex flex-col sm:flex-row gap-4">
-          <div className="flex-1 space-y-1">
-            <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-teal-700" />
-              {ui.guestCard.extraStay.startDate}
-            </label>
-            <input
-              type="date"
-              value={guest.addOns?.extraStay?.startDate || ''}
-              onChange={(e) =>
-                updateGuest(guest.id, {
-                  addOns: {
-                    ...guest.addOns,
-                    extraStay: {
-                      ...guest.addOns?.extraStay,
-                      startDate: e.target.value,
-                    },
-                  },
-                })
-              }
-              className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-teal-700 outline-none"
-            />
-          </div>
+                      <div className="flex flex-col gap-4 sm:flex-row">
+                        <div className="flex-1 space-y-1">
+                          <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
+                            <Calendar className="h-3 w-3 text-teal-700" />
+                            {ui.guestCard.extraStay.startDate}
+                          </label>
+                          <input
+                            type="date"
+                            value={guest.addOns?.extraStay?.startDate || ''}
+                            onChange={(e) =>
+                              updateGuest(guest.id, {
+                                addOns: {
+                                  ...guest.addOns,
+                                  extraStay: {
+                                    ...guest.addOns?.extraStay,
+                                    startDate: e.target.value,
+                                  },
+                                },
+                              })
+                            }
+                            className="w-full rounded-lg border-2 border-stone-100 bg-white px-3 py-2 text-xs font-bold text-stone-900 outline-none focus:border-teal-700"
+                          />
+                        </div>
 
-          <div className="sm:w-32 space-y-1">
-            <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-teal-700" />
-              {ui.guestCard.extraStay.duration}
-            </label>
-            <div className="flex items-center justify-between bg-white border-2 border-stone-100 rounded-lg px-2 py-1.5">
-              <button
-                type="button"
-                onClick={() =>
-                  updateGuest(guest.id, {
-                    addOns: {
-                      ...guest.addOns,
-                      extraStay: {
-                        ...guest.addOns?.extraStay,
-                        days: Math.max(
-                          1,
-                          Number(guest.addOns?.extraStay?.days || 1) - 1
-                        ),
-                      },
-                    },
-                  })
-                }
-                className="text-stone-400 hover:text-teal-700 font-black"
-              >
-                <Minus className="w-4 h-4" />
-              </button>
+                        <div className="space-y-1 sm:w-32">
+                          <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
+                            <Clock className="h-3 w-3 text-teal-700" />
+                            {ui.guestCard.extraStay.duration}
+                          </label>
+                          <div className="flex items-center justify-between rounded-lg border-2 border-stone-100 bg-white px-2 py-1.5">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateGuest(guest.id, {
+                                  addOns: {
+                                    ...guest.addOns,
+                                    extraStay: {
+                                      ...guest.addOns?.extraStay,
+                                      days: Math.max(
+                                        1,
+                                        Number(guest.addOns?.extraStay?.days || 1) - 1
+                                      ),
+                                    },
+                                  },
+                                })
+                              }
+                              className="font-black text-stone-400 hover:text-teal-700"
+                            >
+                              <Minus className="h-4 w-4" />
+                            </button>
 
-              <span className="font-black text-xs text-stone-900">
-                {guest.addOns?.extraStay?.days || 1}nt
-              </span>
+                            <span className="text-xs font-black text-stone-900">
+                              {guest.addOns?.extraStay?.days || 1}nt
+                            </span>
 
-              <button
-                type="button"
-                onClick={() =>
-                  updateGuest(guest.id, {
-                    addOns: {
-                      ...guest.addOns,
-                      extraStay: {
-                        ...guest.addOns?.extraStay,
-                        days: Number(guest.addOns?.extraStay?.days || 1) + 1,
-                      },
-                    },
-                  })
-                }
-                className="text-stone-400 hover:text-teal-700 font-black"
-              >
-                <PlusCircle className="w-4 h-4" />
-              </button>
-            </div>
-          </div>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateGuest(guest.id, {
+                                  addOns: {
+                                    ...guest.addOns,
+                                    extraStay: {
+                                      ...guest.addOns?.extraStay,
+                                      days:
+                                        Number(guest.addOns?.extraStay?.days || 1) + 1,
+                                    },
+                                  },
+                                })
+                              }
+                              className="font-black text-stone-400 hover:text-teal-700"
+                            >
+                              <PlusCircle className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </div>
 
-          <div className="flex-[1.2] bg-teal-700 px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
-            <span className="text-[8px] font-black text-teal-200 uppercase tracking-widest mb-1">
-              {ui.guestCard.extraStay.periodLabel}
-            </span>
-            <div className="flex items-center gap-2 text-[10px] font-black">
-              <span>{formatDateShort(guest.addOns?.extraStay?.startDate || '')}</span>
-              <ArrowRight className="w-3 h-3 text-teal-300" />
-              <span>
-                {calculateEndDate(
-                  guest.addOns?.extraStay?.startDate || '',
-                  Number(guest.addOns?.extraStay?.days || 1)
-                )}
-              </span>
-            </div>
-          </div>
-        </div>
-      </div>
-    )}
-  </div>
-)}
+                        <div className="flex flex-[1.2] flex-col justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-white">
+                          <span className="mb-1 text-[8px] font-black uppercase tracking-widest text-teal-200">
+                            {ui.guestCard.extraStay.periodLabel}
+                          </span>
+                          <div className="flex items-center gap-2 text-[10px] font-black">
+                            <span>
+                              {formatDateShort(
+                                guest.addOns?.extraStay?.startDate || ''
+                              )}
+                            </span>
+                            <ArrowRight className="h-3 w-3 text-teal-300" />
+                            <span>
+                              {calculateEndDate(
+                                guest.addOns?.extraStay?.startDate || '',
+                                Number(guest.addOns?.extraStay?.days || 1)
+                              )}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
 
               <div className="mt-5">
                 <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-stone-700">
@@ -1272,7 +1475,9 @@ const getDefaultExtraStay = () => {
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 shadow-sm group-hover:bg-white">
             <PlusCircle className="h-6 w-6" />
           </div>
-          <span className="text-xs font-black uppercase tracking-[0.2em]">{ui.addPartner}</span>
+          <span className="text-xs font-black uppercase tracking-[0.2em]">
+            {ui.addPartner}
+          </span>
         </button>
       </div>
 
@@ -1287,7 +1492,7 @@ const getDefaultExtraStay = () => {
 
           <button
             onClick={handleProceedClick}
-            className={`group flex-[2] rounded-xl py-3.5 text-base font-black transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${
+            className={`group flex flex-[2] items-center justify-center gap-2 rounded-xl py-3.5 text-base font-black shadow-lg transition-all active:scale-95 ${
               !allGuestsValid && touched
                 ? 'cursor-not-allowed bg-stone-200 text-stone-400'
                 : 'bg-teal-700 text-white hover:bg-teal-800'
@@ -1345,7 +1550,7 @@ const getDefaultExtraStay = () => {
 
       {showKidsModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-stone-900/90 p-4 backdrop-blur-md">
-          <div className="w-full max-w-lg overflow-hidden rounded-[40px] bg-white shadow-2xl animate-scaleUp">
+          <div className="w-full max-w-lg animate-scaleUp overflow-hidden rounded-[40px] bg-white shadow-2xl">
             <div className="bg-teal-700 p-8 text-white">
               <Sparkles className="mb-4 h-10 w-10 text-teal-300 opacity-70" />
               <h3 className="text-2xl font-black uppercase leading-none tracking-tighter">

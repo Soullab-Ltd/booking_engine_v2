@@ -7,6 +7,7 @@ import {
   EventResponse,
   UIContent,
   AppConfig,
+  getAllDataBySlug,
 } from './src/services/dataService';
 
 import LandingPage from './components/LandingPage';
@@ -46,13 +47,19 @@ const App: React.FC = () => {
       try {
         console.log('🚀 Starting data fetch...');
 
-        const urlParams = new URLSearchParams(window.location.search);
-        const eventId = urlParams.get('id') || '41';
-        const bookingIdFromUrl = urlParams.get('booking');
-        const view = urlParams.get('view');
+       const urlParams = new URLSearchParams(window.location.search);
+const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');
+const eventId = urlParams.get('id');
+const bookingIdFromUrl = urlParams.get('booking');
+const view = urlParams.get('view');
 
-        const allData = await getAllData(eventId, bookingIdFromUrl);
+let allData;
 
+if (slug) {
+  allData = await getAllDataBySlug(slug, bookingIdFromUrl);
+} else {
+  allData = await getAllData(eventId || '41', bookingIdFromUrl);
+}
         console.log('✅ API Response:', allData);
 
         setData({

@@ -89,6 +89,7 @@ export interface EventData {
   id: number | string;
   EventID?: number | string;
   title: string;
+  slug: string; 
   EventName?: string;
   banner: string;
   date: string;
