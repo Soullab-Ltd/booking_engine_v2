@@ -11,6 +11,8 @@ import {
   CheckCircle2,
   AlertCircle,
   Ticket,
+  UploadCloud,
+  X,
 } from 'lucide-react';
 
 interface BookingSummaryProps {
@@ -66,6 +68,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
 
+  // --- New states for Coupon ID Logic ---
+  const [couponFile, setCouponFile] = useState<File | null>(null);
+  const [showCouponIdModal, setShowCouponIdModal] = useState(false);
+  const [pendingCoupon, setPendingCoupon] = useState<any | null>(null);
+
   const selectedEventId = useMemo(
     () => getSafeId(event, ['EventID', 'id']),
     [event]
@@ -91,7 +98,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         }
 
         const res = await fetch(
-          `https://bookingapi.thriive.in/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
+          `http://localhost:8081/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
         );
 
         if (res.ok) {
@@ -122,7 +129,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       }
 
       const res = await fetch(
-        `https://bookingapi.thriive.in/coupons/validate?code=${customCodeInput
+        `http://localhost:8081/coupons/validate?code=${customCodeInput
           .trim()
           .toUpperCase()}&eventId=${selectedEventId}&planId=${selectedPlanId}`
       );
@@ -139,7 +146,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         return exists ? prev : [validatedCoupon, ...prev];
       });
 
-      setAppliedCoupon(validatedCoupon);
+      // Instead of setAppliedCoupon, we use the new handler
+      handleApplyCouponClick(validatedCoupon);
       setCustomCodeInput('');
     } catch (err: any) {
       setCustomCodeError(err.message);
@@ -148,15 +156,46 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     }
   };
 
+  // --- Logic to check if Modal is needed ---
+  const handleApplyCouponClick = (coupon: any) => {
+    // Debug Log - Check your browser console
+    console.log("Coupon Object:", coupon);
+
+    if (appliedCoupon?.id === coupon.id) {
+      setAppliedCoupon(null);
+      setCouponFile(null); // Clear file if coupon is removed
+      return;
+    }
+
+    // Comprehensive check for the flag (string "1", number 1, or boolean true)
+    const needsId = coupon.requires_id_upload == 1 || 
+                    coupon.requires_id_upload === true || 
+                    String(coupon.requires_id_upload).toLowerCase() === 'true';
+
+    if (needsId && !couponFile) {
+      console.log("Opening ID Modal for:", coupon.code);
+      setPendingCoupon(coupon);
+      setShowCouponIdModal(true);
+    } else {
+      setAppliedCoupon(coupon);
+    }
+  };
+
+  const confirmPendingCoupon = () => {
+    if (couponFile) {
+      setAppliedCoupon(pendingCoupon);
+      setShowCouponIdModal(false);
+      setPendingCoupon(null);
+    }
+  };
+
   const getGuestAddOnTotal = (guest: Guest) => {
     let total = 0;
 
-    if ((guest as any).addOns?.foodPass) {
-      total += config?.ADDONS?.FOOD_PASS || 2500;
-    }
-
-    if ((guest as any).addOns?.adventurePass) {
-      total += config?.ADDONS?.ADVENTURE_PASS || 5000;
+    if ((guest as any).addOns?.selectedAddons) {
+      (guest as any).addOns.selectedAddons.forEach((addon: any) => {
+        total += Number(addon.price || 0);
+      });
     }
 
     if ((guest as any).addOns?.extraStay?.enabled) {
@@ -186,14 +225,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     const names = [baseLabel];
     const prices = [displayBasePrice.toLocaleString()];
 
-    if ((guest as any).addOns?.foodPass) {
-      names.push('FOOD PASS');
-      prices.push((config?.ADDONS?.FOOD_PASS || 2500).toLocaleString());
-    }
-
-    if ((guest as any).addOns?.adventurePass) {
-      names.push('ADVENTURE PASS');
-      prices.push((config?.ADDONS?.ADVENTURE_PASS || 5000).toLocaleString());
+    if ((guest as any).addOns?.selectedAddons) {
+      (guest as any).addOns.selectedAddons.forEach((addon: any) => {
+        names.push(addon.title.toUpperCase());
+        prices.push(Number(addon.price || 0).toLocaleString());
+      });
     }
 
     if ((guest as any).addOns?.extraStay?.enabled) {
@@ -224,9 +260,10 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     }
 
     const defaultPlanPrice =
+      (bookingState.plan as any)?.OfferPrice ?? 
+      (bookingState.plan as any)?.discountedPrice ?? 
       (bookingState.plan as any)?.finalPrice ??
-      (bookingState.plan as any)?.OfferPrice ??
-      (bookingState.plan as any)?.PlanPrice ??
+      (bookingState.plan as any)?.PlanPrice ?? 
       0;
 
     const planGstType = (bookingState.plan as any)?.gstType;
@@ -248,11 +285,20 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
     let discount = 0;
     if (appliedCoupon) {
-      const type = appliedCoupon.discountType || appliedCoupon.discount_type;
-      discount =
-        type === 'PERCENTAGE'
-          ? (subtotal * Number(appliedCoupon.value)) / 100
-          : Number(appliedCoupon.value);
+      const needsId = appliedCoupon.requires_id_upload == 1 || 
+                      appliedCoupon.requires_id_upload === true ||
+                      String(appliedCoupon.requires_id_upload).toLowerCase() === 'true';
+      
+      // If ID is required but no file is in our separate couponFile state, discount is 0
+      if (needsId && !couponFile) {
+        discount = 0;
+      } else {
+        const type = appliedCoupon.discountType || appliedCoupon.discount_type;
+        discount =
+          type === 'PERCENTAGE'
+            ? (subtotal * Number(appliedCoupon.value)) / 100
+            : Number(appliedCoupon.value);
+      }
     }
 
     const discountedSubtotal = Math.max(0, subtotal - discount);
@@ -270,10 +316,17 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       total: discountedSubtotal + tax,
       gstRate: planGstRate,
     };
-  }, [bookingState, config, appliedCoupon]);
+  }, [bookingState, config, appliedCoupon, couponFile]);
 
   const isFormValid = useMemo(() => {
     if (!agreedToTerms || !agreedToRefund) return false;
+
+    // Check if ID is needed for applied coupon
+    const needsCouponId = appliedCoupon?.requires_id_upload == 1 || 
+                          appliedCoupon?.requires_id_upload === true || 
+                          String(appliedCoupon?.requires_id_upload).toLowerCase() === 'true';
+                          
+    if (needsCouponId && !couponFile) return false;
 
     if (atgRequested) {
       const hasPan = atgData.pan.length === 10;
@@ -284,20 +337,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     }
 
     return true;
-  }, [agreedToTerms, agreedToRefund, atgRequested, atgData, atgFiles]);
+  }, [agreedToTerms, agreedToRefund, atgRequested, atgData, atgFiles, appliedCoupon, couponFile]);
 
   const handlePayment = async () => {
     setIsProcessing(true);
     setCouponError('');
 
     try {
-      console.log('🔥 FINAL IDS', {
-        selectedEventId,
-        selectedPlanId,
-        selectedPlan: bookingState.selectedPlan,
-        event,
-      });
-
       if (!selectedEventId) {
         throw new Error('Invalid event selected');
       }
@@ -339,35 +385,44 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           remarks: g.remark || '',
           id_image_url: '',
         })),
-        addon: {
-          adultPassQty: bookingState.guests.filter((g) => g.addOns.foodPass)
-            .length,
-          kidPassQty: 0,
-          adultSeasonQty: bookingState.guests.filter(
-            (g) => g.addOns.adventurePass
-          ).length,
-        },
+        bookingAddons: bookingState.guests.flatMap((g: any) => 
+          (g.addOns?.selectedAddons || []).map((a: any) => ({
+            guest_ref_id: g.id,
+            addon_id: Number(a.addonId),
+            title: a.title,
+            type: a.type,
+            quantity: 1,
+            unit_price: Number(a.price),
+            total_amount: Number(a.price)
+          }))
+        ),
+        stays: bookingState.guests
+          .filter((g: any) => g.addOns?.extraStay?.enabled)
+          .map((g: any) => ({
+            guest_ref_id: g.id,
+            plan_id: Number(g.addOns.extraStay.planId),
+            plan_name: g.addOns.extraStay.type,
+            start_date: g.addOns.extraStay.startDate,
+            days: Number(g.addOns.extraStay.days),
+            price_per_night: Number(g.addOns.extraStay.price),
+            total_amount: Number(g.addOns.extraStay.price) * Number(g.addOns.extraStay.days)
+          }))
       };
 
-      const hasFiles = atgFiles.pan || atgFiles.aadhar;
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(payload));
+      
+      // ATG Files
+      if (atgFiles.pan) formData.append('panFile', atgFiles.pan);
+      if (atgFiles.aadhar) formData.append('aadharFile', atgFiles.aadhar);
+      
+      // Separate Coupon Proof
+      if (couponFile) formData.append('couponIdFile', couponFile);
 
-      const responseRaw = hasFiles
-        ? await (async () => {
-            const formData = new FormData();
-            formData.append('data', JSON.stringify(payload));
-            if (atgFiles.pan) formData.append('panFile', atgFiles.pan);
-            if (atgFiles.aadhar) formData.append('aadharFile', atgFiles.aadhar);
-
-            return fetch('https://bookingapi.thriive.in/bookings', {
-              method: 'POST',
-              body: formData,
-            });
-          })()
-        : await fetch('https://bookingapi.thriive.in/bookings', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ data: payload }),
-          });
+      const responseRaw = await fetch('http://localhost:8081/bookings', {
+        method: 'POST',
+        body: formData,
+      });
 
       if (!responseRaw.ok) {
         throw new Error('Server responded with an error');
@@ -425,7 +480,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   {bookingState.guests.map((g: any, idx: number) => {
                     const breakdown = getGuestBreakdown(g, totals.basePrice);
                     return (
-                      <tr key={g.id || idx}>
+                      <tr key={idx}>
                         <td className="px-6 py-5 align-top">
                           <span className="font-black text-stone-900">
                             {g.name}
@@ -455,7 +510,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                     </td>
                   </tr>
 
-                  {totals.discount > 0 && (
+                  {totals.discount > 0 ? (
                     <tr className="bg-emerald-50/50">
                       <td className="px-6 py-4 font-black text-emerald-700 uppercase italic text-xs flex items-center gap-2">
                         <Tag className="w-3 h-3" /> Coupon Discount (
@@ -463,6 +518,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       </td>
                       <td className="px-6 py-4 text-right font-black text-emerald-700 text-lg">
                         - ₹{totals.discount.toLocaleString()}
+                      </td>
+                    </tr>
+                  ) : appliedCoupon && (appliedCoupon.requires_id_upload == 1 || appliedCoupon.requires_id_upload === true || String(appliedCoupon.requires_id_upload).toLowerCase() === "true") && (
+                    <tr className="bg-amber-50/50">
+                      <td colSpan={2} className="px-6 py-3 font-black text-amber-700 uppercase text-[10px] flex items-center gap-2 leading-relaxed">
+                        <AlertCircle className="w-4 h-4 shrink-0" /> 
+                        <span>Please click 'Apply' and upload proof to activate your {appliedCoupon.code} discount.</span>
                       </td>
                     </tr>
                   )}
@@ -586,6 +648,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                               : `₹${coupon.value} OFF`}
                           </span>
                         </div>
+                        
+                        {(coupon.requires_id_upload == 1 || coupon.requires_id_upload === true || String(coupon.requires_id_upload).toLowerCase() === "true") && (
+                          <p className="text-[9px] font-black text-amber-600 uppercase flex items-center gap-1 mt-1">
+                            <AlertCircle className="w-3 h-3" /> Identity Proof Required
+                          </p>
+                        )}
+
                         <p className="text-stone-500 text-[11px] font-medium truncate mt-0.5">
                           {coupon.description || coupon.title}
                         </p>
@@ -593,11 +662,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                     </div>
                     <button
                       type="button"
-                      onClick={() =>
-                        setAppliedCoupon(
-                          appliedCoupon?.id === coupon.id ? null : coupon
-                        )
-                      }
+                      onClick={() => handleApplyCouponClick(coupon)}
                       className={`w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${
                         appliedCoupon?.id === coupon.id
                           ? 'bg-stone-900 text-white shadow-lg'
@@ -635,7 +700,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
                   I accept the{' '}
                   <a
-                    href="#"
+                    href="https://shreansdaga.org/terms-and-conditions/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-teal-700 underline hover:text-teal-900"
                   >
                     terms and conditions
@@ -654,7 +721,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
                   I accept the{' '}
                   <a
-                    href="#"
+                    href="https://shreansdaga.org/refund-cancellation-policy/"
+                    target="_blank"
+                    rel="noopener noreferrer"
                     className="text-teal-700 underline hover:text-teal-900"
                   >
                     refund policy
@@ -841,19 +910,19 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   Policy Acceptance
                 </span>
               </div>
-              {atgRequested && (
+              
+              {isFormValid ? (
                 <div className="flex items-center gap-2">
-                  {isFormValid ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                  ) : (
-                    <AlertCircle className="w-4 h-4 text-stone-300" />
-                  )}
-                  <span
-                    className={`text-[10px] font-bold uppercase tracking-widest ${
-                      isFormValid ? 'text-emerald-600' : 'text-stone-400'
-                    }`}
-                  >
-                    80G Documentation
+                  <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-emerald-600">
+                    Form Complete
+                  </span>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <AlertCircle className="w-4 h-4 text-stone-300" />
+                  <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                    {appliedCoupon?.requires_id_upload ? 'ID Proof Missing' : 'Form Incomplete'}
                   </span>
                 </div>
               )}
@@ -876,6 +945,63 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       >
         <ChevronLeft className="w-5 h-5" /> Back
       </button>
+
+      {/* --- Identity Verification Modal --- */}
+      {showCouponIdModal && (
+        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-stone-900/80 p-6 backdrop-blur-sm">
+          <div className="w-full max-w-sm overflow-hidden rounded-[32px] bg-white shadow-2xl animate-scaleUp">
+            <div className="bg-teal-700 p-6 text-white flex justify-between items-center">
+              <div>
+                <h3 className="text-xl font-black tracking-tighter">Identity Verification</h3>
+                <p className="text-[10px] font-bold uppercase text-teal-100 opacity-80">Required for {pendingCoupon?.code}</p>
+              </div>
+              <button 
+                onClick={() => { setShowCouponIdModal(false); setPendingCoupon(null); setCouponFile(null); }} 
+                className="p-2 hover:bg-white/10 rounded-full transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            
+            <div className="p-8 space-y-6 text-center">
+              <div className="flex flex-col items-center gap-4">
+                <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center">
+                   <UploadCloud className="w-8 h-8 text-teal-600" />
+                </div>
+                <p className="text-xs text-stone-500 font-medium leading-relaxed">
+                  To apply this exclusive offer, please upload a valid identity proof (College ID / Govt ID).
+                </p>
+              </div>
+
+              <div className="space-y-3">
+                <input
+                  type="file"
+                  id="modal-coupon-upload"
+                  className="hidden"
+                  onChange={(e) => {
+                    const file = e.target.files?.[0];
+                    if(file) setCouponFile(file);
+                  }}
+                />
+                <label
+                  htmlFor="modal-coupon-upload"
+                  className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-4 text-[11px] font-black uppercase transition-all ${couponFile ? 'border-teal-500 bg-teal-50 text-teal-700' : 'border-stone-200 text-stone-400'}`}
+                >
+                  {couponFile ? `✅ ${couponFile.name}` : '📎 Select Identification File'}
+                </label>
+              </div>
+
+              <button
+                onClick={confirmPendingCoupon}
+                disabled={!couponFile}
+                className="w-full rounded-2xl bg-stone-900 py-4 text-xs font-black uppercase tracking-widest text-white shadow-xl transition-all disabled:bg-stone-200 disabled:text-stone-400"
+              >
+                Verify & Apply Offer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

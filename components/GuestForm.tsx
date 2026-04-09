@@ -43,7 +43,7 @@ const COUNTRIES = [
   'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
   'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan',
   'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Korea, North', 'Korea, South', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos',
-  'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi',
+  'Lotvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi',
   'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
   'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
   'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine',
@@ -281,6 +281,25 @@ const GuestForm: React.FC<GuestFormProps> = ({
       '',
   };
 };
+
+// Logic for dynamic stay addon title
+const stayAddonFromDb = useMemo(() => {
+    return addons?.find(a => String(a.type).toLowerCase() === 'stay');
+}, [addons]);
+
+const stayAddonTitle = useMemo(() => {
+    return stayAddonFromDb?.title || stayAddonFromDb?.AddonTitle || ui.guestCard.addons.extraStay;
+}, [stayAddonFromDb, ui]);
+
+// ✅ Logic for dynamic Kids Plan content from backend
+const kidsAddonFromDb = useMemo(() => {
+    // Looks for an addon marked as 'Kid' type or contains 'Kid' in the title
+    return addons?.find(a => 
+        String(a.type).toLowerCase() === 'kid' || 
+        String(a.title || a.AddonTitle).toLowerCase().includes('kid')
+    );
+}, [addons]);
+
  const stayAddons = useMemo(() => {
   return (addons || []).filter((addon: any) => {
     const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
@@ -305,25 +324,10 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
     const typeMatch = normalizedType === 'stay';
 
-    if (Number(addon.id ?? addon.AddonID) === 8) {
-      console.log('🛏 PVI STAY CHECK', {
-        addon,
-        normalizedType,
-        addonEventIds,
-        addonPlanIds,
-        selectedEventId,
-        selectedPlanId,
-        eventMatch,
-        planMatch,
-        visibleMatch,
-        activeMatch,
-        typeMatch,
-      });
-    }
-
     return eventMatch && planMatch && visibleMatch && activeMatch && typeMatch;
   });
 }, [addons, selectedEventId, selectedPlanId]);
+
   const fallbackStayPlans = useMemo(() => {
     return (roomTypes || [])
       .map(normalizeStayPlan)
@@ -376,9 +380,6 @@ const globalStayPlans = useMemo(() => {
     };
   });
 
-  console.log('🛏 allowedPlanIds', allowedPlanIds);
-  console.log('🛏 mappedPlans', mappedPlans);
-
   if (allowedPlanIds.length === 0) {
     return mappedPlans.filter(
       (room: any) =>
@@ -425,7 +426,7 @@ const getDefaultExtraStay = () => {
           ...(guest.addOns || {}),
           selectedAddons: guest.addOns?.selectedAddons || [],
           extraStay: {
-  enabled: existingExtraStay.enabled ?? false, // ✅ NEW
+  enabled: existingExtraStay.enabled ?? false, 
   type: existingExtraStay.type || matchedPlan?.name || getDefaultExtraStay().type,
   planId: existingExtraStay.planId || matchedPlan?.id || getDefaultExtraStay().planId,price: Number(
               existingExtraStay.price ??
@@ -655,19 +656,14 @@ const getDefaultExtraStay = () => {
     }
 
     if (type === 'extraStay' || type === 'stay') {
-      const stayAddon = stayAddons[0];
       return {
-        title:
-          stayAddon?.title ??
-          stayAddon?.AddonTitle ??
-          ui?.guestCard?.addons?.extraStay ??
-          'Extra Stay',
+        title: stayAddonTitle,
         desc:
-          stayAddon?.description ??
-          stayAddon?.AddonDescription ??
+          stayAddonFromDb?.description ??
+          stayAddonFromDb?.AddonDescription ??
           ui?.modals?.stay?.desc ??
           'Add stay before or after the event.',
-        img: stayAddon?.bannerImage ?? ui?.modals?.stay?.img ?? '',
+        img: stayAddonFromDb?.bannerImage ?? ui?.modals?.stay?.img ?? '',
       };
     }
 
@@ -762,7 +758,7 @@ const getDefaultExtraStay = () => {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.name}
+                    {ui.guestCard.fields.name} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="text"
@@ -780,7 +776,7 @@ const getDefaultExtraStay = () => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.phone}
+                    {ui.guestCard.fields.phone} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="tel"
@@ -801,7 +797,7 @@ const getDefaultExtraStay = () => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.email}
+                    {ui.guestCard.fields.email} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="email"
@@ -819,7 +815,7 @@ const getDefaultExtraStay = () => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.age}
+                    {ui.guestCard.fields.age} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="text"
@@ -894,7 +890,7 @@ const getDefaultExtraStay = () => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Country
+                    Country <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
@@ -906,7 +902,7 @@ const getDefaultExtraStay = () => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    State / Province
+                    State / Province <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   {guest.country === 'India' ? (
                     <div className="relative">
@@ -948,7 +944,7 @@ const getDefaultExtraStay = () => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    City
+                    City <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="text"
@@ -1037,7 +1033,7 @@ const getDefaultExtraStay = () => {
                             </button>
                           </p>
                           <p className="text-[9px] font-bold uppercase text-emerald-600">
-                            ₹{guestPrice} Base
+                            ₹{guestPrice} per person
                           </p>
                         </div>
                       </label>
@@ -1081,7 +1077,7 @@ const getDefaultExtraStay = () => {
       />
       <div className="flex-1">
         <span className="block font-black text-sm text-stone-900">
-          {ui.guestCard.addons.extraStay}
+          {stayAddonTitle}
         </span>
       </div>
       <button
@@ -1146,7 +1142,7 @@ const getDefaultExtraStay = () => {
                   {room.name}
                 </h5>
                 <p className="text-teal-700 font-black text-[8px]">
-                  ₹{room.pricePerNight}/nt
+                  ₹{room.pricePerNight}/nt per person
                 </p>
               </div>
             </label>
@@ -1349,7 +1345,8 @@ const getDefaultExtraStay = () => {
             <div className="bg-teal-700 p-8 text-white">
               <Sparkles className="mb-4 h-10 w-10 text-teal-300 opacity-70" />
               <h3 className="text-2xl font-black uppercase leading-none tracking-tighter">
-                Kids Explorer Plan
+                {/* ✅ DYNAMIC TITLE FROM DB */}
+                {kidsAddonFromDb?.title || kidsAddonFromDb?.AddonTitle || 'Kids Explorer Plan'}
               </h3>
               <p className="mt-2 text-xs font-bold uppercase tracking-widest text-teal-100 opacity-80">
                 Exclusive for ages 4-17 • ₹10,000 Flat
@@ -1357,24 +1354,33 @@ const getDefaultExtraStay = () => {
             </div>
 
             <div className="space-y-6 p-8">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: <Wind className="h-4 w-4" />, label: 'Adventure Park' },
-                  { icon: <Sun className="h-4 w-4" />, label: 'Guided Sports' },
-                  { icon: <Flower2 className="h-4 w-4" />, label: 'Zen Arts Craft' },
-                  { icon: <Utensils className="h-4 w-4" />, label: 'Kids Buffet' },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
-                  >
-                    <div className="text-teal-700">{item.icon}</div>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {/* ✅ DYNAMIC DESCRIPTION FROM DB */}
+              {kidsAddonFromDb?.description || kidsAddonFromDb?.AddonDescription ? (
+                <div className="bg-stone-50 rounded-2xl p-5 border border-stone-100">
+                   <p className="text-xs text-stone-600 font-medium leading-relaxed whitespace-pre-line">
+                      {kidsAddonFromDb?.description || kidsAddonFromDb?.AddonDescription}
+                   </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                    {[
+                    { icon: <Wind className="h-4 w-4" />, label: 'Adventure Park' },
+                    { icon: <Sun className="h-4 w-4" />, label: 'Guided Sports' },
+                    { icon: <Flower2 className="h-4 w-4" />, label: 'Zen Arts Craft' },
+                    { icon: <Utensils className="h-4 w-4" />, label: 'Kids Buffet' },
+                    ].map((item, i) => (
+                    <div
+                        key={i}
+                        className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
+                    >
+                        <div className="text-teal-700">{item.icon}</div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
+                        {item.label}
+                        </span>
+                    </div>
+                    ))}
+                </div>
+              )}
 
               <div className="border-t border-stone-100 pt-6">
                 <p className="mb-4 text-center text-[10px] font-black uppercase tracking-widest text-stone-400">
