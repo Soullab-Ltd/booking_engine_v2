@@ -64,201 +64,27 @@ const INDIAN_STATES = [
 ];
 
 const COUNTRIES = [
-  'Afghanistan',
-  'Albania',
-  'Algeria',
-  'Andorra',
-  'Angola',
-  'Antigua and Barbuda',
-  'Argentina',
-  'Armenia',
-  'Australia',
-  'Austria',
-  'Azerbaijan',
-  'Bahamas',
-  'Bahrain',
-  'Bangladesh',
-  'Barbados',
-  'Belarus',
-  'Belgium',
-  'Belize',
-  'Benin',
-  'Bhutan',
-  'Bolivia',
-  'Bosnia and Herzegovina',
-  'Botswana',
-  'Brazil',
-  'Brunei',
-  'Bulgaria',
-  'Burkina Faso',
-  'Burundi',
-  'Cabo Verde',
-  'Cambodia',
-  'Cameroon',
-  'Canada',
-  'Central African Republic',
-  'Chad',
-  'Chile',
-  'China',
-  'Colombia',
-  'Comoros',
-  'Congo',
-  'Costa Rica',
-  'Croatia',
-  'Cuba',
-  'Cyprus',
-  'Czech Republic',
-  'Denmark',
-  'Djibouti',
-  'Dominica',
-  'Dominican Republic',
-  'Ecuador',
-  'Egypt',
-  'El Salvador',
-  'Equatorial Guinea',
-  'Eritrea',
-  'Estonia',
-  'Eswatini',
-  'Ethiopia',
-  'Fiji',
-  'Finland',
-  'France',
-  'Gabon',
-  'Gambia',
-  'Georgia',
-  'Germany',
-  'Ghana',
-  'Greece',
-  'Grenada',
-  'Guatemala',
-  'Guinea',
-  'Guinea-Bissau',
-  'Guyana',
-  'Haiti',
-  'Honduras',
-  'Hungary',
-  'Iceland',
-  'India',
-  'Indonesia',
-  'Iran',
-  'Iraq',
-  'Ireland',
-  'Israel',
-  'Italy',
-  'Jamaica',
-  'Japan',
-  'Jordan',
-  'Kazakhstan',
-  'Kenya',
-  'Kiribati',
-  'Korea, North',
-  'Korea, South',
-  'Kosovo',
-  'Kuwait',
-  'Kyrgyzstan',
-  'Laos',
-  'Latvia',
-  'Lebanon',
-  'Lesotho',
-  'Liberia',
-  'Libya',
-  'Liechtenstein',
-  'Lithuania',
-  'Luxembourg',
-  'Madagascar',
-  'Malawi',
-  'Malaysia',
-  'Maldives',
-  'Mali',
-  'Malta',
-  'Marshall Islands',
-  'Mauritania',
-  'Mauritius',
-  'Mexico',
-  'Micronesia',
-  'Moldova',
-  'Monaco',
-  'Mongolia',
-  'Montenegro',
-  'Morocco',
-  'Mozambique',
-  'Myanmar',
-  'Namibia',
-  'Nauru',
-  'Nepal',
-  'Netherlands',
-  'New Zealand',
-  'Nicaragua',
-  'Niger',
-  'Nigeria',
-  'North Macedonia',
-  'Norway',
-  'Oman',
-  'Pakistan',
-  'Palau',
-  'Palestine',
-  'Panama',
-  'Papua New Guinea',
-  'Paraguay',
-  'Peru',
-  'Philippines',
-  'Poland',
-  'Portugal',
-  'Qatar',
-  'Romania',
-  'Russia',
-  'Rwanda',
-  'Saint Kitts and Nevis',
-  'Saint Lucia',
-  'Saint Vincent',
-  'Samoa',
-  'San Marino',
-  'Sao Tome and Principe',
-  'Saudi Arabia',
-  'Senegal',
-  'Serbia',
-  'Seychelles',
-  'Sierra Leone',
-  'Singapore',
-  'Slovakia',
-  'Slovenia',
-  'Solomon Islands',
-  'Somalia',
-  'South Africa',
-  'South Sudan',
-  'Spain',
-  'Sri Lanka',
-  'Sudan',
-  'Suriname',
-  'Sweden',
-  'Switzerland',
-  'Syria',
-  'Taiwan',
-  'Tajikistan',
-  'Tanzania',
-  'Thailand',
-  'Timor-Leste',
-  'Togo',
-  'Tonga',
-  'Trinidad and Tobago',
-  'Tunisia',
-  'Turkey',
-  'Turkmenistan',
-  'Tuvalu',
-  'Uganda',
-  'Ukraine',
-  'United Arab Emirates',
-  'United Kingdom',
-  'United States',
-  'Uruguay',
-  'Uzbekistan',
-  'Vanuatu',
-  'Vatican City',
-  'Venezuela',
-  'Vietnam',
-  'Yemen',
-  'Zambia',
-  'Zimbabwe',
+  
+  'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
+  'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia',
+  'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
+  'Cameroon', 'Canada', 'Central African Republic', 'Chad', 'Chile', 'China', 'Colombia', 'Comoros', 'Congo', 'Costa Rica',
+  'Croatia', 'Cuba', 'Cyprus', 'Czech Republic', 'Denmark', 'Djibouti', 'Dominica', 'Dominican Republic', 'Ecuador', 'Egypt',
+  'El Salvador', 'Equatorial Guinea', 'Eritrea', 'Estonia', 'Eswatini', 'Ethiopia', 'Fiji', 'Finland', 'France', 'Gabon',
+  'Gambia', 'Georgia', 'Germany', 'Ghana', 'Greece', 'Grenada', 'Guatemala', 'Guinea', 'Guinea-Bissau', 'Guyana', 'Haiti',
+  'Honduras', 'Hungary', 'Iceland', 'India', 'Indonesia', 'Iran', 'Iraq', 'Ireland', 'Israel', 'Italy', 'Jamaica', 'Japan',
+  'Jordan', 'Kazakhstan', 'Kenya', 'Kiribati', 'Korea, North', 'Korea, South', 'Kosovo', 'Kuwait', 'Kyrgyzstan', 'Laos',
+  'Latvia', 'Lebanon', 'Lesotho', 'Liberia', 'Libya', 'Liechtenstein', 'Lithuania', 'Luxembourg', 'Madagascar', 'Malawi',
+  'Malaysia', 'Maldives', 'Mali', 'Malta', 'Marshall Islands', 'Mauritania', 'Mauritius', 'Mexico', 'Micronesia', 'Moldova',
+  'Monaco', 'Mongolia', 'Montenegro', 'Morocco', 'Mozambique', 'Myanmar', 'Namibia', 'Nauru', 'Nepal', 'Netherlands',
+  'New Zealand', 'Nicaragua', 'Niger', 'Nigeria', 'North Macedonia', 'Norway', 'Oman', 'Pakistan', 'Palau', 'Palestine',
+  'Panama', 'Papua New Guinea', 'Paraguay', 'Peru', 'Philippines', 'Poland', 'Portugal', 'Qatar', 'Romania', 'Russia',
+  'Rwanda', 'Saint Kitts and Nevis', 'Saint Lucia', 'Saint Vincent', 'Samoa', 'San Marino', 'Sao Tome and Principe',
+  'Saudi Arabia', 'Senegal', 'Serbia', 'Seychelles', 'Sierra Leone', 'Singapore', 'Slovakia', 'Slovenia', 'Solomon Islands',
+  'Somalia', 'South Africa', 'South Sudan', 'Spain', 'Sri Lanka', 'Sudan', 'Suriname', 'Sweden', 'Switzerland', 'Syria',
+  'Taiwan', 'Tajikistan', 'Tanzania', 'Thailand', 'Timor-Leste', 'Togo', 'Tonga', 'Trinidad and Tobago', 'Tunisia', 'Turkey',
+  'Turkmenistan', 'Tuvalu', 'Uganda', 'Ukraine', 'United Arab Emirates', 'United Kingdom', 'United States', 'Uruguay',
+  'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
 ];
 
 interface AddonItem {
@@ -447,66 +273,75 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
 
-  const parseIds = (value: any): number[] => {
-    if (value === null || value === undefined || value === '') return [];
+const parseIds = (value: any): number[] => {
+  if (!value) return [];
 
-    if (Array.isArray(value)) {
-      return value
-        .map((item) => Number(item))
-        .filter((num) => Number.isFinite(num));
-    }
+  if (Array.isArray(value)) {
+    return value.map(Number).filter((n) => !isNaN(n));
+  }
 
-    if (typeof value === 'string') {
-      return value
-        .split(',')
-        .map((item) => Number(item.trim()))
-        .filter((num) => Number.isFinite(num));
-    }
+  if (typeof value === 'string') {
+    return value.split(',').map(Number).filter((n) => !isNaN(n));
+  }
 
-    const num = Number(value);
-    return Number.isFinite(num) ? [num] : [];
-  };
+  const num = Number(value);
+  return isNaN(num) ? [] : [num];
+};
+// ONLY showing corrected parts (rest UI remains same)
 
-  const normalizeStayPlan = (room: StayPlan): RelatedStayPlan => {
-    const rawId = room.planID ?? room.PlanID ?? room.id;
-    const parsedId = Number(rawId);
+const normalizeStayPlan = (room: StayPlan): RelatedStayPlan => {
+  const planId = Number(room.planID ?? room.PlanID ?? room.id ?? 0);
 
-    const rawPricePerNight =
-      room.pricePerNight ??
+  const pricePerNight = Number(
+    room.pricePerNight ??
       room.price ??
       room.OfferPrice ??
       room.PlanPrice ??
-      0;
+      0
+  );
 
-    const parsedPricePerNight = Number(rawPricePerNight);
+  const image =
+    room.image ??
+    room.img ??
+    room.thumbnail ??
+    room.images?.find((img) => img?.isThumbnail)?.imageUrl ??
+    room.images?.find((img) => img?.isMain)?.imageUrl ??
+    '';
 
-    const thumbnailImage =
-      room.image ??
-      room.img ??
-      room.thumbnail ??
-      room.images?.find((img) => img?.isThumbnail)?.imageUrl ??
-      room.images?.find((img) => img?.isMain)?.imageUrl ??
-      '';
-
-    return {
-      id: Number.isFinite(parsedId) ? parsedId : 0,
-      name:
-        room.stayRoomType ??
-        room.PlanTitle ??
-        room.PlanName ??
-        room.name ??
-        '',
-      pricePerNight: Number.isFinite(parsedPricePerNight) ? parsedPricePerNight : 0,
-      description: room.PlanDescription ?? '',
-      image: thumbnailImage,
-    };
+  return {
+    id: planId,
+    name:
+      room.stayRoomType ??
+      room.PlanTitle ??
+      room.PlanName ??
+      room.name ??
+      '',
+    pricePerNight,
+    description: room.PlanDescription ?? '',
+    image,
   };
+};
+const stayAddonFromDb = useMemo(() => {
+  return addons.find(
+    (a) => String(a.type || '').toLowerCase() === 'stay'
+  );
+}, [addons]);
 
-  const stayAddons = useMemo(() => {
-    return (addons || []).filter((addon) => {
-      const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
-      const addonPlanIds = parseIds(addon.planIds ?? addon.planID);
-      const normalizedType = String(addon.type || '').trim().toLowerCase();
+const kidsAddonFromDb = useMemo(() => {
+  return addons.find(
+    (a) => String(a.type || '').toLowerCase() === 'kids'
+  );
+}, [addons]);
+
+const stayAddonTitle =
+  stayAddonFromDb?.title ??
+  stayAddonFromDb?.AddonTitle ??
+  'Extra Stay';
+ const stayAddons = useMemo(() => {
+  return (addons || []).filter((addon: any) => {
+    const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
+    const addonPlanIds = parseIds(addon.planIds ?? addon.planID);
+    const normalizedType = String(addon.type || '').trim().toLowerCase();
 
       const eventMatch =
         addonEventIds.length === 0 ||
@@ -526,32 +361,81 @@ const GuestForm: React.FC<GuestFormProps> = ({
         addon.isActive === null ||
         Number(addon.isActive) !== 0;
 
-      const typeMatch = normalizedType === 'stay';
+     const typeMatch = normalizedType === 'stay';
 
-      return eventMatch && planMatch && visibleMatch && activeMatch && typeMatch;
-    });
-  }, [addons, selectedEventId, selectedPlanId]);
+    if (Number(addon.id ?? addon.AddonID) === 8) {
+      console.log('🛏 PVI STAY CHECK', {
+        addon,
+        normalizedType,
+        addonEventIds,
+        addonPlanIds,
+        selectedEventId,
+        selectedPlanId,
+        eventMatch,
+        planMatch,
+        visibleMatch,
+        activeMatch,
+        typeMatch,
+      });
+    }
 
-  const globalStayPlans = useMemo(() => {
-    const allowedPlanIds = Array.from(
-      new Set(
-        stayAddons.flatMap((addon) => parseIds(addon.planIds ?? addon.planID))
-      )
-    );
-
-    const mappedPlans = (roomTypes || [])
+     return eventMatch && planMatch && visibleMatch && activeMatch && typeMatch;
+  });
+}, [addons, selectedEventId, selectedPlanId]);
+  const fallbackStayPlans = useMemo(() => {
+    return (roomTypes || [])
       .map(normalizeStayPlan)
       .filter(
-        (plan) => Number.isFinite(plan.id) && plan.id > 0 && plan.pricePerNight > 0
+        (room: any) =>
+          !isNaN(Number(room.id)) &&
+          Number(room.pricePerNight) > 0
       );
+  }, [roomTypes]);
 
-    console.log('🛏 stayAddons', stayAddons);
-    console.log('🛏 allowedPlanIds', allowedPlanIds);
-    console.log('🛏 mappedPlans', mappedPlans);
+ const globalStayPlans = useMemo(() => {
+  const allowedPlanIds = Array.from(
+    new Set(
+      stayAddons.flatMap((addon: any) =>
+        parseIds(addon.planIds ?? addon.planID).filter(
+          (id) => !isNaN(id) && id > 0
+        )
+      )
+    )
+  );
 
-    if (stayAddons.length > 0 && allowedPlanIds.length === 0) {
-      return [];
-    }
+  const mappedPlans = (roomTypes || []).map((room: any) => {
+    const planId = Number(room.planID ?? room.PlanID ?? room.id);
+
+    const pricePerNight = Number(
+      room.pricePerNight ??
+      room.price ??
+      room.OfferPrice ??
+      room.PlanPrice ??
+      0
+    );
+
+    return {
+      id: planId,
+      name:
+        room.stayRoomType ??
+        room.PlanTitle ??
+        room.PlanName ??
+        room.name ??
+        '',
+      pricePerNight,
+      description: room.PlanDescription ?? '',
+      image:
+        room.image ??
+        room.img ??
+        room.thumbnail ??
+        room.images?.find((img: any) => img?.isThumbnail)?.imageUrl ??
+        room.images?.find((img: any) => img?.isMain)?.imageUrl ??
+        '',
+    };
+  });
+
+  console.log('🛏 allowedPlanIds', allowedPlanIds);
+  console.log('🛏 mappedPlans', mappedPlans);
 
     if (allowedPlanIds.length === 0) {
       return mappedPlans;
@@ -577,49 +461,46 @@ const GuestForm: React.FC<GuestFormProps> = ({
     };
   };
 
-  useEffect(() => {
-    if (!showExtraStaySection) return;
+useEffect(() => {
+  if (!showExtraStaySection) return;
 
-    const normalizedGuests = guests.map((guest: any) => {
-      const existingExtraStay = guest?.addOns?.extraStay || {};
-      const existingPlanId = existingExtraStay?.planId;
-      const matchedPlan = globalStayPlans.find(
-        (plan) => String(plan.id) === String(existingPlanId)
-      );
-      const fallback = getDefaultExtraStay();
+  const normalizedGuests = guests.map((guest: any) => {
+    const existingExtraStay = guest?.addOns?.extraStay || {};
+    const existingPlanId = existingExtraStay?.planId;
 
-      return {
-        ...guest,
-        addOns: {
-          ...(guest.addOns || {}),
-          selectedAddons: guest.addOns?.selectedAddons || [],
-          extraStay: {
-            enabled:
-  existingExtraStay.enabled ?? !!existingExtraStay.planId,
-            type: existingExtraStay.type || matchedPlan?.name || fallback.type,
-            planId: existingExtraStay.planId || matchedPlan?.id || fallback.planId,
-            price: Number(
-              existingExtraStay.price ??
-                matchedPlan?.pricePerNight ??
-                fallback.price ??
-                0
-            ),
-            startDate: existingExtraStay.startDate || '',
-            endDate: existingExtraStay.endDate || '',
-            days: Number(existingExtraStay.days || 1),
-          },
+    const matchedPlan = globalStayPlans.find(
+      (plan) => String(plan.id) === String(existingPlanId)
+    );
+
+    const fallback = getDefaultExtraStay();
+
+    return {
+      ...guest,
+      addOns: {
+        ...(guest.addOns || {}),
+        selectedAddons: guest.addOns?.selectedAddons || [],
+        extraStay: {
+          enabled: existingExtraStay.enabled ?? false,
+          type: existingExtraStay.type || matchedPlan?.name || fallback.type,
+          planId:
+            existingExtraStay.planId || matchedPlan?.id || fallback.planId,
+          price: Number(
+            existingExtraStay.price ??
+              matchedPlan?.pricePerNight ??
+              fallback.price
+          ),
+          startDate: existingExtraStay.startDate || '',
+          endDate: existingExtraStay.endDate || '',
+          days: Number(existingExtraStay.days || 1),
         },
-      };
-    });
+      },
+    };
+  });
 
-    const hasDiff =
-      JSON.stringify(normalizedGuests) !== JSON.stringify(guests);
-
-    if (hasDiff) {
-      setGuests(normalizedGuests);
-    }
-  }, [showExtraStaySection, globalStayPlans]);
-
+  if (JSON.stringify(normalizedGuests) !== JSON.stringify(guests)) {
+    setGuests(normalizedGuests);
+  }
+}, [showExtraStaySection, globalStayPlans, guests]);
   const eventAddons = useMemo(() => {
     return (addons || []).filter((addon) => {
       const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
@@ -748,24 +629,24 @@ const GuestForm: React.FC<GuestFormProps> = ({
     );
   };
 
-  const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
-    const age = Number(guest?.age || 0);
-    const isKid = age > 0 && age < 18;
+const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
+  const age = Number(guest?.age || 0);
+  const isKid = age > 0 && age < 18;
 
-    return Number(
-      isKid
-        ? addon.kidPrice ??
-            addon.KidsperDay ??
-            addon.KidsSeasonAmt ??
-            addon.price ??
-            0
-        : addon.adultPrice ??
-            addon.AdultsperDay ??
-            addon.AdultSeasonAmt ??
-            addon.price ??
-            0
-    );
-  };
+  return Number(
+    isKid
+      ? addon.kidPrice ??
+          addon.KidsperDay ??
+          addon.KidsSeasonAmt ??
+          addon.price ??
+          0
+      : addon.adultPrice ??
+          addon.AdultsperDay ??
+          addon.AdultSeasonAmt ??
+          addon.price ??
+          0
+  );
+};
 
   const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
     const guest = guests.find((item: any) => String(item.id) === String(guestId));
@@ -824,45 +705,38 @@ const GuestForm: React.FC<GuestFormProps> = ({
     });
   };
 
-  const getInfoContent = (type: string) => {
-    if (ui?.modals?.[type]) return ui.modals[type];
+const getInfoContent = (type: string) => {
+  if (ui?.modals?.[type]) return ui.modals[type];
 
-    const matchedAddon = addons.find(
-      (addon) => String(addon.id ?? addon.AddonID) === String(type)
-    );
+  const matchedAddon = addons.find(
+    (addon) => String(addon.id ?? addon.AddonID) === String(type)
+  );
 
-    if (matchedAddon) {
-      return {
-        title: matchedAddon.title ?? matchedAddon.AddonTitle ?? 'Add-on',
-        desc:
-          matchedAddon.description ??
-          matchedAddon.AddonDescription ??
-          matchedAddon.type ??
-          'Add-on details',
-        img: matchedAddon.bannerImage ?? '',
-      };
-    }
+  if (matchedAddon) {
+    return {
+      title: matchedAddon.title ?? matchedAddon.AddonTitle ?? 'Add-on',
+      desc:
+        matchedAddon.description ??
+        matchedAddon.AddonDescription ??
+        matchedAddon.type ??
+        'Add-on details',
+      img: matchedAddon.bannerImage ?? '',
+    };
+  }
 
-    if (type === 'extraStay' || type === 'stay') {
-      const stayAddon = stayAddons[0];
+  if (type === 'extraStay' || type === 'stay') {
+    return {
+      title: stayAddonTitle,
+      desc:
+        stayAddonFromDb?.description ??
+        stayAddonFromDb?.AddonDescription ??
+        'Add stay before or after the event.',
+      img: stayAddonFromDb?.bannerImage ?? '',
+    };
+  }
 
-      return {
-        title:
-          stayAddon?.title ??
-          stayAddon?.AddonTitle ??
-          ui?.guestCard?.addons?.extraStay ??
-          'Extra Stay',
-        desc:
-          stayAddon?.description ??
-          stayAddon?.AddonDescription ??
-          ui?.modals?.stay?.desc ??
-          'Add stay before or after the event.',
-        img: stayAddon?.bannerImage ?? ui?.modals?.stay?.img ?? '',
-      };
-    }
-
-    return null;
-  };
+  return null;
+};
 
   const handleProceedClick = () => {
     setTouched(true);
@@ -952,7 +826,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.name}
+                    {ui.guestCard.fields.name} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="text"
@@ -970,7 +844,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.phone}
+                    {ui.guestCard.fields.phone} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="tel"
@@ -991,7 +865,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.email}
+                    {ui.guestCard.fields.email} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="email"
@@ -1009,7 +883,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.age}
+                    {ui.guestCard.fields.age} <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="text"
@@ -1086,7 +960,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Country
+                    Country <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
@@ -1098,7 +972,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    State / Province
+                    State / Province <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
 
                   {guest.country === 'India' ? (
@@ -1141,7 +1015,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    City
+                    City <span className="text-teal-700 font-black ml-0.5">#</span>
                   </label>
                   <input
                     type="text"
@@ -1232,7 +1106,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
                             </button>
                           </p>
                           <p className="text-[9px] font-bold uppercase text-emerald-600">
-                            ₹{guestPrice} Base
+                            ₹{guestPrice} per person
                           </p>
                         </div>
                       </label>
@@ -1250,46 +1124,46 @@ const GuestForm: React.FC<GuestFormProps> = ({
               </div>
 
               {showExtraStaySection && (
-                <div className="mt-6 rounded-2xl border border-stone-100 bg-stone-50 p-4">
-                  <label className="group mb-4 flex cursor-pointer items-center gap-3">
-                    <input
-                      type="checkbox"
-                      checked={guest.addOns?.extraStay?.enabled || false}
-                      onChange={(e) =>
-                        updateGuest(guest.id, {
-                          addOns: {
-                            ...guest.addOns,
-                            extraStay: {
-                              ...guest.addOns?.extraStay,
-                              enabled: e.target.checked,
-                              ...(e.target.checked
-                                ? {}
-                                : {
-                                    startDate: '',
-                                    endDate: '',
-                                  }),
-                            },
-                          },
-                        })
-                      }
-                      className="h-5 w-5 rounded-md accent-teal-700"
-                    />
-                    <div className="flex-1">
-                      <span className="block text-sm font-black text-stone-900">
-                        {ui.guestCard.addons.extraStay}
-                      </span>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.preventDefault();
-                        setShowAddOnInfo('extraStay');
-                      }}
-                      className="rounded-lg p-1 hover:bg-stone-200"
-                    >
-                      <Info className="h-4 w-4 text-teal-500" />
-                    </button>
-                  </label>
+   <div className="mt-6 bg-stone-50 rounded-2xl p-4 border border-stone-100">
+    <label className="flex items-center gap-3 cursor-pointer group mb-4">
+      <input
+        type="checkbox"
+        checked={guest.addOns?.extraStay?.enabled || false}
+        onChange={(e) =>
+          updateGuest(guest.id, {
+            addOns: {
+              ...guest.addOns,
+              extraStay: {
+                ...guest.addOns?.extraStay,
+                enabled: e.target.checked,
+                ...(e.target.checked
+                  ? {}
+                  : {
+                      startDate: '',
+                      endDate: '',
+                    }),
+              },
+            },
+          })
+        }
+        className="w-5 h-5 rounded-md accent-teal-700"
+      />
+      <div className="flex-1">
+        <span className="block font-black text-sm text-stone-900">
+          {ui.guestCard.addons.extraStay}
+        </span>
+      </div>
+      <button
+        type="button"
+        onClick={(e) => {
+          e.preventDefault();
+          setShowAddOnInfo('extraStay');
+        }}
+        className="p-1 hover:bg-stone-200 rounded-lg"
+      >
+        <Info className="w-4 h-4 text-teal-500" />
+      </button>
+    </label>
 
                   {guest.addOns?.extraStay?.enabled && (
                     <div className="animate-slideUp space-y-4 pt-2">
@@ -1339,17 +1213,17 @@ const GuestForm: React.FC<GuestFormProps> = ({
                               )}
                             </div>
 
-                            <div className="min-w-0">
-                              <h5 className="truncate text-[9px] font-bold text-stone-900">
-                                {room.name}
-                              </h5>
-                              <p className="text-[8px] font-black text-teal-700">
-                                ₹{room.pricePerNight}/nt
-                              </p>
-                            </div>
-                          </label>
-                        ))}
-                      </div>
+               <div className="min-w-0">
+                <h5 className="font-bold text-stone-900 text-[9px] truncate">
+                  {room.name}
+                </h5>
+                <p className="text-teal-700 font-black text-[8px]">
+                  ₹{room.pricePerNight}/nt
+                </p>
+              </div>
+            </label>
+          ))}
+        </div>
 
                       <div className="flex flex-col gap-4 sm:flex-row">
                         <div className="flex-1 space-y-1">
@@ -1554,7 +1428,8 @@ const GuestForm: React.FC<GuestFormProps> = ({
             <div className="bg-teal-700 p-8 text-white">
               <Sparkles className="mb-4 h-10 w-10 text-teal-300 opacity-70" />
               <h3 className="text-2xl font-black uppercase leading-none tracking-tighter">
-                Kids Explorer Plan
+                {/* ✅ DYNAMIC TITLE FROM DB */}
+                {kidsAddonFromDb?.title || kidsAddonFromDb?.AddonTitle || 'Kids Explorer Plan'}
               </h3>
               <p className="mt-2 text-xs font-bold uppercase tracking-widest text-teal-100 opacity-80">
                 Exclusive for ages 4-17 • ₹10,000 Flat
@@ -1562,24 +1437,33 @@ const GuestForm: React.FC<GuestFormProps> = ({
             </div>
 
             <div className="space-y-6 p-8">
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { icon: <Wind className="h-4 w-4" />, label: 'Adventure Park' },
-                  { icon: <Sun className="h-4 w-4" />, label: 'Guided Sports' },
-                  { icon: <Flower2 className="h-4 w-4" />, label: 'Zen Arts Craft' },
-                  { icon: <Utensils className="h-4 w-4" />, label: 'Kids Buffet' },
-                ].map((item, i) => (
-                  <div
-                    key={i}
-                    className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
-                  >
-                    <div className="text-teal-700">{item.icon}</div>
-                    <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
-              </div>
+              {/* ✅ DYNAMIC DESCRIPTION FROM DB */}
+              {kidsAddonFromDb?.description || kidsAddonFromDb?.AddonDescription ? (
+                <div className="bg-stone-50 rounded-2xl p-5 border border-stone-100">
+                   <p className="text-xs text-stone-600 font-medium leading-relaxed whitespace-pre-line">
+                      {kidsAddonFromDb?.description || kidsAddonFromDb?.AddonDescription}
+                   </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-2 gap-3">
+                    {[
+                    { icon: <Wind className="h-4 w-4" />, label: 'Adventure Park' },
+                    { icon: <Sun className="h-4 w-4" />, label: 'Guided Sports' },
+                    { icon: <Flower2 className="h-4 w-4" />, label: 'Zen Arts Craft' },
+                    { icon: <Utensils className="h-4 w-4" />, label: 'Kids Buffet' },
+                    ].map((item, i) => (
+                    <div
+                        key={i}
+                        className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
+                    >
+                        <div className="text-teal-700">{item.icon}</div>
+                        <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
+                        {item.label}
+                        </span>
+                    </div>
+                    ))}
+                </div>
+              )}
 
               <div className="border-t border-stone-100 pt-6">
                 <p className="mb-4 text-center text-[10px] font-black uppercase tracking-widest text-stone-400">

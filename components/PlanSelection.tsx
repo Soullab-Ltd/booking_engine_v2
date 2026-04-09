@@ -40,18 +40,19 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
     alt={plan.PlanTitle || plan.PlanName || "Plan Image"}
     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
   />
-  <div className="absolute top-4 left-4">
-    <span className="bg-teal-700 text-white text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-widest flex items-center gap-1 shadow-lg">
-      <Sparkles className="w-3 h-3" /> {ui.badge}
-    </span>
-  </div>
+
 </div>
 
         <div className="flex-1 p-6 md:p-8 flex flex-col">
           <div className="flex justify-between items-start mb-4">
             <div>
               <h3 className="text-2xl font-black text-stone-900 mb-1">{plan.title}</h3>
-              <p className="text-stone-500 text-sm font-medium">{plan.description}</p>
+              <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
+    {plan.stayRoomType || plan.title || plan.PlanTitle}
+  </p>
+              <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
+    {plan.PlanDescription || plan.description}
+  </p>
             </div>
           </div>
 
@@ -87,6 +88,9 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
                 <span className="text-3xl font-black text-stone-900">
                   ₹{plan.discountedPrice?.toLocaleString()}
                 </span>
+                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+        / person
+      </span>
                 <span className="text-xs text-teal-600 font-bold">{plan.gstDetails}</span>
               </div>
             </div>

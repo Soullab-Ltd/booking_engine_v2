@@ -121,8 +121,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
              <div>
                 <h3 className="text-xl font-black mb-2">Customer Support</h3>
                 <p className="text-teal-200 leading-relaxed font-medium">
-                  Please contact our customer support @ for any queries.
-                </p>
+  Please contact our customer support @ <a href="tel:987666444" className="underline underline-offset-4">987666444</a> for any queries.
+</p>
              </div>
           </div>
         </div>
@@ -141,6 +141,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                </div>
                <div className="flex justify-between items-end">
                   <span className="text-sm font-black text-teal-700 uppercase tracking-tighter">Retreat Offering</span>
+                  <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest mt-1">per person</span>
                   <div className="text-right">
                     <span className="text-5xl font-black text-stone-900">₹ {plan.discountedPrice.toLocaleString()}</span>
                     <p className="text-[10px] font-black text-teal-600 mt-1 uppercase tracking-widest">{plan.gstDetails}</p>

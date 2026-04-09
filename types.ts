@@ -69,6 +69,7 @@ export interface Plan {
   thumbnail?: string;
   banner: string | null;
   description?: string;
+  stayRoomType?: string;
   PlanDescription?: string;
   fullDescription?: string;
   PlanPrice: number;
@@ -77,6 +78,8 @@ export interface Plan {
   finalPrice?: number;
   gstDetails?: string;
   amenities?: PlanIcon[];
+  isSpecialPlan?: boolean | number; 
+  tag?: string;
   images: {
     id: number;
     imageUrl: string;

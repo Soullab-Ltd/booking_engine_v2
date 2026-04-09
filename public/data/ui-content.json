@@ -1,4 +1,7 @@
 {
+  "global": {
+    "supportNumber": "987666444"
+  },
   "landingPage": {
     "hero": {
       "badge": "Exclusive Workshop & Retreat",
