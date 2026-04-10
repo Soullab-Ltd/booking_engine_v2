@@ -112,7 +112,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
                         / person
                       </span>
 
-                      <span className="text-xs text-teal-600 font-bold">
+                      <span className="text-xs text-[var(--theme)] font-bold">
                         {plan.gstDetails || ''}
                       </span>
                     </div>
@@ -120,7 +120,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
 
                   <button
                     onClick={() => onSelect(plan)}
-                    className="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-teal-100"
+                    className="bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-[var(--theme-light)]"
                   >
                     {ui.cta}
                   </button>

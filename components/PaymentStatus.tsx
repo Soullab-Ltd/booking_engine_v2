@@ -104,7 +104,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3">
-          <span className="flex items-center gap-2 bg-teal-50 text-teal-700 px-5 py-2.5 rounded-2xl font-bold text-sm border border-teal-100/50 shadow-sm">
+          <span className="flex items-center gap-2 bg-teal-50 text-[var(--theme)] px-5 py-2.5 rounded-2xl font-bold text-sm border border-teal-100/50 shadow-sm">
             <Mail className="w-4 h-4" />
             {statusUI.success.emailSent} {bookingState.guests[0]?.email}
           </span>
@@ -169,7 +169,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
 
       <button
         onClick={onDashboard}
-        className="w-full bg-teal-700 text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-teal-800 transition-all shadow-xl shadow-teal-100 group"
+        className="w-full bg-[var(--theme)] text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-[var(--theme-dark)] transition-all shadow-xl shadow-[var(--theme-light)] group"
       >
         {statusUI.success.cta}
         <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />

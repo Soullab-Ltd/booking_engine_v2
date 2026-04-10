@@ -119,7 +119,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
         <div className="absolute bottom-12 left-0 right-0 z-10">
           <div className="max-w-7xl mx-auto px-8">
-            <span className="bg-teal-700 text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-4 inline-block shadow-lg">
+            <span className="bg-[var(--theme)] text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-4 inline-block shadow-lg">
               Accommodation Tier
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
@@ -147,8 +147,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         <div className="lg:col-span-8 space-y-16">
           <section className="animate-slideUp">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">
+              <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
                 Plan Details
               </h2>
             </div>
@@ -159,8 +159,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
           <section>
             <div className="flex items-center gap-3 mb-10">
-              <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">
+              <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
                 Amenities
               </h2>
             </div>
@@ -179,7 +179,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           </section>
 
           <div className="p-10 bg-stone-900 rounded-[40px] text-white flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-stone-100">
-            <div className="w-20 h-20 bg-teal-700 rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+            <div className="w-20 h-20 bg-[var(--theme)] rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
               <Heart className="w-10 h-10" />
             </div>
             <div>
@@ -212,7 +212,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               </div>
 
               <div className="flex justify-between items-end">
-                <span className="text-sm font-black text-teal-700 uppercase tracking-tighter">
+                <span className="text-sm font-black text-[var(--theme)] uppercase tracking-tighter">
                   Retreat Offering
                 </span>
                 <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest mt-1">
@@ -222,7 +222,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   <span className="text-5xl font-black text-stone-900">
                     ₹ {Number(plan.discountedPrice || plan.OfferPrice || 0).toLocaleString()}
                   </span>
-                  <p className="text-[10px] font-black text-teal-600 mt-1 uppercase tracking-widest">
+                  <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">
                     {plan.gstDetails}
                   </p>
                 </div>
@@ -242,7 +242,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
             <button
               onClick={onProceed}
-              className="w-full bg-teal-700 hover:bg-teal-800 text-white py-5 rounded-[24px] font-black text-lg transition-all shadow-xl shadow-teal-100 flex items-center justify-center gap-3 group active:scale-95"
+              className="w-full bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white py-5 rounded-[24px] font-black text-lg transition-all shadow-xl shadow-[var(--theme-light)] flex items-center justify-center gap-3 group active:scale-95"
             >
               Book Now! <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
             </button>

@@ -35,7 +35,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
           <div className="max-w-7xl mx-auto px-6 pb-20 w-full text-white">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="max-w-2xl">
-                <span className="inline-block bg-teal-700 text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-6 shadow-xl shadow-teal-900/40">
+                <span className="inline-block bg-[var(--theme)] text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-6 shadow-xl shadow-teal-900/40">
                   {ui.hero.badge}
                 </span>
                 <h1 className="text-5xl md:text-7xl font-black mb-6 leading-[0.9] tracking-tighter">
@@ -53,7 +53,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
               <div className="shrink-0">
                 <button 
                   onClick={onProceed}
-                  className="bg-white text-stone-900 px-10 py-5 rounded-[24px] font-black text-lg flex items-center gap-3 hover:bg-teal-700 hover:text-white transition-all shadow-2xl hover:scale-110 active:scale-95 group"
+                  className="bg-white text-stone-900 px-10 py-5 rounded-[24px] font-black text-lg flex items-center gap-3 hover:bg-[var(--theme)] hover:text-white transition-all shadow-2xl hover:scale-110 active:scale-95 group"
                 >
                   {ui.hero.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                 </button>
@@ -70,8 +70,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
             {/* Description Section */}
             <section className="space-y-6">
                <div className="flex items-center gap-3">
-                 <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">{ui.about.label}</h2>
+                 <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">{ui.about.label}</h2>
                </div>
                <p className="text-3xl text-stone-800 font-bold tracking-tight leading-tight">
                  {event.description}
@@ -84,8 +84,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                 <section key={idx} className={`flex flex-col ${idx % 2 !== 0 ? 'md:flex-row-reverse' : 'md:flex-row'} gap-12 items-center animate-slideUp`}>
                   <div className="flex-1 space-y-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-                      <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Insight {idx + 1}</h2>
+                      <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+                      <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">Insight {idx + 1}</h2>
                     </div>
                     <h3 className="text-3xl md:text-4xl font-black text-stone-900 tracking-tighter leading-tight">
                       {insight.title}
@@ -105,7 +105,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
             <section id="schedule" className="bg-stone-50 -mx-6 px-6 py-24 md:rounded-[60px] border border-stone-100">
               <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-teal-700 mb-4">{ui.schedule.label}</h2>
+                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-[var(--theme)] mb-4">{ui.schedule.label}</h2>
                   <h3 className="text-5xl font-black tracking-tighter text-stone-900">{ui.schedule.title}</h3>
                 </div>
                 
@@ -118,7 +118,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                       className={`min-w-[100px] px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest transition-all duration-300 border-2 ${
                         activeDayIndex === idx 
                         ? 'bg-stone-900 text-white border-stone-900 shadow-xl shadow-stone-200 scale-105' 
-                        : 'bg-white text-stone-400 border-stone-100 hover:border-teal-100 hover:text-teal-700'
+                        : 'bg-white text-stone-400 border-stone-100 hover:border-teal-100 hover:text-[var(--theme)]'
                       }`}
                     >
                       Day {idx + 1}
@@ -143,10 +143,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                     {schedules.map((slot: any, sIdx: number) => (
                       <div key={sIdx} className="bg-white p-6 rounded-[28px] border border-stone-100 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
                         <div className="md:w-32 shrink-0 flex items-center md:justify-center">
-                          <span className="text-sm font-black text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>
+                          <span className="text-sm font-black text-[var(--theme)] bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-xl font-black text-stone-900 mb-1 group-hover:text-teal-700 transition-colors">{slot.title}</h4>
+                          <h4 className="text-xl font-black text-stone-900 mb-1 group-hover:text-[var(--theme)] transition-colors">{slot.title}</h4>
                           <p className="text-stone-500 text-sm font-medium">{slot.description}</p>
                         </div>
                       </div>
@@ -159,19 +159,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
             {/* Mentors Section */}
             <section className="space-y-24">
                <div className="text-center">
-                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-teal-700 mb-4">{ui.mentors.label}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-[var(--theme)] mb-4">{ui.mentors.label}</h3>
                   <h2 className="text-5xl font-black tracking-tighter text-stone-900">{ui.mentors.title}</h2>
                </div>
 
                {/* Main Mentor */}
                <div className="bg-stone-900 rounded-[50px] p-8 md:p-12 text-white relative overflow-hidden group shadow-2xl">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-teal-700/20 rounded-full blur-3xl -m-32"></div>
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--theme)]/20 rounded-full blur-3xl -m-32"></div>
                   <div className="relative z-10 flex flex-col lg:flex-row gap-12 items-center">
                      <div className="w-full lg:w-80 h-96 rounded-[40px] overflow-hidden border-8 border-white/10 shadow-2xl shrink-0">
                         <img src={mentors.main.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={mentors.main.name} />
                      </div>
                      <div className="space-y-6">
-                        <div className="inline-flex items-center gap-2 bg-teal-700 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+                        <div className="inline-flex items-center gap-2 bg-[var(--theme)] px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                            <Heart className="w-4 h-4 fill-current" />
                         </div>
                         <h3 className="text-4xl md:text-5xl font-black tracking-tighter">{mentors.main.name}</h3>
@@ -193,7 +193,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                           </div>
                           <div>
                              <h4 className="text-xl font-black text-stone-900">{mentor.name}</h4>
-                             <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest mt-1">{mentor.role}</p>
+                             <p className="text-[10px] font-bold text-[var(--theme)] uppercase tracking-widest mt-1">{mentor.role}</p>
                           </div>
                        </div>
                        <p className="text-sm text-stone-500 leading-relaxed font-medium">
@@ -209,7 +209,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
           <aside className="lg:col-span-4 relative">
             <div className="sticky top-24 space-y-8">
               <div className="bg-stone-900 rounded-[40px] p-10 text-white shadow-2xl shadow-stone-100 overflow-hidden relative border border-white/10 group">
-                <div className="absolute top-0 right-0 -m-8 w-48 h-48 bg-teal-700/30 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+                <div className="absolute top-0 right-0 -m-8 w-48 h-48 bg-[var(--theme)]/30 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
                 <div className="relative z-10">
                   <h3 className="text-2xl font-black mb-6 leading-tight">{ui.sidebar.title}</h3>
                   <div className="space-y-6 mb-10">
@@ -224,7 +224,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                   </div>
                   <button 
                     onClick={onProceed}
-                    className="w-full bg-teal-700 hover:bg-teal-600 text-white py-5 rounded-3xl font-black text-lg transition-all shadow-xl shadow-teal-900/40 flex items-center justify-center gap-3 group"
+                    className="w-full bg-[var(--theme)] hover:bg-teal-600 text-white py-5 rounded-3xl font-black text-lg transition-all shadow-xl shadow-teal-900/40 flex items-center justify-center gap-3 group"
                   >
                     {ui.sidebar.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -239,7 +239,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                         <img src={`https://i.pravatar.cc/150?u=sdf${i}`} alt="" />
                       </div>
                     ))}
-                    <div className="w-12 h-12 rounded-full border-4 border-white bg-teal-700 flex items-center justify-center text-[10px] font-black text-white shadow-sm">{ui.sidebar.community.count}</div>
+                    <div className="w-12 h-12 rounded-full border-4 border-white bg-[var(--theme)] flex items-center justify-center text-[10px] font-black text-white shadow-sm">{ui.sidebar.community.count}</div>
                  </div>
                  <h4 className="text-sm font-black text-stone-900 mb-1">{ui.sidebar.community.title}</h4>
                  <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">{ui.sidebar.community.subtitle}</p>

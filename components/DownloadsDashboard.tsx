@@ -221,7 +221,7 @@ const documents = [
             <div className="relative z-10">
               <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
                 <div className="space-y-4">
-                  <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-teal-100/50">
+                  <div className="inline-flex items-center gap-2 bg-teal-50 text-[var(--theme)] px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-teal-100/50">
                     <ShieldCheck className="w-3.5 h-3.5" /> Booking Confirmed
                   </div>
 
@@ -232,12 +232,12 @@ const documents = [
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     {eventDate && (
                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight">
-                        <Calendar className="w-4 h-4 text-teal-600" /> {eventDate}
+                        <Calendar className="w-4 h-4 text-[var(--theme)]" /> {eventDate}
                       </span>
                     )}
                     {venue && (
                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight">
-                        <MapPin className="w-4 h-4 text-teal-600" /> {venue}
+                        <MapPin className="w-4 h-4 text-[var(--theme)]" /> {venue}
                       </span>
                     )}
                   </div>
@@ -262,7 +262,7 @@ const documents = [
                     <div className="bg-stone-50 rounded-[24px] p-5 border border-stone-100">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
-                          <User className="w-5 h-5 text-teal-700" />
+                          <User className="w-5 h-5 text-[var(--theme)]" />
                         </div>
                         <div className="min-w-0 space-y-2">
                           <p className="text-lg font-black text-stone-900 break-words">
@@ -347,7 +347,7 @@ const documents = [
           <section>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
               <h3 className="text-2xl font-black text-stone-900 flex items-center gap-3">
-                <FileText className="w-7 h-7 text-teal-600" />{' '}
+                <FileText className="w-7 h-7 text-[var(--theme)]" />{' '}
                 {ui?.dashboard?.downloads?.title || 'Documents'}
               </h3>
             </div>
@@ -364,7 +364,7 @@ const documents = [
                   }`}
                 >
                   <div className="flex items-center gap-5 relative z-10">
-                    <div className="w-16 h-16 rounded-[24px] bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-teal-50 group-hover:text-teal-700 transition-all shadow-inner">
+                    <div className="w-16 h-16 rounded-[24px] bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-[var(--theme-light)] group-hover:text-[var(--theme)] transition-all shadow-inner">
                       <doc.icon className="w-8 h-8" />
                     </div>
 
@@ -379,7 +379,7 @@ const documents = [
                         <span
                           className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
                             doc.status === 'Ready'
-                              ? 'bg-teal-50 text-teal-700'
+                              ? 'bg-teal-50 text-[var(--theme)]'
                               : 'bg-amber-50 text-amber-700'
                           }`}
                         >
@@ -407,7 +407,7 @@ const documents = [
 
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-stone-900 rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl shadow-stone-200">
-            <div className="absolute top-0 right-0 -m-12 w-48 h-48 bg-teal-700/20 rounded-full blur-3xl"></div>
+            <div className="absolute top-0 right-0 -m-12 w-48 h-48 bg-[var(--theme)]/20 rounded-full blur-3xl"></div>
 
             <h4 className="text-xl font-black mb-8 flex items-center gap-3">
               <Compass className="w-6 h-6 text-teal-400" /> Contact & Support
@@ -468,7 +468,7 @@ const documents = [
           <div className="bg-stone-50 rounded-[40px] p-8 border border-stone-100">
             <div className="flex items-center gap-4 mb-6">
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-                <Flower2 className="w-6 h-6 text-teal-700" />
+                <Flower2 className="w-6 h-6 text-[var(--theme)]" />
               </div>
               <div>
                 <h5 className="text-sm font-black text-stone-900">Other Info</h5>
@@ -486,12 +486,12 @@ const documents = [
                     href={item.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="flex items-center justify-between rounded-2xl bg-white px-4 py-4 border border-stone-100 hover:border-teal-200 hover:bg-teal-50/40 transition-all"
+                    className="flex items-center justify-between rounded-2xl bg-white px-4 py-4 border border-stone-100 hover:border-teal-200 hover:bg-[var(--theme-light)]/40 transition-all"
                   >
                     <span className="text-sm font-bold text-stone-700">
                       {item.title}
                     </span>
-                    <span className="text-xs font-black uppercase tracking-widest text-teal-700">
+                    <span className="text-xs font-black uppercase tracking-widest text-[var(--theme)]">
                       Open
                     </span>
                   </a>

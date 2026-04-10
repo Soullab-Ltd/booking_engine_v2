@@ -181,7 +181,7 @@ if (slug) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-teal-700 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-[var(--theme)] animate-spin mx-auto mb-4" />
           <p className="text-stone-600 font-bold">Loading Experience...</p>
         </div>
       </div>
@@ -356,7 +356,7 @@ const selectedPlanId = Number(
                 <div
                   key={s}
                   className={`h-1.5 w-12 rounded-full transition-all duration-300 ${
-                    s <= bookingState.currentStep ? 'bg-teal-700' : 'bg-gray-200'
+                    s <= bookingState.currentStep ? 'bg-[var(--theme)]' : 'bg-gray-200'
                   }`}
                 />
               ))}
@@ -371,7 +371,7 @@ const selectedPlanId = Number(
       <footer className="py-6 text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
         © 2026 Shreans Daga Foundation. Built for {data.eventData.event?.EventName || 'this event'}
         <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest">
-          Support: <a href="tel:987666444" className="text-teal-700 hover:underline">987666444</a>
+          Support: <a href="tel:987666444" className="text-[var(--theme)] hover:underline">987666444</a>
         </p>
       </footer>
 

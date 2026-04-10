@@ -659,7 +659,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         <div className="lg:col-span-8 space-y-8">
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8">
             <h4 className="text-lg font-bold flex items-center gap-2 mb-6">
-              <Heart className="w-5 h-5 text-teal-700" /> Review Billing
+              <Heart className="w-5 h-5 text-[var(--theme)]" /> Review Billing
             </h4>
 
             <div className="border border-stone-100 rounded-2xl overflow-hidden">
@@ -697,7 +697,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                           <span className="font-black text-stone-800 text-base">
                             ₹{guestTotal.toLocaleString()}
                           </span>
-                          <span className="block text-[10px] text-teal-600/70 font-bold mt-1">
+                          <span className="block text-[10px] text-[var(--theme)]/70 font-bold mt-1">
                             {addonStayValueParts.join(' + ')}
                           </span>
                         </td>
@@ -785,11 +785,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8 space-y-6">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-black uppercase tracking-tight text-stone-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-teal-700" /> Exclusive Offers
+                <Sparkles className="w-5 h-5 text-[var(--theme)]" /> Exclusive Offers
               </h4>
 
               {availableCoupons.length > 0 && (
-                <span className="bg-teal-50 text-teal-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                <span className="bg-teal-50 text-[var(--theme)] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
                   {availableCoupons.length} Savings Found
                 </span>
               )}
@@ -826,7 +826,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   type="button"
                   onClick={handleCheckCustomCode}
                   disabled={isCheckingCode || !customCodeInput.trim()}
-                  className="bg-stone-900 hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:bg-stone-200 disabled:text-stone-400"
+                  className="bg-stone-900 hover:bg-[var(--theme)] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:bg-stone-200 disabled:text-stone-400"
                 >
                   {isCheckingCode ? 'Checking...' : 'Apply'}
                 </button>
@@ -890,7 +890,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       key={getCouponId(coupon) || getCouponCode(coupon)}
                       className={`p-5 rounded-[24px] border-2 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 ${
                         isCouponApplied
-                          ? 'border-teal-700 bg-teal-50/30 shadow-sm'
+                          ? 'border-[var(--theme)] bg-teal-50/30 shadow-sm'
                           : 'border-stone-100 bg-stone-50 hover:border-stone-200'
                       }`}
                     >
@@ -898,7 +898,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                         <div
                           className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                             isCouponApplied
-                              ? 'bg-teal-700 text-white'
+                              ? 'bg-[var(--theme)] text-white'
                               : 'bg-white text-stone-400 shadow-sm'
                           }`}
                         >
@@ -910,7 +910,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                             <span className="font-black text-stone-900 uppercase tracking-tighter">
                               {getCouponCode(coupon)}
                             </span>
-                            <span className="text-[10px] font-black text-teal-600 bg-white px-2 py-0.5 rounded-md border border-teal-100">
+                            <span className="text-[10px] font-black text-[var(--theme)] bg-white px-2 py-0.5 rounded-md border border-teal-100">
                               {(coupon.discountType || coupon.discount_type) ===
                               'PERCENTAGE'
                                 ? `${Math.round(Number(coupon.value || 0))}% OFF`
@@ -937,7 +937,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                         className={`w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${
                           isCouponApplied
                             ? 'bg-stone-900 text-white shadow-lg'
-                            : 'bg-white border-2 border-stone-200 text-stone-600 hover:border-teal-700 hover:text-teal-700'
+                            : 'bg-white border-2 border-stone-200 text-stone-600 hover:border-[var(--theme)] hover:text-[var(--theme)]'
                         }`}
                       >
                         {isCouponApplied ? 'Remove' : 'Apply'}
@@ -962,7 +962,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 type="checkbox"
                 checked={atgRequested}
                 onChange={(e) => setAtgRequested(e.target.checked)}
-                className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-teal-700 cursor-pointer"
+                className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-[var(--theme)] cursor-pointer"
               />
               <div className="flex-1 text-left">
                 <h4 className="text-sm font-black uppercase tracking-tight text-stone-900">
@@ -985,7 +985,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       type="text"
                       placeholder="ABCDE1234F"
                       maxLength={10}
-                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-teal-700"
+                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-[var(--theme)]"
                       value={atgData.pan}
                       onChange={(e) =>
                         setAtgData((prev) => ({
@@ -1021,7 +1021,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       type="text"
                       placeholder="123456789012"
                       maxLength={12}
-                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-teal-700"
+                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-[var(--theme)]"
                       value={atgData.aadhar}
                       onChange={(e) =>
                         setAtgData((prev) => ({
@@ -1144,7 +1144,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <span className="text-[11px] font-black text-stone-900 uppercase tracking-tight">
                   Total Payable
                 </span>
-                <span className="text-xl font-black text-teal-700">
+                <span className="text-xl font-black text-[var(--theme)]">
                   ₹{pricingBreakdown.totalAmount.toLocaleString()}
                 </span>
               </div>
@@ -1152,7 +1152,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
             <div className="space-y-4 rounded-3xl border border-stone-100 bg-white p-5">
               <h4 className="text-sm font-black uppercase tracking-tight text-stone-900 flex items-center gap-2">
-                <ShieldCheck className="w-5 h-5 text-teal-700" /> Policy Agreements
+                <ShieldCheck className="w-5 h-5 text-[var(--theme)]" /> Policy Agreements
               </h4>
 
               <label className="flex items-start gap-3 cursor-pointer group">
@@ -1160,7 +1160,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-teal-700 focus:ring-teal-500 cursor-pointer"
+                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-[var(--theme)] focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
                   I accept the{' '}
@@ -1168,7 +1168,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                     href="https://shreansdaga.org/terms-and-conditions/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-teal-700 underline hover:text-teal-900"
+                    className="text-[var(--theme)] underline hover:text-teal-900"
                   >
                     terms and conditions
                   </a>
@@ -1181,7 +1181,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   type="checkbox"
                   checked={agreedToRefund}
                   onChange={(e) => setAgreedToRefund(e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-teal-700 focus:ring-teal-500 cursor-pointer"
+                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-[var(--theme)] focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
                   I accept the{' '}
@@ -1189,7 +1189,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                     href="https://shreansdaga.org/refund-cancellation-policy/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-teal-700 underline hover:text-teal-900"
+                    className="text-[var(--theme)] underline hover:text-teal-900"
                   >
                     refund policy
                   </a>
@@ -1201,7 +1201,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <button
               onClick={handlePayment}
               disabled={isProcessing || !isFormValid}
-              className="w-full bg-teal-700 hover:bg-teal-800 text-white py-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-xl disabled:bg-stone-100 disabled:text-stone-300 transition-all active:scale-95 group"
+              className="w-full bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white py-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-xl disabled:bg-stone-100 disabled:text-stone-300 transition-all active:scale-95 group"
             >
               {isProcessing ? (
                 <div className="w-5 h-5 border-2 border-stone-400 border-t-white rounded-full animate-spin" />
@@ -1277,7 +1277,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       {showCouponIdModal && (
         <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-stone-900/80 p-6 backdrop-blur-sm">
           <div className="w-full max-w-sm overflow-hidden rounded-[32px] bg-white shadow-2xl animate-scaleUp">
-            <div className="bg-teal-700 p-6 text-white flex justify-between items-center">
+            <div className="bg-[var(--theme)] p-6 text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
                   Identity Verification
@@ -1301,7 +1301,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <div className="p-8 space-y-6 text-center">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center">
-                  <UploadCloud className="w-8 h-8 text-teal-600" />
+                  <UploadCloud className="w-8 h-8 text-[var(--theme)]" />
                 </div>
 
                 <p className="text-xs text-stone-500 font-medium leading-relaxed">
@@ -1326,7 +1326,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   htmlFor="modal-coupon-upload"
                   className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-4 text-[11px] font-black uppercase transition-all ${
                     couponIdProof || couponIdProofUrl
-                      ? 'border-teal-500 bg-teal-50 text-teal-700'
+                      ? 'border-[var(--theme)] bg-teal-50 text-[var(--theme)]'
                       : 'border-stone-200 text-stone-400'
                   }`}
                 >

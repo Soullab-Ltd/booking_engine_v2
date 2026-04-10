@@ -203,7 +203,7 @@ const CountrySelector = ({
         <span className="flex items-center gap-2 truncate">
           <Globe
             className={`h-3.5 w-3.5 shrink-0 ${
-              hasError ? 'text-red-500' : 'text-teal-700'
+              hasError ? 'text-red-500' : 'text-[var(--theme)]'
             }`}
           />
           {value || 'Select Country'}
@@ -228,7 +228,7 @@ const CountrySelector = ({
                   placeholder="Search countries..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-4 text-xs font-bold focus:border-teal-500 focus:outline-none"
+                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-4 text-xs font-bold focus:border-[var(--theme)] focus:outline-none"
                 />
               </div>
             </div>
@@ -244,8 +244,8 @@ const CountrySelector = ({
                       setIsOpen(false);
                       setSearch('');
                     }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold transition-all hover:bg-teal-50 ${
-                      value === country ? 'bg-teal-50 text-teal-700' : 'text-stone-700'
+                    className={`w-full px-4 py-2.5 text-left text-xs font-bold transition-all hover:bg-[var(--theme-light)] ${
+                      value === country ? 'bg-teal-50 text-[var(--theme)]' : 'text-stone-700'
                     }`}
                   >
                     {country}
@@ -887,13 +887,13 @@ const getStayEndDate = (startDate: string, days: number) => {
             {ui.header.title}
           </h2>
           <p className="flex items-center gap-2 text-sm font-medium text-stone-600">
-            <Sparkles className="h-4 w-4 text-teal-700" /> {ui.header.subtitle}
+            <Sparkles className="h-4 w-4 text-[var(--theme)]" /> {ui.header.subtitle}
           </p>
         </div>
 
         <button
           onClick={addGuest}
-          className="flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-teal-800"
+          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
         >
           <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
         </button>
@@ -941,7 +941,7 @@ const getStayEndDate = (startDate: string, days: number) => {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-teal-700">#</span>
+                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
                   <input
                     type="text"
@@ -951,7 +951,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.name
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.name} />}
@@ -959,7 +959,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.phone} <span className="ml-0.5 font-black text-teal-700">#</span>
+                    {ui.guestCard.fields.phone} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
                   <input
                     type="tel"
@@ -972,7 +972,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.phone
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.phone} />}
@@ -980,7 +980,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.email} <span className="ml-0.5 font-black text-teal-700">#</span>
+                    {ui.guestCard.fields.email} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
                   <input
                     type="email"
@@ -990,7 +990,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.email
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.email} />}
@@ -998,7 +998,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-teal-700">#</span>
+                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
                   <input
                     type="text"
@@ -1011,7 +1011,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.age} />}
@@ -1027,7 +1027,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                         key={gender}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-center text-[10px] font-bold transition-all ${
                           guest.gender === gender
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -1054,7 +1054,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                         key={pref}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
                           guest.foodPreference === pref
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -1075,7 +1075,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Country <span className="ml-0.5 font-black text-teal-700">#</span>
+                    Country <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
@@ -1087,7 +1087,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    State / Province <span className="ml-0.5 font-black text-teal-700">#</span>
+                    State / Province <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
 
                   {guest.country === 'India' ? (
@@ -1098,7 +1098,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                         className={`h-[42px] w-full cursor-pointer appearance-none rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none ${
                           touched && errors.state
                             ? 'border-red-200 bg-white'
-                            : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                            : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                         }`}
                       >
                         <option value="" disabled>
@@ -1120,7 +1120,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                       className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                         touched && errors.state
                           ? 'border-red-200 bg-white'
-                          : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                          : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                       }`}
                     />
                   )}
@@ -1129,7 +1129,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    City <span className="ml-0.5 font-black text-teal-700">#</span>
+                    City <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
                   <input
                     type="text"
@@ -1139,7 +1139,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.city
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.city} />}
@@ -1168,7 +1168,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                           key={addonId}
                           className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all ${
                             isSelected
-                              ? 'border-teal-500 bg-teal-50'
+                              ? 'border-[var(--theme)] bg-teal-50'
                               : 'border-stone-100 bg-white hover:border-teal-100'
                           }`}
                         >
@@ -1176,7 +1176,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                             type="checkbox"
                             checked={isSelected}
                             onChange={() => toggleGuestAddon(String(guest.id), addon)}
-                            className="h-4 w-4 rounded-md accent-teal-700"
+                            className="h-4 w-4 rounded-md accent-[var(--theme)]"
                           />
 
                           <div className="flex-1">
@@ -1245,7 +1245,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                           },
                         });
                       }}
-                      className="h-5 w-5 rounded-md accent-teal-700"
+                      className="h-5 w-5 rounded-md accent-[var(--theme)]"
                     />
                     <div className="flex-1">
                       <span className="block text-sm font-black text-stone-900">
@@ -1272,7 +1272,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                             key={String(room.id)}
                             className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 p-2 transition-all ${
                               String(guest.addOns?.extraStay?.planId) === String(room.id)
-                                ? 'border-teal-500 bg-teal-50'
+                                ? 'border-[var(--theme)] bg-teal-50'
                                 : 'border-stone-100 bg-white hover:border-teal-100'
                             }`}
                           >
@@ -1302,7 +1302,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                               <h5 className="truncate text-[9px] font-bold text-stone-900">
                                 {room.name}
                               </h5>
-                              <p className="text-[8px] font-black text-teal-700">
+                              <p className="text-[8px] font-black text-[var(--theme)]">
                                 ₹{room.pricePerNight}/nt
                               </p>
                             </div>
@@ -1313,7 +1313,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                       <div className="flex flex-col gap-4 sm:flex-row">
                         <div className="flex-1 space-y-1">
                           <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
-                            <Calendar className="h-3 w-3 text-teal-700" />
+                            <Calendar className="h-3 w-3 text-[var(--theme)]" />
                             {ui.guestCard.extraStay?.startDate || 'Start Date'}
                           </label>
                           <input
@@ -1323,7 +1323,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                             onChange={(e) =>
                               updateExtraStayStartDate(guest.id, e.target.value)
                             }
-                            className="w-full rounded-lg border-2 border-stone-100 bg-white px-3 py-2 text-xs font-bold text-stone-900 outline-none focus:border-teal-700"
+                            className="w-full rounded-lg border-2 border-stone-100 bg-white px-3 py-2 text-xs font-bold text-stone-900 outline-none focus:border-[var(--theme)]"
                           />
                           {minExtraStayStartDate && (
                             <p className="text-[9px] font-bold text-stone-500">
@@ -1334,7 +1334,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                         <div className="space-y-1 sm:w-32">
                           <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
-                            <Clock className="h-3 w-3 text-teal-700" />
+                            <Clock className="h-3 w-3 text-[var(--theme)]" />
                             {ui.guestCard.extraStay?.duration || 'Duration'}
                           </label>
                           <div className="flex items-center justify-between rounded-lg border-2 border-stone-100 bg-white px-2 py-1.5">
@@ -1349,7 +1349,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                                   )
                                 )
                               }
-                              className="font-black text-stone-400 hover:text-teal-700"
+                              className="font-black text-stone-400 hover:text-[var(--theme)]"
                             >
                               <Minus className="h-4 w-4" />
                             </button>
@@ -1366,7 +1366,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                                   Number(guest.addOns?.extraStay?.days || 1) + 1
                                 )
                               }
-                              className="font-black text-stone-400 hover:text-teal-700"
+                              className="font-black text-stone-400 hover:text-[var(--theme)]"
                             >
                               <PlusCircle className="h-4 w-4" />
                             </button>
@@ -1375,7 +1375,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                         <div className="flex-1 space-y-1">
                           <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
-                            <Calendar className="h-3 w-3 text-teal-700" />
+                            <Calendar className="h-3 w-3 text-[var(--theme)]" />
                             {ui.guestCard.extraStay?.endDate || 'End Date'}
                           </label>
                           <div className="flex h-[38px] items-center rounded-lg border-2 border-stone-100 bg-white px-3 text-xs font-bold text-stone-900">
@@ -1431,7 +1431,7 @@ const getStayEndDate = (startDate: string, days: number) => {
         <button
           type="button"
           onClick={handleProceedClick}
-          className="flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-xs font-black text-white transition-all hover:bg-stone-800"
+          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white transition-all hover:bg-[var(--theme-dark)]"
         >
           Continue <ArrowRight className="h-4 w-4" />
         </button>

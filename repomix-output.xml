@@ -238,7 +238,7 @@ const CountrySelector = ({
         }`}
       >
         <span className="flex items-center gap-2 truncate">
-          <Globe className={`h-3.5 w-3.5 shrink-0 ${hasError ? 'text-red-500' : 'text-teal-700'}`} />
+          <Globe className={`h-3.5 w-3.5 shrink-0 ${hasError ? 'text-red-500' : 'text-[var(--theme)]'}`} />
           {value || 'Select Country'}
         </span>
         <ChevronDown
@@ -261,7 +261,7 @@ const CountrySelector = ({
                   placeholder="Search countries..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-4 text-xs font-bold focus:border-teal-500 focus:outline-none"
+                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-4 text-xs font-bold focus:border-[var(--theme)] focus:outline-none"
                 />
               </div>
             </div>
@@ -277,8 +277,8 @@ const CountrySelector = ({
                       setIsOpen(false);
                       setSearch('');
                     }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold transition-all hover:bg-teal-50 ${
-                      value === country ? 'bg-teal-50 text-teal-700' : 'text-stone-700'
+                    className={`w-full px-4 py-2.5 text-left text-xs font-bold transition-all hover:bg-[var(--theme-light)] ${
+                      value === country ? 'bg-teal-50 text-[var(--theme)]' : 'text-stone-700'
                     }`}
                   >
                     {country}
@@ -789,13 +789,13 @@ const getDefaultExtraStay = () => {
             {ui.header.title}
           </h2>
           <p className="flex items-center gap-2 text-sm font-medium text-stone-600">
-            <Sparkles className="h-4 w-4 text-teal-700" /> {ui.header.subtitle}
+            <Sparkles className="h-4 w-4 text-[var(--theme)]" /> {ui.header.subtitle}
           </p>
         </div>
 
         <button
           onClick={addGuest}
-          className="flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-teal-800"
+          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
         >
           <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
         </button>
@@ -853,7 +853,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.name
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.name} />}
@@ -874,7 +874,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.phone
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.phone} />}
@@ -892,7 +892,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.email
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.email} />}
@@ -913,7 +913,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.age} />}
@@ -929,7 +929,7 @@ const getDefaultExtraStay = () => {
                         key={gender}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-center text-[10px] font-bold transition-all ${
                           guest.gender === gender
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -956,7 +956,7 @@ const getDefaultExtraStay = () => {
                         key={pref}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
                           guest.foodPreference === pref
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -997,7 +997,7 @@ const getDefaultExtraStay = () => {
                         className={`h-[42px] w-full cursor-pointer appearance-none rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none ${
                           touched && errors.state
                             ? 'border-red-200 bg-white'
-                            : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                            : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                         }`}
                       >
                         <option value="" disabled>
@@ -1020,7 +1020,7 @@ const getDefaultExtraStay = () => {
                       className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                         touched && errors.state
                           ? 'border-red-200 bg-white'
-                          : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                          : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                       }`}
                     />
                   )}
@@ -1039,7 +1039,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.city
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.city} />}
@@ -1055,7 +1055,7 @@ const getDefaultExtraStay = () => {
                         key={val ? 'y' : 'n'}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
                           guest.travelAssistance === val
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -1074,7 +1074,7 @@ const getDefaultExtraStay = () => {
               </div>
 
               <div className="mt-8 border-t border-stone-100 pt-6">
-                <h4 className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-teal-700">
+                <h4 className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--theme)]">
                   <CheckCircle2 className="h-3.5 w-3.5" /> {ui.guestCard.addons.label}
                 </h4>
 
@@ -1092,7 +1092,7 @@ const getDefaultExtraStay = () => {
                         key={addonId}
                         className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all ${
                           isSelected
-                            ? 'border-teal-500 bg-teal-50'
+                            ? 'border-[var(--theme)] bg-teal-50'
                             : 'border-stone-100 bg-white hover:border-teal-100'
                         }`}
                       >
@@ -1100,7 +1100,7 @@ const getDefaultExtraStay = () => {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleGuestAddon(String(guest.id), addon)}
-                          className="h-4 w-4 rounded-md accent-teal-700"
+                          className="h-4 w-4 rounded-md accent-[var(--theme)]"
                         />
 
                         <div className="flex-1">
@@ -1158,7 +1158,7 @@ const getDefaultExtraStay = () => {
             },
           })
         }
-        className="w-5 h-5 rounded-md accent-teal-700"
+        className="w-5 h-5 rounded-md accent-[var(--theme)]"
       />
       <div className="flex-1">
         <span className="block font-black text-sm text-stone-900">
@@ -1185,7 +1185,7 @@ const getDefaultExtraStay = () => {
               key={String(room.id)}
               className={`flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${
                 String(guest.addOns?.extraStay?.planId) === String(room.id)
-                  ? 'border-teal-700 bg-white ring-2 ring-teal-50'
+                  ? 'border-[var(--theme)] bg-white ring-2 ring-teal-50'
                   : 'border-stone-200 bg-white hover:border-stone-300'
               }`}
             >
@@ -1226,7 +1226,7 @@ const getDefaultExtraStay = () => {
                 <h5 className="font-bold text-stone-900 text-[9px] truncate">
                   {room.name}
                 </h5>
-                <p className="text-teal-700 font-black text-[8px]">
+                <p className="text-[var(--theme)] font-black text-[8px]">
                   ₹{room.pricePerNight}/nt
                 </p>
               </div>
@@ -1237,7 +1237,7 @@ const getDefaultExtraStay = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 space-y-1">
             <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-teal-700" />
+              <Calendar className="w-3 h-3 text-[var(--theme)]" />
               {ui.guestCard.extraStay.startDate}
             </label>
             <input
@@ -1254,13 +1254,13 @@ const getDefaultExtraStay = () => {
                   },
                 })
               }
-              className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-teal-700 outline-none"
+              className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-[var(--theme)] outline-none"
             />
           </div>
 
           <div className="sm:w-32 space-y-1">
             <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-teal-700" />
+              <Clock className="w-3 h-3 text-[var(--theme)]" />
               {ui.guestCard.extraStay.duration}
             </label>
             <div className="flex items-center justify-between bg-white border-2 border-stone-100 rounded-lg px-2 py-1.5">
@@ -1280,7 +1280,7 @@ const getDefaultExtraStay = () => {
                     },
                   })
                 }
-                className="text-stone-400 hover:text-teal-700 font-black"
+                className="text-stone-400 hover:text-[var(--theme)] font-black"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -1302,14 +1302,14 @@ const getDefaultExtraStay = () => {
                     },
                   })
                 }
-                className="text-stone-400 hover:text-teal-700 font-black"
+                className="text-stone-400 hover:text-[var(--theme)] font-black"
               >
                 <PlusCircle className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <div className="flex-[1.2] bg-teal-700 px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
+          <div className="flex-[1.2] bg-[var(--theme)] px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
             <span className="text-[8px] font-black text-teal-200 uppercase tracking-widest mb-1">
               {ui.guestCard.extraStay.periodLabel}
             </span>
@@ -1339,7 +1339,7 @@ const getDefaultExtraStay = () => {
                   onChange={(e) => updateGuest(guest.id, { remark: e.target.value })}
                   placeholder={ui.guestCard.remarkPlaceholder}
                   rows={2}
-                  className="w-full resize-none rounded-xl border-2 border-stone-100 bg-stone-50 px-4 py-2.5 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 focus:border-teal-700 focus:bg-white"
+                  className="w-full resize-none rounded-xl border-2 border-stone-100 bg-stone-50 px-4 py-2.5 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 focus:border-[var(--theme)] focus:bg-white"
                 />
               </div>
             </div>
@@ -1348,7 +1348,7 @@ const getDefaultExtraStay = () => {
 
         <button
           onClick={addGuest}
-          className="group flex w-full flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-stone-300 py-10 text-stone-400 transition-all hover:border-teal-400 hover:bg-stone-50 hover:text-teal-700"
+          className="group flex w-full flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-stone-300 py-10 text-stone-400 transition-all hover:border-teal-400 hover:bg-stone-50 hover:text-[var(--theme)]"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 shadow-sm group-hover:bg-white">
             <PlusCircle className="h-6 w-6" />
@@ -1371,7 +1371,7 @@ const getDefaultExtraStay = () => {
             className={`group flex-[2] rounded-xl py-3.5 text-base font-black transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${
               !allGuestsValid && touched
                 ? 'cursor-not-allowed bg-stone-200 text-stone-400'
-                : 'bg-teal-700 text-white hover:bg-teal-800'
+                : 'bg-[var(--theme)] text-white hover:bg-[var(--theme-dark)]'
             }`}
           >
             {ui.footer.proceed}
@@ -1427,7 +1427,7 @@ const getDefaultExtraStay = () => {
       {showKidsModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-stone-900/90 p-4 backdrop-blur-md">
           <div className="w-full max-w-lg overflow-hidden rounded-[40px] bg-white shadow-2xl animate-scaleUp">
-            <div className="bg-teal-700 p-8 text-white">
+            <div className="bg-[var(--theme)] p-8 text-white">
               <Sparkles className="mb-4 h-10 w-10 text-teal-300 opacity-70" />
               <h3 className="text-2xl font-black uppercase leading-none tracking-tighter">
                 Kids Explorer Plan
@@ -1449,7 +1449,7 @@ const getDefaultExtraStay = () => {
                     key={i}
                     className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
                   >
-                    <div className="text-teal-700">{item.icon}</div>
+                    <div className="text-[var(--theme)]">{item.icon}</div>
                     <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
                       {item.label}
                     </span>
@@ -1481,7 +1481,7 @@ const getDefaultExtraStay = () => {
                         onClick={() => toggleKidsPlan(kid.id, !kid.isKidsPlanOpted)}
                         className={`rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                           kid.isKidsPlanOpted
-                            ? 'bg-teal-700 text-white shadow-md'
+                            ? 'bg-[var(--theme)] text-white shadow-md'
                             : 'border-2 border-stone-200 bg-white text-stone-400 hover:border-stone-300'
                         }`}
                       >
@@ -2795,7 +2795,7 @@ const CountrySelector = ({
         }`}
       >
         <span className="flex items-center gap-2 truncate">
-          <Globe className={`h-3.5 w-3.5 shrink-0 ${hasError ? 'text-red-500' : 'text-teal-700'}`} />
+          <Globe className={`h-3.5 w-3.5 shrink-0 ${hasError ? 'text-red-500' : 'text-[var(--theme)]'}`} />
           {value || 'Select Country'}
         </span>
         <ChevronDown
@@ -2818,7 +2818,7 @@ const CountrySelector = ({
                   placeholder="Search countries..."
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
-                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-4 text-xs font-bold focus:border-teal-500 focus:outline-none"
+                  className="w-full rounded-lg border border-stone-200 bg-white py-2 pl-9 pr-4 text-xs font-bold focus:border-[var(--theme)] focus:outline-none"
                 />
               </div>
             </div>
@@ -2834,8 +2834,8 @@ const CountrySelector = ({
                       setIsOpen(false);
                       setSearch('');
                     }}
-                    className={`w-full px-4 py-2.5 text-left text-xs font-bold transition-all hover:bg-teal-50 ${
-                      value === country ? 'bg-teal-50 text-teal-700' : 'text-stone-700'
+                    className={`w-full px-4 py-2.5 text-left text-xs font-bold transition-all hover:bg-[var(--theme-light)] ${
+                      value === country ? 'bg-teal-50 text-[var(--theme)]' : 'text-stone-700'
                     }`}
                   >
                     {country}
@@ -3346,13 +3346,13 @@ const getDefaultExtraStay = () => {
             {ui.header.title}
           </h2>
           <p className="flex items-center gap-2 text-sm font-medium text-stone-600">
-            <Sparkles className="h-4 w-4 text-teal-700" /> {ui.header.subtitle}
+            <Sparkles className="h-4 w-4 text-[var(--theme)]" /> {ui.header.subtitle}
           </p>
         </div>
 
         <button
           onClick={addGuest}
-          className="flex items-center gap-2 rounded-xl bg-teal-700 px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-teal-800"
+          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
         >
           <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
         </button>
@@ -3410,7 +3410,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.name
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.name} />}
@@ -3431,7 +3431,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.phone
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.phone} />}
@@ -3449,7 +3449,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.email
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.email} />}
@@ -3470,7 +3470,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.age} />}
@@ -3486,7 +3486,7 @@ const getDefaultExtraStay = () => {
                         key={gender}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-center text-[10px] font-bold transition-all ${
                           guest.gender === gender
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -3513,7 +3513,7 @@ const getDefaultExtraStay = () => {
                         key={pref}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
                           guest.foodPreference === pref
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -3554,7 +3554,7 @@ const getDefaultExtraStay = () => {
                         className={`h-[42px] w-full cursor-pointer appearance-none rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none ${
                           touched && errors.state
                             ? 'border-red-200 bg-white'
-                            : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                            : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                         }`}
                       >
                         <option value="" disabled>
@@ -3577,7 +3577,7 @@ const getDefaultExtraStay = () => {
                       className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                         touched && errors.state
                           ? 'border-red-200 bg-white'
-                          : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                          : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                       }`}
                     />
                   )}
@@ -3596,7 +3596,7 @@ const getDefaultExtraStay = () => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.city
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                        : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)]'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.city} />}
@@ -3612,7 +3612,7 @@ const getDefaultExtraStay = () => {
                         key={val ? 'y' : 'n'}
                         className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
                           guest.travelAssistance === val
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
                             : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
                         }`}
                       >
@@ -3631,7 +3631,7 @@ const getDefaultExtraStay = () => {
               </div>
 
               <div className="mt-8 border-t border-stone-100 pt-6">
-                <h4 className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-teal-700">
+                <h4 className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-[var(--theme)]">
                   <CheckCircle2 className="h-3.5 w-3.5" /> {ui.guestCard.addons.label}
                 </h4>
 
@@ -3649,7 +3649,7 @@ const getDefaultExtraStay = () => {
                         key={addonId}
                         className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all ${
                           isSelected
-                            ? 'border-teal-500 bg-teal-50'
+                            ? 'border-[var(--theme)] bg-teal-50'
                             : 'border-stone-100 bg-white hover:border-teal-100'
                         }`}
                       >
@@ -3657,7 +3657,7 @@ const getDefaultExtraStay = () => {
                           type="checkbox"
                           checked={isSelected}
                           onChange={() => toggleGuestAddon(String(guest.id), addon)}
-                          className="h-4 w-4 rounded-md accent-teal-700"
+                          className="h-4 w-4 rounded-md accent-[var(--theme)]"
                         />
 
                         <div className="flex-1">
@@ -3715,7 +3715,7 @@ const getDefaultExtraStay = () => {
             },
           })
         }
-        className="w-5 h-5 rounded-md accent-teal-700"
+        className="w-5 h-5 rounded-md accent-[var(--theme)]"
       />
       <div className="flex-1">
         <span className="block font-black text-sm text-stone-900">
@@ -3742,7 +3742,7 @@ const getDefaultExtraStay = () => {
               key={String(room.id)}
               className={`flex items-center gap-2 p-2 rounded-xl border-2 transition-all cursor-pointer ${
                 String(guest.addOns?.extraStay?.planId) === String(room.id)
-                  ? 'border-teal-700 bg-white ring-2 ring-teal-50'
+                  ? 'border-[var(--theme)] bg-white ring-2 ring-teal-50'
                   : 'border-stone-200 bg-white hover:border-stone-300'
               }`}
             >
@@ -3783,7 +3783,7 @@ const getDefaultExtraStay = () => {
                 <h5 className="font-bold text-stone-900 text-[9px] truncate">
                   {room.name}
                 </h5>
-                <p className="text-teal-700 font-black text-[8px]">
+                <p className="text-[var(--theme)] font-black text-[8px]">
                   ₹{room.pricePerNight}/nt
                 </p>
               </div>
@@ -3794,7 +3794,7 @@ const getDefaultExtraStay = () => {
         <div className="flex flex-col sm:flex-row gap-4">
           <div className="flex-1 space-y-1">
             <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Calendar className="w-3 h-3 text-teal-700" />
+              <Calendar className="w-3 h-3 text-[var(--theme)]" />
               {ui.guestCard.extraStay.startDate}
             </label>
             <input
@@ -3811,13 +3811,13 @@ const getDefaultExtraStay = () => {
                   },
                 })
               }
-              className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-teal-700 outline-none"
+              className="w-full bg-white border-2 border-stone-100 rounded-lg px-3 py-2 text-xs font-bold text-stone-900 focus:border-[var(--theme)] outline-none"
             />
           </div>
 
           <div className="sm:w-32 space-y-1">
             <label className="text-[9px] font-black text-stone-500 uppercase tracking-widest flex items-center gap-1.5">
-              <Clock className="w-3 h-3 text-teal-700" />
+              <Clock className="w-3 h-3 text-[var(--theme)]" />
               {ui.guestCard.extraStay.duration}
             </label>
             <div className="flex items-center justify-between bg-white border-2 border-stone-100 rounded-lg px-2 py-1.5">
@@ -3837,7 +3837,7 @@ const getDefaultExtraStay = () => {
                     },
                   })
                 }
-                className="text-stone-400 hover:text-teal-700 font-black"
+                className="text-stone-400 hover:text-[var(--theme)] font-black"
               >
                 <Minus className="w-4 h-4" />
               </button>
@@ -3859,14 +3859,14 @@ const getDefaultExtraStay = () => {
                     },
                   })
                 }
-                className="text-stone-400 hover:text-teal-700 font-black"
+                className="text-stone-400 hover:text-[var(--theme)] font-black"
               >
                 <PlusCircle className="w-4 h-4" />
               </button>
             </div>
           </div>
 
-          <div className="flex-[1.2] bg-teal-700 px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
+          <div className="flex-[1.2] bg-[var(--theme)] px-4 py-2.5 rounded-xl text-white flex flex-col justify-center">
             <span className="text-[8px] font-black text-teal-200 uppercase tracking-widest mb-1">
               {ui.guestCard.extraStay.periodLabel}
             </span>
@@ -3896,7 +3896,7 @@ const getDefaultExtraStay = () => {
                   onChange={(e) => updateGuest(guest.id, { remark: e.target.value })}
                   placeholder={ui.guestCard.remarkPlaceholder}
                   rows={2}
-                  className="w-full resize-none rounded-xl border-2 border-stone-100 bg-stone-50 px-4 py-2.5 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 focus:border-teal-700 focus:bg-white"
+                  className="w-full resize-none rounded-xl border-2 border-stone-100 bg-stone-50 px-4 py-2.5 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 focus:border-[var(--theme)] focus:bg-white"
                 />
               </div>
             </div>
@@ -3905,7 +3905,7 @@ const getDefaultExtraStay = () => {
 
         <button
           onClick={addGuest}
-          className="group flex w-full flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-stone-300 py-10 text-stone-400 transition-all hover:border-teal-400 hover:bg-stone-50 hover:text-teal-700"
+          className="group flex w-full flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-stone-300 py-10 text-stone-400 transition-all hover:border-teal-400 hover:bg-stone-50 hover:text-[var(--theme)]"
         >
           <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 shadow-sm group-hover:bg-white">
             <PlusCircle className="h-6 w-6" />
@@ -3928,7 +3928,7 @@ const getDefaultExtraStay = () => {
             className={`group flex-[2] rounded-xl py-3.5 text-base font-black transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${
               !allGuestsValid && touched
                 ? 'cursor-not-allowed bg-stone-200 text-stone-400'
-                : 'bg-teal-700 text-white hover:bg-teal-800'
+                : 'bg-[var(--theme)] text-white hover:bg-[var(--theme-dark)]'
             }`}
           >
             {ui.footer.proceed}
@@ -3984,7 +3984,7 @@ const getDefaultExtraStay = () => {
       {showKidsModal && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-stone-900/90 p-4 backdrop-blur-md">
           <div className="w-full max-w-lg overflow-hidden rounded-[40px] bg-white shadow-2xl animate-scaleUp">
-            <div className="bg-teal-700 p-8 text-white">
+            <div className="bg-[var(--theme)] p-8 text-white">
               <Sparkles className="mb-4 h-10 w-10 text-teal-300 opacity-70" />
               <h3 className="text-2xl font-black uppercase leading-none tracking-tighter">
                 Kids Explorer Plan
@@ -4006,7 +4006,7 @@ const getDefaultExtraStay = () => {
                     key={i}
                     className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
                   >
-                    <div className="text-teal-700">{item.icon}</div>
+                    <div className="text-[var(--theme)]">{item.icon}</div>
                     <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
                       {item.label}
                     </span>
@@ -4038,7 +4038,7 @@ const getDefaultExtraStay = () => {
                         onClick={() => toggleKidsPlan(kid.id, !kid.isKidsPlanOpted)}
                         className={`rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
                           kid.isKidsPlanOpted
-                            ? 'bg-teal-700 text-white shadow-md'
+                            ? 'bg-[var(--theme)] text-white shadow-md'
                             : 'border-2 border-stone-200 bg-white text-stone-400 hover:border-stone-300'
                         }`}
                       >
@@ -4146,7 +4146,7 @@ const documents = [
       <div className="mb-12">
         <h2 className="text-5xl font-black text-stone-900 mb-3 tracking-tighter">{ui?.dashboard?.title}</h2>
         <p className="text-stone-500 font-medium text-lg max-w-2xl leading-relaxed">
-          {ui?.dashboard?.desc} <a href="mailto:support@retreat.co" className="text-teal-700 underline font-bold underline-offset-4 decoration-teal-700/30 hover:decoration-teal-700 transition-all">[Contact Support]</a>
+          {ui?.dashboard?.desc} <a href="mailto:support@retreat.co" className="text-[var(--theme)] underline font-bold underline-offset-4 decoration-teal-700/30 hover:decoration-teal-700 transition-all">[Contact Support]</a>
         </p>
       </div>
 
@@ -4159,13 +4159,13 @@ const documents = [
             <div className="relative z-10">
                <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
                   <div className="space-y-4">
-                    <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-teal-100/50">
+                    <div className="inline-flex items-center gap-2 bg-teal-50 text-[var(--theme)] px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-teal-100/50">
                       <Sparkles className="w-3.5 h-3.5" /> Guest Profile Confirmed
                     </div>
                     <h3 className="text-4xl font-black tracking-tighter text-stone-900">{bookingState.plan?.title}</h3>
                     <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
-                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight"><Calendar className="w-4 h-4 text-teal-600" /> {event.date}</span>
-                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight"><MapPin className="w-4 h-4 text-teal-600" /> {event.venue}</span>
+                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight"><Calendar className="w-4 h-4 text-[var(--theme)]" /> {event.date}</span>
+                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight"><MapPin className="w-4 h-4 text-[var(--theme)]" /> {event.venue}</span>
                     </div>
                   </div>
                   <div className="flex flex-col items-end shrink-0">
@@ -4204,7 +4204,7 @@ const documents = [
           <section>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
                <h3 className="text-2xl font-black text-stone-900 flex items-center gap-3">
-                  <Download className="w-7 h-7 text-teal-600" /> {ui?.dashboard?.downloads.title}
+                  <Download className="w-7 h-7 text-[var(--theme)]" /> {ui?.dashboard?.downloads.title}
                </h3>
                <button className="w-full sm:w-auto bg-stone-900 text-white px-8 py-3.5 rounded-2xl text-[11px] font-black uppercase tracking-widest hover:bg-black transition-all flex items-center justify-center gap-3 shadow-lg group">
                   <Send className="w-4 h-4 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" /> {ui?.dashboard?.downloads?.cta}
@@ -4221,7 +4221,7 @@ const documents = [
       }`}
     >
       <div className="flex items-center gap-5 relative z-10">
-        <div className="w-16 h-16 rounded-[24px] bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-teal-50 group-hover:text-teal-700 transition-all shadow-inner">
+        <div className="w-16 h-16 rounded-[24px] bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-[var(--theme-light)] group-hover:text-[var(--theme)] transition-all shadow-inner">
           <doc.icon className="w-8 h-8" />
         </div>
         <div className="min-w-0">
@@ -4233,7 +4233,7 @@ const documents = [
             <span
               className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
                 doc.status === "Ready"
-                  ? "bg-teal-50 text-teal-700"
+                  ? "bg-teal-50 text-[var(--theme)]"
                   : "bg-amber-50 text-amber-700"
               }`}
             >
@@ -4247,7 +4247,7 @@ const documents = [
       </div>
 
       {doc.status === "Ready" && (
-        <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center group-hover:bg-teal-700 group-hover:text-white transition-all shadow-sm">
+        <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center group-hover:bg-[var(--theme)] group-hover:text-white transition-all shadow-sm">
           <Download className="w-5 h-5" />
         </div>
       )}
@@ -4266,7 +4266,7 @@ const documents = [
         {/* Support & Logistics Sidebar */}
         <div className="lg:col-span-4 space-y-8">
           <div className="bg-stone-900 rounded-[40px] p-10 text-white relative overflow-hidden shadow-2xl shadow-stone-200">
-             <div className="absolute top-0 right-0 -m-12 w-48 h-48 bg-teal-700/20 rounded-full blur-3xl"></div>
+             <div className="absolute top-0 right-0 -m-12 w-48 h-48 bg-[var(--theme)]/20 rounded-full blur-3xl"></div>
              
              <h4 className="text-xl font-black mb-8 flex items-center gap-3">
                 <Compass className="w-6 h-6 text-teal-400" /> {ui?.dashboard?.logistics?.title}
@@ -4300,7 +4300,7 @@ const documents = [
                 </div>
              </div>
              
-             <button className="w-full mt-12 bg-white text-stone-900 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-teal-50 transition-all shadow-xl active:scale-95">
+             <button className="w-full mt-12 bg-white text-stone-900 py-4 rounded-2xl text-[11px] font-black uppercase tracking-widest flex items-center justify-center gap-2 hover:bg-[var(--theme-light)] transition-all shadow-xl active:scale-95">
                 {ui?.dashboard?.logistics?.cta} <Navigation className="w-4 h-4" />
              </button>
           </div>
@@ -4308,7 +4308,7 @@ const documents = [
           <div className="bg-stone-50 rounded-[40px] p-8 border border-stone-100 flex items-center justify-between group cursor-pointer hover:bg-white transition-all">
              <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
-                   <Flower2 className="w-6 h-6 text-teal-700" />
+                   <Flower2 className="w-6 h-6 text-[var(--theme)]" />
                 </div>
                 <div>
                    <h5 className="text-sm font-black text-stone-900">Pre-Retreat Prep</h5>
@@ -4363,7 +4363,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
           <div className="max-w-7xl mx-auto px-6 pb-20 w-full text-white">
             <div className="flex flex-col md:flex-row md:items-end justify-between gap-8">
               <div className="max-w-2xl">
-                <span className="inline-block bg-teal-700 text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-6 shadow-xl shadow-teal-900/40">
+                <span className="inline-block bg-[var(--theme)] text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-6 shadow-xl shadow-teal-900/40">
                   {ui.hero.badge}
                 </span>
                 <h1 className="text-5xl md:text-7xl font-black mb-6 leading-[0.9] tracking-tighter">
@@ -4381,7 +4381,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
               <div className="shrink-0">
                 <button 
                   onClick={onProceed}
-                  className="bg-white text-stone-900 px-10 py-5 rounded-[24px] font-black text-lg flex items-center gap-3 hover:bg-teal-700 hover:text-white transition-all shadow-2xl hover:scale-110 active:scale-95 group"
+                  className="bg-white text-stone-900 px-10 py-5 rounded-[24px] font-black text-lg flex items-center gap-3 hover:bg-[var(--theme)] hover:text-white transition-all shadow-2xl hover:scale-110 active:scale-95 group"
                 >
                   {ui.hero.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
                 </button>
@@ -4398,8 +4398,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
             {/* Description Section */}
             <section className="space-y-6">
                <div className="flex items-center gap-3">
-                 <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">{ui.about.label}</h2>
+                 <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+                 <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">{ui.about.label}</h2>
                </div>
                <p className="text-3xl text-stone-800 font-bold tracking-tight leading-tight">
                  {event.description}
@@ -4412,8 +4412,8 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                 <section key={idx} className={`flex flex-col ${idx % 2 !== 0 ? 'md:flex-row-reverse' : 'md:flex-row'} gap-12 items-center animate-slideUp`}>
                   <div className="flex-1 space-y-6">
                     <div className="flex items-center gap-3">
-                      <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-                      <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Insight {idx + 1}</h2>
+                      <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+                      <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">Insight {idx + 1}</h2>
                     </div>
                     <h3 className="text-3xl md:text-4xl font-black text-stone-900 tracking-tighter leading-tight">
                       {insight.title}
@@ -4433,7 +4433,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
             <section id="schedule" className="bg-stone-50 -mx-6 px-6 py-24 md:rounded-[60px] border border-stone-100">
               <div className="max-w-4xl mx-auto">
                 <div className="text-center mb-16">
-                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-teal-700 mb-4">{ui.schedule.label}</h2>
+                  <h2 className="text-xs font-black uppercase tracking-[0.4em] text-[var(--theme)] mb-4">{ui.schedule.label}</h2>
                   <h3 className="text-5xl font-black tracking-tighter text-stone-900">{ui.schedule.title}</h3>
                 </div>
                 
@@ -4446,7 +4446,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                       className={`min-w-[100px] px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest transition-all duration-300 border-2 ${
                         activeDayIndex === idx 
                         ? 'bg-stone-900 text-white border-stone-900 shadow-xl shadow-stone-200 scale-105' 
-                        : 'bg-white text-stone-400 border-stone-100 hover:border-teal-100 hover:text-teal-700'
+                        : 'bg-white text-stone-400 border-stone-100 hover:border-teal-100 hover:text-[var(--theme)]'
                       }`}
                     >
                       Day {idx + 1}
@@ -4471,10 +4471,10 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                     {schedules.map((slot: any, sIdx: number) => (
                       <div key={sIdx} className="bg-white p-6 rounded-[28px] border border-stone-100 shadow-sm flex flex-col md:flex-row gap-6 hover:shadow-lg transition-all group">
                         <div className="md:w-32 shrink-0 flex items-center md:justify-center">
-                          <span className="text-sm font-black text-teal-700 bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>
+                          <span className="text-sm font-black text-[var(--theme)] bg-teal-50 px-3 py-1.5 rounded-xl">{slot.time}</span>
                         </div>
                         <div className="flex-1">
-                          <h4 className="text-xl font-black text-stone-900 mb-1 group-hover:text-teal-700 transition-colors">{slot.title}</h4>
+                          <h4 className="text-xl font-black text-stone-900 mb-1 group-hover:text-[var(--theme)] transition-colors">{slot.title}</h4>
                           <p className="text-stone-500 text-sm font-medium">{slot.description}</p>
                         </div>
                       </div>
@@ -4487,19 +4487,19 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
             {/* Mentors Section */}
             <section className="space-y-24">
                <div className="text-center">
-                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-teal-700 mb-4">{ui.mentors.label}</h3>
+                  <h3 className="text-xs font-black uppercase tracking-[0.4em] text-[var(--theme)] mb-4">{ui.mentors.label}</h3>
                   <h2 className="text-5xl font-black tracking-tighter text-stone-900">{ui.mentors.title}</h2>
                </div>
 
                {/* Main Mentor */}
                <div className="bg-stone-900 rounded-[50px] p-8 md:p-12 text-white relative overflow-hidden group shadow-2xl">
-                  <div className="absolute top-0 right-0 w-96 h-96 bg-teal-700/20 rounded-full blur-3xl -m-32"></div>
+                  <div className="absolute top-0 right-0 w-96 h-96 bg-[var(--theme)]/20 rounded-full blur-3xl -m-32"></div>
                   <div className="relative z-10 flex flex-col lg:flex-row gap-12 items-center">
                      <div className="w-full lg:w-80 h-96 rounded-[40px] overflow-hidden border-8 border-white/10 shadow-2xl shrink-0">
                         <img src={mentors.main.img} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" alt={mentors.main.name} />
                      </div>
                      <div className="space-y-6">
-                        <div className="inline-flex items-center gap-2 bg-teal-700 px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
+                        <div className="inline-flex items-center gap-2 bg-[var(--theme)] px-4 py-2 rounded-2xl text-[10px] font-black uppercase tracking-widest">
                            <Heart className="w-4 h-4 fill-current" />
                         </div>
                         <h3 className="text-4xl md:text-5xl font-black tracking-tighter">{mentors.main.name}</h3>
@@ -4521,7 +4521,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                           </div>
                           <div>
                              <h4 className="text-xl font-black text-stone-900">{mentor.name}</h4>
-                             <p className="text-[10px] font-bold text-teal-700 uppercase tracking-widest mt-1">{mentor.role}</p>
+                             <p className="text-[10px] font-bold text-[var(--theme)] uppercase tracking-widest mt-1">{mentor.role}</p>
                           </div>
                        </div>
                        <p className="text-sm text-stone-500 leading-relaxed font-medium">
@@ -4537,7 +4537,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
           <aside className="lg:col-span-4 relative">
             <div className="sticky top-24 space-y-8">
               <div className="bg-stone-900 rounded-[40px] p-10 text-white shadow-2xl shadow-stone-100 overflow-hidden relative border border-white/10 group">
-                <div className="absolute top-0 right-0 -m-8 w-48 h-48 bg-teal-700/30 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
+                <div className="absolute top-0 right-0 -m-8 w-48 h-48 bg-[var(--theme)]/30 rounded-full blur-3xl group-hover:scale-125 transition-transform duration-1000"></div>
                 <div className="relative z-10">
                   <h3 className="text-2xl font-black mb-6 leading-tight">{ui.sidebar.title}</h3>
                   <div className="space-y-6 mb-10">
@@ -4552,7 +4552,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                   </div>
                   <button 
                     onClick={onProceed}
-                    className="w-full bg-teal-700 hover:bg-teal-600 text-white py-5 rounded-3xl font-black text-lg transition-all shadow-xl shadow-teal-900/40 flex items-center justify-center gap-3 group"
+                    className="w-full bg-[var(--theme)] hover:bg-teal-600 text-white py-5 rounded-3xl font-black text-lg transition-all shadow-xl shadow-teal-900/40 flex items-center justify-center gap-3 group"
                   >
                     {ui.sidebar.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                   </button>
@@ -4567,7 +4567,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                         <img src={`https://i.pravatar.cc/150?u=sdf${i}`} alt="" />
                       </div>
                     ))}
-                    <div className="w-12 h-12 rounded-full border-4 border-white bg-teal-700 flex items-center justify-center text-[10px] font-black text-white shadow-sm">{ui.sidebar.community.count}</div>
+                    <div className="w-12 h-12 rounded-full border-4 border-white bg-[var(--theme)] flex items-center justify-center text-[10px] font-black text-white shadow-sm">{ui.sidebar.community.count}</div>
                  </div>
                  <h4 className="text-sm font-black text-stone-900 mb-1">{ui.sidebar.community.title}</h4>
                  <p className="text-[10px] text-stone-400 uppercase tracking-widest font-bold">{ui.sidebar.community.subtitle}</p>
@@ -4660,7 +4660,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         </div>
         <div className="absolute bottom-12 left-0 right-0">
           <div className="max-w-7xl mx-auto px-8">
-            <span className="bg-teal-700 text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-4 inline-block shadow-lg">
+            <span className="bg-[var(--theme)] text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-4 inline-block shadow-lg">
               Accommodation Tier
             </span>
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
@@ -4675,8 +4675,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           {/* Detailed Overview */}
           <section className="animate-slideUp">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Plan Details</h2>
+              <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">Plan Details</h2>
             </div>
             <p className="text-2xl text-stone-700 leading-relaxed font-medium">
               {plan.fullDescription}
@@ -4686,8 +4686,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           {/* Amenities Grid */}
           <section>
             <div className="flex items-center gap-3 mb-10">
-              <div className="w-12 h-1 rounded-full bg-teal-700"></div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-teal-700">Amenities</h2>
+              <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">Amenities</h2>
             </div>
            <div className="grid grid-cols-2 gap-y-3 mb-6">
               {plan.amenities.slice(0, 4).map((amenity) => (
@@ -4704,7 +4704,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
           {/* Additional Support Badge */}
           <div className="p-10 bg-stone-900 rounded-[40px] text-white flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-stone-100">
-             <div className="w-20 h-20 bg-teal-700 rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+             <div className="w-20 h-20 bg-[var(--theme)] rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
                 <Heart className="w-10 h-10" />
              </div>
              <div>
@@ -4729,10 +4729,10 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   <span className="text-lg font-bold text-stone-400 line-through">₹ {plan.finalPrice.toLocaleString()}</span>
                </div>
                <div className="flex justify-between items-end">
-                  <span className="text-sm font-black text-teal-700 uppercase tracking-tighter">Retreat Offering</span>
+                  <span className="text-sm font-black text-[var(--theme)] uppercase tracking-tighter">Retreat Offering</span>
                   <div className="text-right">
                     <span className="text-5xl font-black text-stone-900">₹ {plan.discountedPrice.toLocaleString()}</span>
-                    <p className="text-[10px] font-black text-teal-600 mt-1 uppercase tracking-widest">{plan.gstDetails}</p>
+                    <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">{plan.gstDetails}</p>
                   </div>
                </div>
             </div>
@@ -4750,7 +4750,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             
             <button 
               onClick={onProceed}
-              className="w-full bg-teal-700 hover:bg-teal-800 text-white py-5 rounded-[24px] font-black text-lg transition-all shadow-xl shadow-teal-100 flex items-center justify-center gap-3 group active:scale-95"
+              className="w-full bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white py-5 rounded-[24px] font-black text-lg transition-all shadow-xl shadow-[var(--theme-light)] flex items-center justify-center gap-3 group active:scale-95"
             >
               Book Now! <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
             </button>
@@ -4848,7 +4848,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
         <p className="text-stone-500 text-lg font-medium">{statusUI.success.desc}</p>
         
         <div className="mt-8 flex flex-col items-center gap-3">
-           <span className="flex items-center gap-2 bg-teal-50 text-teal-700 px-5 py-2.5 rounded-2xl font-bold text-sm border border-teal-100/50 shadow-sm">
+           <span className="flex items-center gap-2 bg-teal-50 text-[var(--theme)] px-5 py-2.5 rounded-2xl font-bold text-sm border border-teal-100/50 shadow-sm">
              <Mail className="w-4 h-4" /> {statusUI.success.emailSent} {bookingState.guests[0]?.email}
            </span>
         </div>
@@ -4881,7 +4881,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
             <div className="flex items-center justify-between p-5 rounded-2xl border-2 border-stone-50">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-stone-50 rounded-xl">
-                  <Ticket className="w-5 h-5 text-teal-700" />
+                  <Ticket className="w-5 h-5 text-[var(--theme)]" />
                 </div>
                 <div className="text-left">
                   <span className="block text-xs font-black text-stone-900">E-Ticket PDF</span>
@@ -4892,7 +4892,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
             <div className="flex items-center justify-between p-5 rounded-2xl border-2 border-stone-50">
               <div className="flex items-center gap-3">
                 <div className="p-2.5 bg-stone-50 rounded-xl">
-                  <FileText className="w-5 h-5 text-teal-700" />
+                  <FileText className="w-5 h-5 text-[var(--theme)]" />
                 </div>
                 <div className="text-left">
                   <span className="block text-xs font-black text-stone-900">Invoice PDF</span>
@@ -4906,7 +4906,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({ success, bookingState, ev
 
       <button 
         onClick={onDashboard}
-        className="w-full bg-teal-700 text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-teal-800 transition-all shadow-xl shadow-teal-100 group"
+        className="w-full bg-[var(--theme)] text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-[var(--theme-dark)] transition-all shadow-xl shadow-[var(--theme-light)] group"
       >
         {statusUI.success.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
       </button>
@@ -5086,7 +5086,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
   />
   <div className="absolute top-4 left-4">
-    <span className="bg-teal-700 text-white text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-widest flex items-center gap-1 shadow-lg">
+    <span className="bg-[var(--theme)] text-white text-[10px] font-bold px-3 py-1 rounded-lg uppercase tracking-widest flex items-center gap-1 shadow-lg">
       <Sparkles className="w-3 h-3" /> {ui.badge}
     </span>
   </div>
@@ -5132,7 +5132,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
                 <span className="text-3xl font-black text-stone-900">
                   ₹{plan.discountedPrice?.toLocaleString()}
                 </span>
-                <span className="text-xs text-teal-600 font-bold">{plan.gstDetails}</span>
+                <span className="text-xs text-[var(--theme)] font-bold">{plan.gstDetails}</span>
               </div>
             </div>
 
@@ -5141,7 +5141,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
                 console.log("🛒 Selected Plan:", plan);
                 onSelect(plan);
               }}
-              className="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-teal-100"
+              className="bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-[var(--theme-light)]"
             >
               {ui.cta}
             </button>
@@ -5578,7 +5578,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         <div className="lg:col-span-8 space-y-8">
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8">
             <h4 className="text-lg font-bold flex items-center gap-2 mb-6">
-              <Heart className="w-5 h-5 text-teal-700" /> Review Billing
+              <Heart className="w-5 h-5 text-[var(--theme)]" /> Review Billing
             </h4>
             <div className="border border-stone-100 rounded-2xl overflow-hidden">
               <table className="w-full text-left text-sm">
@@ -5599,7 +5599,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                           <span className="font-black text-stone-800 text-base">
                             ₹{breakdown.guestTotal.toLocaleString()}
                           </span>
-                          <span className="block text-[10px] text-teal-600/70 font-bold mt-1">
+                          <span className="block text-[10px] text-[var(--theme)]/70 font-bold mt-1">
                             {breakdown.values}
                           </span>
                         </td>
@@ -5665,10 +5665,10 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8 space-y-6">
             <div className="flex items-center justify-between">
               <h4 className="text-lg font-black uppercase tracking-tight text-stone-900 flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-teal-700" /> Exclusive Offers
+                <Sparkles className="w-5 h-5 text-[var(--theme)]" /> Exclusive Offers
               </h4>
               {availableCoupons.length > 0 && (
-                <span className="bg-teal-50 text-teal-700 text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
+                <span className="bg-teal-50 text-[var(--theme)] text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest">
                   {availableCoupons.length} Savings Found
                 </span>
               )}
@@ -5702,7 +5702,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <button
                   onClick={handleCheckCustomCode}
                   disabled={isCheckingCode || !customCodeInput.trim()}
-                  className="bg-stone-900 hover:bg-teal-700 text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:bg-stone-200 disabled:text-stone-400"
+                  className="bg-stone-900 hover:bg-[var(--theme)] text-white px-6 py-3 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all disabled:bg-stone-200 disabled:text-stone-400"
                 >
                   {isCheckingCode ? 'Checking...' : 'Apply'}
                 </button>
@@ -5721,7 +5721,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                     key={coupon.id}
                     className={`p-5 rounded-[24px] border-2 transition-all flex flex-col sm:flex-row items-center justify-between gap-4 ${
                       appliedCoupon?.id === coupon.id
-                        ? 'border-teal-700 bg-teal-50/30 shadow-sm'
+                        ? 'border-[var(--theme)] bg-teal-50/30 shadow-sm'
                         : 'border-stone-100 bg-stone-50 hover:border-stone-200'
                     }`}
                   >
@@ -5729,7 +5729,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       <div
                         className={`w-12 h-12 rounded-2xl flex items-center justify-center shrink-0 ${
                           appliedCoupon?.id === coupon.id
-                            ? 'bg-teal-700 text-white'
+                            ? 'bg-[var(--theme)] text-white'
                             : 'bg-white text-stone-400 shadow-sm'
                         }`}
                       >
@@ -5740,7 +5740,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                           <span className="font-black text-stone-900 uppercase tracking-tighter">
                             {coupon.code}
                           </span>
-                          <span className="text-[10px] font-black text-teal-600 bg-white px-2 py-0.5 rounded-md border border-teal-100">
+                          <span className="text-[10px] font-black text-[var(--theme)] bg-white px-2 py-0.5 rounded-md border border-teal-100">
                             {(coupon.discountType || coupon.discount_type) ===
                             'PERCENTAGE'
                               ? `${Math.round(coupon.value)}% OFF`
@@ -5762,7 +5762,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       className={`w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${
                         appliedCoupon?.id === coupon.id
                           ? 'bg-stone-900 text-white shadow-lg'
-                          : 'bg-white border-2 border-stone-200 text-stone-600 hover:border-teal-700 hover:text-teal-700'
+                          : 'bg-white border-2 border-stone-200 text-stone-600 hover:border-[var(--theme)] hover:text-[var(--theme)]'
                       }`}
                     >
                       {appliedCoupon?.id === coupon.id ? 'Remove' : 'Apply'}
@@ -5781,7 +5781,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8 space-y-4">
             <h4 className="text-sm font-black uppercase tracking-tight text-stone-900 flex items-center gap-2 mb-2">
-              <ShieldCheck className="w-5 h-5 text-teal-700" /> Policy
+              <ShieldCheck className="w-5 h-5 text-[var(--theme)]" /> Policy
               Agreements
             </h4>
 
@@ -5791,13 +5791,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   type="checkbox"
                   checked={agreedToTerms}
                   onChange={(e) => setAgreedToTerms(e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-teal-700 focus:ring-teal-500 cursor-pointer"
+                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-[var(--theme)] focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
                   I accept the{' '}
                   <a
                     href="#"
-                    className="text-teal-700 underline hover:text-teal-900"
+                    className="text-[var(--theme)] underline hover:text-teal-900"
                   >
                     terms and conditions
                   </a>{' '}
@@ -5810,13 +5810,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                   type="checkbox"
                   checked={agreedToRefund}
                   onChange={(e) => setAgreedToRefund(e.target.checked)}
-                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-teal-700 focus:ring-teal-500 cursor-pointer"
+                  className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-[var(--theme)] focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
                   I accept the{' '}
                   <a
                     href="#"
-                    className="text-teal-700 underline hover:text-teal-900"
+                    className="text-[var(--theme)] underline hover:text-teal-900"
                   >
                     refund policy
                   </a>{' '}
@@ -5832,7 +5832,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 type="checkbox"
                 checked={atgRequested}
                 onChange={(e) => setAtgRequested(e.target.checked)}
-                className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-teal-700 cursor-pointer"
+                className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-[var(--theme)] cursor-pointer"
               />
               <div className="flex-1 text-left">
                 <h4 className="text-sm font-black uppercase tracking-tight text-stone-900">
@@ -5855,7 +5855,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       type="text"
                       placeholder="ABCDE1234F"
                       maxLength={10}
-                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-teal-700"
+                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-[var(--theme)]"
                       value={atgData.pan}
                       onChange={(e) =>
                         setAtgData({
@@ -5890,7 +5890,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                       type="text"
                       placeholder="1234 5678 9012"
                       maxLength={12}
-                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-teal-700"
+                      className="w-full rounded-2xl border-2 border-stone-100 bg-stone-50 p-4 text-sm font-bold outline-none focus:border-[var(--theme)]"
                       value={atgData.aadhar}
                       onChange={(e) =>
                         setAtgData({
@@ -5956,7 +5956,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
                 <span className="text-[11px] font-black text-stone-900 uppercase tracking-tight">
                   Total Payable
                 </span>
-                <span className="text-xl font-black text-teal-700">
+                <span className="text-xl font-black text-[var(--theme)]">
                   ₹{totals.total.toLocaleString()}
                 </span>
               </div>
@@ -5971,7 +5971,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <button
               onClick={handlePayment}
               disabled={isProcessing || !isFormValid}
-              className="w-full bg-teal-700 hover:bg-teal-800 text-white py-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-xl disabled:bg-stone-100 disabled:text-stone-300 transition-all active:scale-95 group"
+              className="w-full bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white py-5 rounded-3xl font-black flex items-center justify-center gap-2 shadow-xl disabled:bg-stone-100 disabled:text-stone-300 transition-all active:scale-95 group"
             >
               {isProcessing ? (
                 <div className="w-5 h-5 border-2 border-stone-400 border-t-white rounded-full animate-spin" />
@@ -6188,7 +6188,7 @@ const App: React.FC = () => {
     return (
       <div className="min-h-screen flex items-center justify-center bg-stone-50">
         <div className="text-center">
-          <Loader2 className="w-12 h-12 text-teal-700 animate-spin mx-auto mb-4" />
+          <Loader2 className="w-12 h-12 text-[var(--theme)] animate-spin mx-auto mb-4" />
           <p className="text-stone-600 font-bold">Loading Experience...</p>
         </div>
       </div>
@@ -6379,7 +6379,7 @@ console.log('✅ addons:', data.addons);
                 <div
                   key={s}
                   className={`h-1.5 w-12 rounded-full transition-all duration-300 ${
-                    s <= bookingState.currentStep ? 'bg-teal-700' : 'bg-gray-200'
+                    s <= bookingState.currentStep ? 'bg-[var(--theme)]' : 'bg-gray-200'
                   }`}
                 />
               ))}
