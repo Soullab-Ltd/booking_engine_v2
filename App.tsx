@@ -136,19 +136,46 @@ if (slug) {
   }));
 };
 
-  const handlePayment = (success: boolean, bookingId?: string | number) => {
-    if (success) {
-      setPaymentResult('SUCCESS');
-      setBookingState((prev) => ({
-        ...prev,
-        bookingId: bookingId ?? prev.bookingId,
-        currentStep: 6,
-      }));
-    } else {
-      setPaymentResult('FAILED');
-      setBookingState((prev) => ({ ...prev, currentStep: 5 }));
-    }
-  };
+ const handlePayment = async (success: boolean, bookingId?: string | number) => {
+  if (success) {
+    setPaymentResult('SUCCESS');
+
+    // ✅ FETCH BOOKING DATA AGAIN
+    const allData = await getAllData(
+      selectedEventId.toString(),
+      String(bookingId)
+    );
+
+    setBookingState((prev) => ({
+      ...prev,
+      bookingId: bookingId ?? prev.bookingId,
+
+      // ✅ IMPORTANT: map both cases
+      ticketUrl:
+        allData?.bookingData?.ticketUrl ||
+        allData?.bookingData?.ticket_url ||
+        '',
+
+      invoiceUrl:
+        allData?.bookingData?.invoiceUrl ||
+        allData?.bookingData?.invoice_url ||
+        '',
+
+      completionCertificateUrl:
+        allData?.bookingData?.completionCertificateUrl ||
+        allData?.bookingData?.completion_certificate_url ||
+        '',
+
+      additionalAssets:
+        allData?.bookingData?.additionalAssets || [],
+
+      currentStep: 6,
+    }));
+  } else {
+    setPaymentResult('FAILED');
+    setBookingState((prev) => ({ ...prev, currentStep: 5 }));
+  }
+};
 
   if (loading) {
     return (
@@ -208,14 +235,24 @@ const selectedPlanId = Number(
         );
 
       case 2:
-        return (
-          <PlanSelection
-            plans={data.plans}
-            ui={data.uiContent.planSelection}
-            onSelect={selectPlan}
-            onBack={() => {}} 
-          />
-        );
+       return (() => {
+  console.log(
+    'Plans passed to UI:',
+    (data.plans || []).map((p: any) => ({
+      title: p.PlanTitle,
+      sequence: p.sequence,
+    }))
+  );
+
+  return (
+    <PlanSelection
+      plans={data.plans}
+      ui={data.uiContent.planSelection}
+      onSelect={selectPlan}
+      onBack={() => {}}
+    />
+  );
+})();
 
       case 3:
         return (

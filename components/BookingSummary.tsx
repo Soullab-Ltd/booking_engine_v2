@@ -120,7 +120,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         }
 
         const res = await fetch(
-          `http://localhost:4000/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
+          `https://bookingapi.thriive.in/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
         );
 
         if (!res.ok) {
@@ -383,7 +383,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       const code = customCodeInput.trim().toUpperCase();
 
       const res = await fetch(
-        `http://localhost:4000/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
+        `https://bookingapi.thriive.in/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
       );
 
       const data = await res.json().catch(() => null);
@@ -606,7 +606,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
     }
 
-    const responseRaw = await fetch('http://localhost:4000/bookings', {
+    const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
       method: 'POST',
       body: formData,
     });

@@ -109,48 +109,46 @@ const eventDate = rawRange.includes(' to ')
     (bookingState as any)?.selectedPlan?.PlanTitle ||
     (bookingState as any)?.selectedPlan?.PlanName ||
     'Plan Name';
+console.log('bookingState:', bookingState);
+const documents = [
+  (bookingState?.ticketUrl || bookingState?.ticket_url) && {
+    title: 'Confirmed Ticket PDF',
+    icon: Ticket,
+    status: 'Ready',
+    size: '1.4 MB',
+    desc: 'Your entry pass',
+    url: bookingState.ticketUrl || bookingState.ticket_url,
+  },
 
-  const documents = [
-    bookingState?.ticketUrl && {
-      title: 'Confirmed Ticket PDF',
-      icon: Ticket,
-      status: 'Ready',
-      size: '1.4 MB',
-      desc: 'Your entry pass',
-      url: bookingState.ticketUrl,
-    },
-    bookingState?.invoiceUrl && {
-      title: 'Invoice PDF',
-      icon: FileText,
-      status: 'Ready',
-      size: '920 KB',
-      desc: 'Detailed payment breakdown',
-      url: bookingState.invoiceUrl,
-    },
-    bookingState?.completionCertificateUrl && {
-      title: 'Completion Certificate',
-      icon: FileText,
-      status: 'Ready',
-      size: '--',
-      desc: 'Participation certificate',
-      url: bookingState.completionCertificateUrl,
-    },
-    ...((bookingState?.additionalAssets || []).map((asset: any) => ({
-      title: asset.title || 'Untitled Document',
-      icon: FileText,
-      status: asset.status || 'Ready',
-      size: asset.size || '--',
-      desc: asset.description || '',
-      url: asset.url || '#',
-    })) || []),
-  ].filter(Boolean) as Array<{
-    title: string;
-    icon: any;
-    status: string;
-    size: string;
-    desc: string;
-    url: string;
-  }>;
+  (bookingState?.invoiceUrl || bookingState?.invoice_url) && {
+    title: 'Invoice PDF',
+    icon: FileText,
+    status: 'Ready',
+    size: '920 KB',
+    desc: 'Detailed payment breakdown',
+    url: bookingState.invoiceUrl || bookingState.invoice_url,
+  },
+
+  (bookingState?.completionCertificateUrl || bookingState?.completion_certificate_url) && {
+    title: 'Completion Certificate',
+    icon: FileText,
+    status: 'Ready',
+    size: '--',
+    desc: 'Participation certificate',
+    url:
+      bookingState.completionCertificateUrl ||
+      bookingState.completion_certificate_url,
+  },
+
+  ...((bookingState?.additionalAssets || []).map((asset: any) => ({
+    title: asset.title || 'Untitled Document',
+    icon: FileText,
+    status: asset.status || 'Ready',
+    size: asset.size || '--',
+    desc: asset.description || '',
+    url: asset.url || '#',
+  })) || []),
+].filter(Boolean);
 
   const otherInfoLinks = useMemo(() => {
     const adminLinks = Array.isArray((bookingState as any)?.otherInfoLinks)

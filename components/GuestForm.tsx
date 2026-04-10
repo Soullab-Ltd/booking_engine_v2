@@ -332,27 +332,43 @@ const GuestForm: React.FC<GuestFormProps> = ({
   };
 
   const normalizeDateInput = (value?: string) => {
-    if (!value) return '';
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return '';
-    return date.toISOString().split('T')[0];
-  };
+  if (!value) return '';
+
+  // ✅ already correct format
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    return value;
+  }
+
+  // ✅ handle DD/MM/YYYY
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(value)) {
+    const [day, month, year] = value.split('/');
+    return `${year}-${month}-${day}`;
+  }
+
+  const date = new Date(value);
+  if (isNaN(date.getTime())) return '';
+
+  return date.toISOString().split('T')[0];
+};
 
   const getMinExtraStayStartDate = () => {
-    const normalizedEndDate = normalizeDateInput(eventEndDate);
-    if (!normalizedEndDate) return '';
+  if (!eventEndDate) return '';
 
-    const date = new Date(normalizedEndDate);
-    date.setDate(date.getDate() + 1);
-    return date.toISOString().split('T')[0];
-  };
+  const date = new Date(eventEndDate);
+  if (isNaN(date.getTime())) return '';
+
+  date.setDate(date.getDate() + 1);
+
+  return date.toISOString().split('T')[0];
+};
 
   const minExtraStayStartDate = useMemo(
     () => getMinExtraStayStartDate(),
     [eventEndDate]
   );
-
-  const getStayEndDate = (startDate: string, days: number) => {
+console.log('eventEndDate', eventEndDate);
+console.log('minExtraStayStartDate', minExtraStayStartDate);
+const getStayEndDate = (startDate: string, days: number) => {
     if (!startDate) return '';
     const safeDays = Math.max(1, Number(days || 1));
     const date = new Date(startDate);
@@ -473,7 +489,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
       type: firstPlan?.name || '',
       planId: firstPlan?.id || '',
       price: Number(firstPlan?.pricePerNight || 0),
-      startDate: minExtraStayStartDate || '',
+      startDate: minExtraStayStartDate,
       endDate: minExtraStayStartDate
         ? getStayEndDate(minExtraStayStartDate, 1)
         : '',
@@ -494,13 +510,13 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
       const fallback = getDefaultExtraStay();
       const incomingStartDate = normalizeDateInput(existingExtraStay.startDate);
+      
       const safeStartDate =
-        incomingStartDate && minExtraStayStartDate
-          ? incomingStartDate < minExtraStayStartDate
-            ? minExtraStayStartDate
-            : incomingStartDate
-          : incomingStartDate || fallback.startDate;
-
+  incomingStartDate && minExtraStayStartDate
+    ? incomingStartDate < minExtraStayStartDate
+      ? minExtraStayStartDate
+      : incomingStartDate
+    : minExtraStayStartDate;
       const safeDays = Math.max(1, Number(existingExtraStay.days || 1));
 
       return {
@@ -781,13 +797,12 @@ const GuestForm: React.FC<GuestFormProps> = ({
 
     const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
     const normalizedStartDate = normalizeDateInput(startDate);
-    const safeStartDate =
-      normalizedStartDate && minExtraStayStartDate
-        ? normalizedStartDate < minExtraStayStartDate
-          ? minExtraStayStartDate
-          : normalizedStartDate
-        : normalizedStartDate || minExtraStayStartDate;
-
+   const safeStartDate =
+  normalizedStartDate && minExtraStayStartDate
+    ? normalizedStartDate < minExtraStayStartDate
+      ? minExtraStayStartDate
+      : normalizedStartDate
+    : minExtraStayStartDate;
     updateGuest(guestId, {
       addOns: {
         extraStay: {
@@ -1206,10 +1221,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
                               ? {
                                   ...(guest.addOns?.extraStay || defaultStay),
                                   enabled: true,
-                                  startDate:
-                                    guest.addOns?.extraStay?.startDate ||
-                                    minExtraStayStartDate ||
-                                    defaultStay.startDate,
+                                  startDate: minExtraStayStartDate,
                                   endDate:
                                     guest.addOns?.extraStay?.startDate ||
                                     minExtraStayStartDate
@@ -1237,7 +1249,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
                     />
                     <div className="flex-1">
                       <span className="block text-sm font-black text-stone-900">
-                        {ui.guestCard.addons?.extraStay || stayAddonTitle}
+                       {stayAddonTitle || ui.guestCard.addons?.extraStay || 'Extra Stay'}
                       </span>
                     </div>
                     <button

@@ -65,6 +65,7 @@ export interface Plan {
   id?: string;
   planID: number;
   title?: string;
+  sequence:number;
   PlanTitle?: string;
   thumbnail?: string;
   banner: string | null;
@@ -92,16 +93,24 @@ export interface EventData {
   id: number | string;
   EventID?: number | string;
   title: string;
-  slug: string; 
+
+  slug: string;
   EventName?: string;
   banner: string;
+
   date: string;
+
+  // ✅ ADD TYPES
+  startDate?: string;
+  endDate?: string;
+
   time: string;
   venue: string;
   description: string;
+
   schedules?: any[];
   plans?: any[];
-  addons?: any[]; // ✅ add this
+  addons?: any[];
 }
 
 export interface DiscountInfo {
