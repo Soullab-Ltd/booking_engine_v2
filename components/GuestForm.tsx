@@ -64,7 +64,6 @@ const INDIAN_STATES = [
 ];
 
 const COUNTRIES = [
-  
   'Afghanistan', 'Albania', 'Algeria', 'Andorra', 'Angola', 'Antigua and Barbuda', 'Argentina', 'Armenia', 'Australia', 'Austria',
   'Azerbaijan', 'Bahamas', 'Bahrain', 'Bangladesh', 'Barbados', 'Belarus', 'Belgium', 'Belize', 'Benin', 'Bhutan', 'Bolivia',
   'Bosnia and Herzegovina', 'Botswana', 'Brazil', 'Brunei', 'Bulgaria', 'Burkina Faso', 'Burundi', 'Cabo Verde', 'Cambodia',
@@ -87,6 +86,11 @@ const COUNTRIES = [
   'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
 ];
 
+interface StayAddonMapping {
+  planId?: number | string;
+  pricePerNight?: number | string;
+}
+
 interface AddonItem {
   id?: number | string;
   AddonID?: number | string;
@@ -107,8 +111,10 @@ interface AddonItem {
   EventID?: number[] | string | number;
   planIds?: number[] | string | number;
   planID?: number[] | string | number;
+  targetPlanIds?: number[] | string | number;
   isVisible?: boolean;
   isActive?: boolean | number;
+  stayAddonMappings?: StayAddonMapping[];
 }
 
 interface StayPlan {
@@ -150,6 +156,7 @@ interface GuestFormProps {
   addons?: AddonItem[];
   selectedEventId?: number;
   selectedPlanId?: number;
+  eventEndDate?: string; // pass event last day here
   onProceed: () => void;
   onBack: () => void;
 }
@@ -211,7 +218,6 @@ const CountrySelector = ({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[140]" onClick={() => setIsOpen(false)} />
-
           <div className="absolute z-[150] mt-2 w-full overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl animate-fadeIn">
             <div className="border-b border-stone-100 bg-stone-50 p-2">
               <div className="relative">
@@ -266,6 +272,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   addons = [],
   selectedEventId = 0,
   selectedPlanId = 0,
+  eventEndDate = '',
   onProceed,
   onBack,
 }) => {
@@ -273,146 +280,42 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
 
-const parseIds = (value: any): number[] => {
-  if (!value) return [];
+  const parseIds = (value: any): number[] => {
+    if (!value) return [];
 
-  if (Array.isArray(value)) {
-    return value.map(Number).filter((n) => !isNaN(n));
-  }
-
-  if (typeof value === 'string') {
-    return value.split(',').map(Number).filter((n) => !isNaN(n));
-  }
-
-  const num = Number(value);
-  return isNaN(num) ? [] : [num];
-};
-// ONLY showing corrected parts (rest UI remains same)
-
-const normalizeStayPlan = (room: StayPlan): RelatedStayPlan => {
-  const planId = Number(room.planID ?? room.PlanID ?? room.id ?? 0);
-
-  const pricePerNight = Number(
-    room.pricePerNight ??
-      room.price ??
-      room.OfferPrice ??
-      room.PlanPrice ??
-      0
-  );
-
-  const image =
-    room.image ??
-    room.img ??
-    room.thumbnail ??
-    room.images?.find((img) => img?.isThumbnail)?.imageUrl ??
-    room.images?.find((img) => img?.isMain)?.imageUrl ??
-    '';
-
-  return {
-    id: planId,
-    name:
-      room.stayRoomType ??
-      room.PlanTitle ??
-      room.PlanName ??
-      room.name ??
-      '',
-    pricePerNight,
-    description: room.PlanDescription ?? '',
-    image,
-  };
-};
-const stayAddonFromDb = useMemo(() => {
-  return addons.find(
-    (a) => String(a.type || '').toLowerCase() === 'stay'
-  );
-}, [addons]);
-
-const kidsAddonFromDb = useMemo(() => {
-  return addons.find(
-    (a) => String(a.type || '').toLowerCase() === 'kids'
-  );
-}, [addons]);
-
-const stayAddonTitle =
-  stayAddonFromDb?.title ??
-  stayAddonFromDb?.AddonTitle ??
-  'Extra Stay';
- const stayAddons = useMemo(() => {
-  return (addons || []).filter((addon: any) => {
-    const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
-    const addonPlanIds = parseIds(addon.planIds ?? addon.planID);
-    const normalizedType = String(addon.type || '').trim().toLowerCase();
-
-      const eventMatch =
-        addonEventIds.length === 0 ||
-        addonEventIds.includes(Number(selectedEventId));
-
-      const planMatch =
-        addonPlanIds.length === 0 ||
-        addonPlanIds.includes(Number(selectedPlanId));
-
-      const visibleMatch =
-        addon.isVisible === undefined ||
-        addon.isVisible === null ||
-        addon.isVisible !== false;
-
-      const activeMatch =
-        addon.isActive === undefined ||
-        addon.isActive === null ||
-        Number(addon.isActive) !== 0;
-
-     const typeMatch = normalizedType === 'stay';
-
-    if (Number(addon.id ?? addon.AddonID) === 8) {
-      console.log('🛏 PVI STAY CHECK', {
-        addon,
-        normalizedType,
-        addonEventIds,
-        addonPlanIds,
-        selectedEventId,
-        selectedPlanId,
-        eventMatch,
-        planMatch,
-        visibleMatch,
-        activeMatch,
-        typeMatch,
-      });
+    if (Array.isArray(value)) {
+      return value.map(Number).filter((n) => !isNaN(n));
     }
 
-     return eventMatch && planMatch && visibleMatch && activeMatch && typeMatch;
-  });
-}, [addons, selectedEventId, selectedPlanId]);
-  const fallbackStayPlans = useMemo(() => {
-    return (roomTypes || [])
-      .map(normalizeStayPlan)
-      .filter(
-        (room: any) =>
-          !isNaN(Number(room.id)) &&
-          Number(room.pricePerNight) > 0
-      );
-  }, [roomTypes]);
+    if (typeof value === 'string') {
+      return value
+        .split(',')
+        .map((item) => Number(String(item).trim()))
+        .filter((n) => !isNaN(n));
+    }
 
- const globalStayPlans = useMemo(() => {
-  const allowedPlanIds = Array.from(
-    new Set(
-      stayAddons.flatMap((addon: any) =>
-        parseIds(addon.planIds ?? addon.planID).filter(
-          (id) => !isNaN(id) && id > 0
-        )
-      )
-    )
-  );
+    const num = Number(value);
+    return isNaN(num) ? [] : [num];
+  };
 
-  const mappedPlans = (roomTypes || []).map((room: any) => {
-    const planId = Number(room.planID ?? room.PlanID ?? room.id);
+  const normalizeStayPlan = (room: StayPlan): RelatedStayPlan => {
+    const planId = Number(room.planID ?? room.PlanID ?? room.id ?? 0);
 
     const pricePerNight = Number(
       room.pricePerNight ??
-      room.price ??
-      room.OfferPrice ??
-      room.PlanPrice ??
-      0
+        room.price ??
+        room.OfferPrice ??
+        room.PlanPrice ??
+        0
     );
+
+    const image =
+      room.image ??
+      room.img ??
+      room.thumbnail ??
+      room.images?.find((img) => img?.isThumbnail)?.imageUrl ??
+      room.images?.find((img) => img?.isMain)?.imageUrl ??
+      '';
 
     return {
       id: planId,
@@ -424,28 +327,143 @@ const stayAddonTitle =
         '',
       pricePerNight,
       description: room.PlanDescription ?? '',
-      image:
-        room.image ??
-        room.img ??
-        room.thumbnail ??
-        room.images?.find((img: any) => img?.isThumbnail)?.imageUrl ??
-        room.images?.find((img: any) => img?.isMain)?.imageUrl ??
-        '',
+      image,
     };
-  });
+  };
 
-  console.log('🛏 allowedPlanIds', allowedPlanIds);
-  console.log('🛏 mappedPlans', mappedPlans);
+  const normalizeDateInput = (value?: string) => {
+    if (!value) return '';
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().split('T')[0];
+  };
 
-    if (allowedPlanIds.length === 0) {
-      return mappedPlans;
+  const getMinExtraStayStartDate = () => {
+    const normalizedEndDate = normalizeDateInput(eventEndDate);
+    if (!normalizedEndDate) return '';
+
+    const date = new Date(normalizedEndDate);
+    date.setDate(date.getDate() + 1);
+    return date.toISOString().split('T')[0];
+  };
+
+  const minExtraStayStartDate = useMemo(
+    () => getMinExtraStayStartDate(),
+    [eventEndDate]
+  );
+
+  const getStayEndDate = (startDate: string, days: number) => {
+    if (!startDate) return '';
+    const safeDays = Math.max(1, Number(days || 1));
+    const date = new Date(startDate);
+    date.setDate(date.getDate() + (safeDays - 1));
+    return date.toISOString().split('T')[0];
+  };
+
+  const formatDateShort = (dateStr: string) => {
+    if (!dateStr) return 'TBD';
+    return new Date(dateStr).toLocaleDateString('en-IN', {
+      day: 'numeric',
+      month: 'short',
+    });
+  };
+
+  const stayAddonFromDb = useMemo(() => {
+    return (addons || []).find((addon: any) => {
+      const normalizedType = String(addon.type || '').trim().toLowerCase();
+      const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
+      const targetPlanIds = parseIds(
+        addon.targetPlanIds ?? addon.planIds ?? addon.planID
+      );
+
+      const eventMatch =
+        addonEventIds.length === 0 ||
+        addonEventIds.includes(Number(selectedEventId));
+
+      const planMatch =
+        targetPlanIds.length === 0 ||
+        targetPlanIds.includes(Number(selectedPlanId));
+
+      const visibleMatch =
+        addon.isVisible === undefined ||
+        addon.isVisible === null ||
+        addon.isVisible !== false;
+
+      const activeMatch =
+        addon.isActive === undefined ||
+        addon.isActive === null ||
+        Number(addon.isActive) !== 0;
+
+      return (
+        normalizedType === 'stay' &&
+        eventMatch &&
+        planMatch &&
+        visibleMatch &&
+        activeMatch
+      );
+    });
+  }, [addons, selectedEventId, selectedPlanId]);
+
+  const kidsAddonFromDb = useMemo(() => {
+    return addons.find(
+      (a) => String(a.type || '').trim().toLowerCase() === 'kids'
+    );
+  }, [addons]);
+
+  const stayAddonTitle =
+    stayAddonFromDb?.title ??
+    stayAddonFromDb?.AddonTitle ??
+    'Extra Stay';
+
+  const globalStayPlans = useMemo(() => {
+    if (!stayAddonFromDb) return [];
+
+    const mappings = Array.isArray(stayAddonFromDb.stayAddonMappings)
+      ? stayAddonFromDb.stayAddonMappings
+      : [];
+
+    if (mappings.length === 0) {
+      return (roomTypes || [])
+        .map(normalizeStayPlan)
+        .filter((plan) => Number(plan.pricePerNight) > 0);
     }
 
-    return mappedPlans.filter((plan) => allowedPlanIds.includes(Number(plan.id)));
-  }, [roomTypes, stayAddons]);
+    return mappings
+      .map((mapping) => {
+        const mappingPlanId = Number(mapping.planId ?? 0);
+        if (!mappingPlanId) return null;
 
-  const showExtraStaySection =
-    stayAddons.length > 0 && globalStayPlans.length > 0;
+        const matchedRoom = (roomTypes || []).find((room: any) => {
+          const roomPlanId = Number(room.planID ?? room.PlanID ?? room.id ?? 0);
+          return roomPlanId === mappingPlanId;
+        });
+
+        return {
+          id: mappingPlanId,
+          name:
+            matchedRoom?.stayRoomType ??
+            matchedRoom?.PlanTitle ??
+            matchedRoom?.PlanName ??
+            matchedRoom?.name ??
+            `Plan ${mappingPlanId}`,
+          pricePerNight: Number(mapping.pricePerNight ?? 0),
+          description: matchedRoom?.PlanDescription ?? '',
+          image:
+            matchedRoom?.image ??
+            matchedRoom?.img ??
+            matchedRoom?.thumbnail ??
+            matchedRoom?.images?.find((img: any) => img?.isThumbnail)?.imageUrl ??
+            matchedRoom?.images?.find((img: any) => img?.isMain)?.imageUrl ??
+            '',
+        } as RelatedStayPlan;
+      })
+      .filter(
+        (plan): plan is RelatedStayPlan =>
+          !!plan && !isNaN(Number(plan.id)) && Number(plan.pricePerNight) > 0
+      );
+  }, [stayAddonFromDb, roomTypes]);
+
+  const showExtraStaySection = globalStayPlans.length > 0;
 
   const getDefaultExtraStay = () => {
     const firstPlan = globalStayPlans[0];
@@ -455,52 +473,66 @@ const stayAddonTitle =
       type: firstPlan?.name || '',
       planId: firstPlan?.id || '',
       price: Number(firstPlan?.pricePerNight || 0),
-      startDate: '',
-      endDate: '',
+      startDate: minExtraStayStartDate || '',
+      endDate: minExtraStayStartDate
+        ? getStayEndDate(minExtraStayStartDate, 1)
+        : '',
       days: 1,
     };
   };
 
-useEffect(() => {
-  if (!showExtraStaySection) return;
+  useEffect(() => {
+    if (!showExtraStaySection) return;
 
-  const normalizedGuests = guests.map((guest: any) => {
-    const existingExtraStay = guest?.addOns?.extraStay || {};
-    const existingPlanId = existingExtraStay?.planId;
+    const normalizedGuests = guests.map((guest: any) => {
+      const existingExtraStay = guest?.addOns?.extraStay || {};
+      const existingPlanId = existingExtraStay?.planId;
 
-    const matchedPlan = globalStayPlans.find(
-      (plan) => String(plan.id) === String(existingPlanId)
-    );
+      const matchedPlan = globalStayPlans.find(
+        (plan) => String(plan.id) === String(existingPlanId)
+      );
 
-    const fallback = getDefaultExtraStay();
+      const fallback = getDefaultExtraStay();
+      const incomingStartDate = normalizeDateInput(existingExtraStay.startDate);
+      const safeStartDate =
+        incomingStartDate && minExtraStayStartDate
+          ? incomingStartDate < minExtraStayStartDate
+            ? minExtraStayStartDate
+            : incomingStartDate
+          : incomingStartDate || fallback.startDate;
 
-    return {
-      ...guest,
-      addOns: {
-        ...(guest.addOns || {}),
-        selectedAddons: guest.addOns?.selectedAddons || [],
-        extraStay: {
-          enabled: existingExtraStay.enabled ?? false,
-          type: existingExtraStay.type || matchedPlan?.name || fallback.type,
-          planId:
-            existingExtraStay.planId || matchedPlan?.id || fallback.planId,
-          price: Number(
-            existingExtraStay.price ??
-              matchedPlan?.pricePerNight ??
-              fallback.price
-          ),
-          startDate: existingExtraStay.startDate || '',
-          endDate: existingExtraStay.endDate || '',
-          days: Number(existingExtraStay.days || 1),
+      const safeDays = Math.max(1, Number(existingExtraStay.days || 1));
+
+      return {
+        ...guest,
+        addOns: {
+          ...(guest.addOns || {}),
+          selectedAddons: guest.addOns?.selectedAddons || [],
+          extraStay: {
+            enabled: existingExtraStay.enabled ?? false,
+            type: existingExtraStay.type || matchedPlan?.name || fallback.type,
+            planId:
+              existingExtraStay.planId || matchedPlan?.id || fallback.planId,
+            price: Number(
+              existingExtraStay.price ??
+                matchedPlan?.pricePerNight ??
+                fallback.price
+            ),
+            startDate: safeStartDate || '',
+            endDate: safeStartDate
+              ? getStayEndDate(safeStartDate, safeDays)
+              : '',
+            days: safeDays,
+          },
         },
-      },
-    };
-  });
+      };
+    });
 
-  if (JSON.stringify(normalizedGuests) !== JSON.stringify(guests)) {
-    setGuests(normalizedGuests);
-  }
-}, [showExtraStaySection, globalStayPlans, guests]);
+    if (JSON.stringify(normalizedGuests) !== JSON.stringify(guests)) {
+      setGuests(normalizedGuests);
+    }
+  }, [showExtraStaySection, globalStayPlans, guests, minExtraStayStartDate]);
+
   const eventAddons = useMemo(() => {
     return (addons || []).filter((addon) => {
       const addonEventIds = parseIds(addon.eventIds ?? addon.EventID);
@@ -551,7 +583,9 @@ useEffect(() => {
   };
 
   const allGuestsValid = useMemo(() => {
-    return guests.every((guest: any) => Object.keys(getGuestErrors(guest)).length === 0);
+    return guests.every(
+      (guest: any) => Object.keys(getGuestErrors(guest)).length === 0
+    );
   }, [guests]);
 
   const eligibleKids = useMemo(() => {
@@ -629,24 +663,24 @@ useEffect(() => {
     );
   };
 
-const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
-  const age = Number(guest?.age || 0);
-  const isKid = age > 0 && age < 18;
+  const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
+    const age = Number(guest?.age || 0);
+    const isKid = age > 0 && age < 18;
 
-  return Number(
-    isKid
-      ? addon.kidPrice ??
-          addon.KidsperDay ??
-          addon.KidsSeasonAmt ??
-          addon.price ??
-          0
-      : addon.adultPrice ??
-          addon.AdultsperDay ??
-          addon.AdultSeasonAmt ??
-          addon.price ??
-          0
-  );
-};
+    return Number(
+      isKid
+        ? addon.kidPrice ??
+            addon.KidsperDay ??
+            addon.KidsSeasonAmt ??
+            addon.price ??
+            0
+        : addon.adultPrice ??
+            addon.AdultsperDay ??
+            addon.AdultSeasonAmt ??
+            addon.price ??
+            0
+    );
+  };
 
   const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
     const guest = guests.find((item: any) => String(item.id) === String(guestId));
@@ -683,60 +717,122 @@ const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
     });
   };
 
-  const calculateEndDate = (startDate: string, days: number) => {
-    if (!startDate) return '';
+  const updateExtraStayPlan = (guestId: string, planId: number | string) => {
+    const selectedStayPlan = globalStayPlans.find(
+      (plan) => String(plan.id) === String(planId)
+    );
 
-    const date = new Date(startDate);
-    date.setDate(date.getDate() + Number(days || 0));
+    if (!selectedStayPlan) return;
 
-    return date.toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
+    const guest = guests.find((g: any) => String(g.id) === String(guestId));
+    const currentExtraStay = guest?.addOns?.extraStay || getDefaultExtraStay();
+    const safeStartDate =
+      currentExtraStay.startDate && minExtraStayStartDate
+        ? currentExtraStay.startDate < minExtraStayStartDate
+          ? minExtraStayStartDate
+          : currentExtraStay.startDate
+        : currentExtraStay.startDate || minExtraStayStartDate;
+
+    updateGuest(guestId, {
+      addOns: {
+        extraStay: {
+          ...currentExtraStay,
+          enabled: true,
+          planId: selectedStayPlan.id,
+          type: selectedStayPlan.name,
+          price: Number(selectedStayPlan.pricePerNight || 0),
+          startDate: safeStartDate || '',
+          endDate: safeStartDate
+            ? getStayEndDate(safeStartDate, Number(currentExtraStay.days || 1))
+            : '',
+        },
+      },
     });
   };
 
-  const formatDateShort = (dateStr: string) => {
-    if (!dateStr) return 'TBD';
+  const updateExtraStayDays = (guestId: string, days: number) => {
+    const guest = guests.find((g: any) => String(g.id) === String(guestId));
+    if (!guest) return;
 
-    return new Date(dateStr).toLocaleDateString('en-IN', {
-      day: 'numeric',
-      month: 'short',
+    const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
+    const safeDays = Math.max(1, Number(days || 1));
+    const safeStartDate =
+      extraStay.startDate && minExtraStayStartDate
+        ? extraStay.startDate < minExtraStayStartDate
+          ? minExtraStayStartDate
+          : extraStay.startDate
+        : extraStay.startDate || minExtraStayStartDate;
+
+    updateGuest(guestId, {
+      addOns: {
+        extraStay: {
+          ...extraStay,
+          days: safeDays,
+          startDate: safeStartDate || '',
+          endDate: safeStartDate ? getStayEndDate(safeStartDate, safeDays) : '',
+        },
+      },
     });
   };
 
-const getInfoContent = (type: string) => {
-  if (ui?.modals?.[type]) return ui.modals[type];
+  const updateExtraStayStartDate = (guestId: string, startDate: string) => {
+    const guest = guests.find((g: any) => String(g.id) === String(guestId));
+    if (!guest) return;
 
-  const matchedAddon = addons.find(
-    (addon) => String(addon.id ?? addon.AddonID) === String(type)
-  );
+    const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
+    const normalizedStartDate = normalizeDateInput(startDate);
+    const safeStartDate =
+      normalizedStartDate && minExtraStayStartDate
+        ? normalizedStartDate < minExtraStayStartDate
+          ? minExtraStayStartDate
+          : normalizedStartDate
+        : normalizedStartDate || minExtraStayStartDate;
 
-  if (matchedAddon) {
-    return {
-      title: matchedAddon.title ?? matchedAddon.AddonTitle ?? 'Add-on',
-      desc:
-        matchedAddon.description ??
-        matchedAddon.AddonDescription ??
-        matchedAddon.type ??
-        'Add-on details',
-      img: matchedAddon.bannerImage ?? '',
-    };
-  }
+    updateGuest(guestId, {
+      addOns: {
+        extraStay: {
+          ...extraStay,
+          startDate: safeStartDate || '',
+          endDate: safeStartDate
+            ? getStayEndDate(safeStartDate, Number(extraStay.days || 1))
+            : '',
+        },
+      },
+    });
+  };
 
-  if (type === 'extraStay' || type === 'stay') {
-    return {
-      title: stayAddonTitle,
-      desc:
-        stayAddonFromDb?.description ??
-        stayAddonFromDb?.AddonDescription ??
-        'Add stay before or after the event.',
-      img: stayAddonFromDb?.bannerImage ?? '',
-    };
-  }
+  const getInfoContent = (type: string) => {
+    if (ui?.modals?.[type]) return ui.modals[type];
 
-  return null;
-};
+    const matchedAddon = addons.find(
+      (addon) => String(addon.id ?? addon.AddonID) === String(type)
+    );
+
+    if (matchedAddon) {
+      return {
+        title: matchedAddon.title ?? matchedAddon.AddonTitle ?? 'Add-on',
+        desc:
+          matchedAddon.description ??
+          matchedAddon.AddonDescription ??
+          matchedAddon.type ??
+          'Add-on details',
+        img: matchedAddon.bannerImage ?? '',
+      };
+    }
+
+    if (type === 'extraStay' || type === 'stay') {
+      return {
+        title: stayAddonTitle,
+        desc:
+          stayAddonFromDb?.description ??
+          stayAddonFromDb?.AddonDescription ??
+          'Add stay before or after the event.',
+        img: stayAddonFromDb?.bannerImage ?? '',
+      };
+    }
+
+    return null;
+  };
 
   const handleProceedClick = () => {
     setTouched(true);
@@ -744,17 +840,21 @@ const getInfoContent = (type: string) => {
     if (!allGuestsValid) return;
 
     if (showExtraStaySection) {
-      const invalidExtraStayGuest = guests.find(
-        (guest: any) =>
-          guest.addOns?.extraStay?.enabled &&
-          (!guest.addOns?.extraStay?.planId ||
-            !guest.addOns?.extraStay?.startDate)
-      );
+      const invalidExtraStayGuest = guests.find((guest: any) => {
+        const extraStay = guest.addOns?.extraStay;
+        if (!extraStay?.enabled) return false;
 
-      if (invalidExtraStayGuest) {
-        alert('Please select stay start date.');
-        return;
-      }
+        const noPlan = !extraStay.planId;
+        const noStartDate = !extraStay.startDate;
+        const beforeMinDate =
+          !!minExtraStayStartDate &&
+          !!extraStay.startDate &&
+          extraStay.startDate < minExtraStayStartDate;
+
+        return noPlan || noStartDate || beforeMinDate;
+      });
+
+      if (invalidExtraStayGuest) return;
     }
 
     if (eligibleKids.length > 0) {
@@ -826,7 +926,7 @@ const getInfoContent = (type: string) => {
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.name} <span className="text-teal-700 font-black ml-0.5">#</span>
+                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
                   <input
                     type="text"
@@ -844,7 +944,7 @@ const getInfoContent = (type: string) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.phone} <span className="text-teal-700 font-black ml-0.5">#</span>
+                    {ui.guestCard.fields.phone} <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
                   <input
                     type="tel"
@@ -865,7 +965,7 @@ const getInfoContent = (type: string) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.email} <span className="text-teal-700 font-black ml-0.5">#</span>
+                    {ui.guestCard.fields.email} <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
                   <input
                     type="email"
@@ -883,7 +983,7 @@ const getInfoContent = (type: string) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.age} <span className="text-teal-700 font-black ml-0.5">#</span>
+                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
                   <input
                     type="text"
@@ -960,7 +1060,7 @@ const getInfoContent = (type: string) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Country <span className="text-teal-700 font-black ml-0.5">#</span>
+                    Country <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
@@ -972,7 +1072,7 @@ const getInfoContent = (type: string) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    State / Province <span className="text-teal-700 font-black ml-0.5">#</span>
+                    State / Province <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
 
                   {guest.country === 'India' ? (
@@ -995,18 +1095,17 @@ const getInfoContent = (type: string) => {
                           </option>
                         ))}
                       </select>
-                      <ChevronDown className="pointer-events-none absolute right-4 top-1/2 h-4 w-4 -translate-y-1/2 text-stone-400" />
                     </div>
                   ) : (
                     <input
                       type="text"
-                      value={guest.state}
+                      value={guest.state || ''}
                       onChange={(e) => updateGuest(guest.id, { state: e.target.value })}
-                      placeholder="Enter state/province"
+                      placeholder="Enter state / province"
                       className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                         touched && errors.state
                           ? 'border-red-200 bg-white'
-                          : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                          : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
                       }`}
                     />
                   )}
@@ -1015,155 +1114,143 @@ const getInfoContent = (type: string) => {
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    City <span className="text-teal-700 font-black ml-0.5">#</span>
+                    City <span className="ml-0.5 font-black text-teal-700">#</span>
                   </label>
                   <input
                     type="text"
-                    value={guest.city}
+                    value={guest.city || ''}
                     onChange={(e) => updateGuest(guest.id, { city: e.target.value })}
-                    placeholder="e.g. Mumbai"
+                    placeholder="Enter city"
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.city
                         ? 'border-red-200 bg-white'
-                        : 'border-stone-100 bg-stone-50 focus:border-teal-700'
+                        : 'border-stone-100 bg-stone-50 focus:border-teal-700 focus:bg-white'
                     }`}
                   />
                   {touched && <ErrorLabel message={errors.city} />}
                 </div>
-
-                <div className="space-y-1">
-                  <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.travel}
-                  </label>
-                  <div className="flex gap-2">
-                    {[true, false].map((val) => (
-                      <label
-                        key={val ? 'y' : 'n'}
-                        className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
-                          guest.travelAssistance === val
-                            ? 'border-stone-900 bg-stone-900 text-white shadow-sm'
-                            : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
-                        }`}
-                      >
-                        <input
-                          type="radio"
-                          name={`assist-${guest.id}`}
-                          checked={guest.travelAssistance === val}
-                          onChange={() =>
-                            updateGuest(guest.id, { travelAssistance: val })
-                          }
-                          className="hidden"
-                        />
-                        {val ? 'Yes' : 'No'}
-                      </label>
-                    ))}
-                  </div>
-                </div>
               </div>
 
-              <div className="mt-8 border-t border-stone-100 pt-6">
-                <h4 className="mb-4 flex items-center gap-2 text-[10px] font-black uppercase tracking-widest text-teal-700">
-                  <CheckCircle2 className="h-3.5 w-3.5" /> {ui.guestCard.addons.label}
-                </h4>
-
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {eventAddons.map((addon: any) => {
-                    const selectedAddons = guest.addOns?.selectedAddons || [];
-                    const addonId = String(addon.id ?? addon.AddonID ?? '');
-                    const isSelected = selectedAddons.some(
-                      (item: any) => String(item.addonId) === addonId
-                    );
-                    const guestPrice = getAddonPriceForGuest(addon, guest);
-
-                    return (
-                      <label
-                        key={addonId}
-                        className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all ${
-                          isSelected
-                            ? 'border-teal-500 bg-teal-50'
-                            : 'border-stone-100 bg-white hover:border-teal-100'
-                        }`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={isSelected}
-                          onChange={() => toggleGuestAddon(String(guest.id), addon)}
-                          className="h-4 w-4 rounded-md accent-teal-700"
-                        />
-
-                        <div className="flex-1">
-                          <p className="flex items-center justify-between text-xs font-bold text-stone-900">
-                            {addon.title ?? addon.AddonTitle}
-                            <button
-                              type="button"
-                              onClick={(e) => {
-                                e.preventDefault();
-                                e.stopPropagation();
-                                setShowAddOnInfo(addonId);
-                              }}
-                            >
-                              <Info className="h-3.5 w-3.5 text-teal-500" />
-                            </button>
-                          </p>
-                          <p className="text-[9px] font-bold uppercase text-emerald-600">
-                            ₹{guestPrice} per person
-                          </p>
-                        </div>
-                      </label>
-                    );
-                  })}
-                </div>
-
-                {eventAddons.length === 0 && (
-                  <div className="mt-2 rounded-xl border border-dashed border-stone-200 bg-stone-50 p-4 text-center">
-                    <p className="text-xs font-medium text-stone-500">
-                      No add-ons available for this event.
-                    </p>
+              {!!eventAddons.length && (
+                <div className="mt-6">
+                  <div className="mb-3 flex items-center justify-between">
+                    <h4 className="text-[10px] font-black uppercase tracking-widest text-stone-800">
+                      {ui.guestCard.addons?.title || 'Add-ons'}
+                    </h4>
                   </div>
-                )}
-              </div>
+
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    {eventAddons.map((addon) => {
+                      const addonId = String(addon.id ?? addon.AddonID ?? '');
+                      const guestSelections = guest.addOns?.selectedAddons || [];
+                      const isSelected = guestSelections.some(
+                        (item: any) => String(item.addonId) === addonId
+                      );
+                      const guestPrice = getAddonPriceForGuest(addon, guest);
+
+                      return (
+                        <label
+                          key={addonId}
+                          className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all ${
+                            isSelected
+                              ? 'border-teal-500 bg-teal-50'
+                              : 'border-stone-100 bg-white hover:border-teal-100'
+                          }`}
+                        >
+                          <input
+                            type="checkbox"
+                            checked={isSelected}
+                            onChange={() => toggleGuestAddon(String(guest.id), addon)}
+                            className="h-4 w-4 rounded-md accent-teal-700"
+                          />
+
+                          <div className="flex-1">
+                            <p className="flex items-center justify-between text-xs font-bold text-stone-900">
+                              {addon.title ?? addon.AddonTitle}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  e.stopPropagation();
+                                  setShowAddOnInfo(addonId);
+                                }}
+                              >
+                                <Info className="h-3.5 w-3.5 text-teal-500" />
+                              </button>
+                            </p>
+                            <p className="text-[9px] font-bold uppercase text-emerald-600">
+                              ₹{guestPrice} per person
+                            </p>
+                          </div>
+                        </label>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
 
               {showExtraStaySection && (
-   <div className="mt-6 bg-stone-50 rounded-2xl p-4 border border-stone-100">
-    <label className="flex items-center gap-3 cursor-pointer group mb-4">
-      <input
-        type="checkbox"
-        checked={guest.addOns?.extraStay?.enabled || false}
-        onChange={(e) =>
-          updateGuest(guest.id, {
-            addOns: {
-              ...guest.addOns,
-              extraStay: {
-                ...guest.addOns?.extraStay,
-                enabled: e.target.checked,
-                ...(e.target.checked
-                  ? {}
-                  : {
-                      startDate: '',
-                      endDate: '',
-                    }),
-              },
-            },
-          })
-        }
-        className="w-5 h-5 rounded-md accent-teal-700"
-      />
-      <div className="flex-1">
-        <span className="block font-black text-sm text-stone-900">
-          {ui.guestCard.addons.extraStay}
-        </span>
-      </div>
-      <button
-        type="button"
-        onClick={(e) => {
-          e.preventDefault();
-          setShowAddOnInfo('extraStay');
-        }}
-        className="p-1 hover:bg-stone-200 rounded-lg"
-      >
-        <Info className="w-4 h-4 text-teal-500" />
-      </button>
-    </label>
+                <div className="mt-6 rounded-2xl border border-stone-100 bg-stone-50 p-4">
+                  <label className="group mb-4 flex cursor-pointer items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={guest.addOns?.extraStay?.enabled || false}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        const defaultStay = getDefaultExtraStay();
+
+                        updateGuest(guest.id, {
+                          addOns: {
+                            ...guest.addOns,
+                            extraStay: checked
+                              ? {
+                                  ...(guest.addOns?.extraStay || defaultStay),
+                                  enabled: true,
+                                  startDate:
+                                    guest.addOns?.extraStay?.startDate ||
+                                    minExtraStayStartDate ||
+                                    defaultStay.startDate,
+                                  endDate:
+                                    guest.addOns?.extraStay?.startDate ||
+                                    minExtraStayStartDate
+                                      ? getStayEndDate(
+                                          guest.addOns?.extraStay?.startDate ||
+                                            minExtraStayStartDate ||
+                                            defaultStay.startDate,
+                                          Number(
+                                            guest.addOns?.extraStay?.days || 1
+                                          )
+                                        )
+                                      : '',
+                                }
+                              : {
+                                  ...(guest.addOns?.extraStay || defaultStay),
+                                  enabled: false,
+                                  startDate: '',
+                                  endDate: '',
+                                  days: 1,
+                                },
+                          },
+                        });
+                      }}
+                      className="h-5 w-5 rounded-md accent-teal-700"
+                    />
+                    <div className="flex-1">
+                      <span className="block text-sm font-black text-stone-900">
+                        {ui.guestCard.addons?.extraStay || stayAddonTitle}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        setShowAddOnInfo('extraStay');
+                      }}
+                      className="rounded-lg p-1 hover:bg-stone-200"
+                    >
+                      <Info className="h-4 w-4 text-teal-500" />
+                    </button>
+                  </label>
 
                   {guest.addOns?.extraStay?.enabled && (
                     <div className="animate-slideUp space-y-4 pt-2">
@@ -1173,31 +1260,17 @@ const getInfoContent = (type: string) => {
                             key={String(room.id)}
                             className={`flex cursor-pointer items-center gap-2 rounded-xl border-2 p-2 transition-all ${
                               String(guest.addOns?.extraStay?.planId) === String(room.id)
-                                ? 'border-teal-700 bg-white ring-2 ring-teal-50'
-                                : 'border-stone-200 bg-white hover:border-stone-300'
+                                ? 'border-teal-500 bg-teal-50'
+                                : 'border-stone-100 bg-white hover:border-teal-100'
                             }`}
                           >
                             <input
                               type="radio"
-                              name={`room-${guest.id}`}
+                              name={`extra-stay-plan-${guest.id}`}
                               checked={
-                                String(guest.addOns?.extraStay?.planId) ===
-                                String(room.id)
+                                String(guest.addOns?.extraStay?.planId) === String(room.id)
                               }
-                              onChange={() =>
-                                updateGuest(guest.id, {
-                                  addOns: {
-                                    ...guest.addOns,
-                                    extraStay: {
-                                      ...guest.addOns?.extraStay,
-                                      enabled: true,
-                                      type: room.name,
-                                      planId: room.id,
-                                      price: Number(room.pricePerNight || 0),
-                                    },
-                                  },
-                                })
-                              }
+                              onChange={() => updateExtraStayPlan(guest.id, room.id)}
                               className="hidden"
                             />
 
@@ -1213,63 +1286,56 @@ const getInfoContent = (type: string) => {
                               )}
                             </div>
 
-               <div className="min-w-0">
-                <h5 className="font-bold text-stone-900 text-[9px] truncate">
-                  {room.name}
-                </h5>
-                <p className="text-teal-700 font-black text-[8px]">
-                  ₹{room.pricePerNight}/nt
-                </p>
-              </div>
-            </label>
-          ))}
-        </div>
+                            <div className="min-w-0">
+                              <h5 className="truncate text-[9px] font-bold text-stone-900">
+                                {room.name}
+                              </h5>
+                              <p className="text-[8px] font-black text-teal-700">
+                                ₹{room.pricePerNight}/nt
+                              </p>
+                            </div>
+                          </label>
+                        ))}
+                      </div>
 
                       <div className="flex flex-col gap-4 sm:flex-row">
                         <div className="flex-1 space-y-1">
                           <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
                             <Calendar className="h-3 w-3 text-teal-700" />
-                            {ui.guestCard.extraStay.startDate}
+                            {ui.guestCard.extraStay?.startDate || 'Start Date'}
                           </label>
                           <input
                             type="date"
+                            min={minExtraStayStartDate || undefined}
                             value={guest.addOns?.extraStay?.startDate || ''}
                             onChange={(e) =>
-                              updateGuest(guest.id, {
-                                addOns: {
-                                  ...guest.addOns,
-                                  extraStay: {
-                                    ...guest.addOns?.extraStay,
-                                    startDate: e.target.value,
-                                  },
-                                },
-                              })
+                              updateExtraStayStartDate(guest.id, e.target.value)
                             }
                             className="w-full rounded-lg border-2 border-stone-100 bg-white px-3 py-2 text-xs font-bold text-stone-900 outline-none focus:border-teal-700"
                           />
+                          {minExtraStayStartDate && (
+                            <p className="text-[9px] font-bold text-stone-500">
+                              Starts from {formatDateShort(minExtraStayStartDate)}
+                            </p>
+                          )}
                         </div>
 
                         <div className="space-y-1 sm:w-32">
                           <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
                             <Clock className="h-3 w-3 text-teal-700" />
-                            {ui.guestCard.extraStay.duration}
+                            {ui.guestCard.extraStay?.duration || 'Duration'}
                           </label>
                           <div className="flex items-center justify-between rounded-lg border-2 border-stone-100 bg-white px-2 py-1.5">
                             <button
                               type="button"
                               onClick={() =>
-                                updateGuest(guest.id, {
-                                  addOns: {
-                                    ...guest.addOns,
-                                    extraStay: {
-                                      ...guest.addOns?.extraStay,
-                                      days: Math.max(
-                                        1,
-                                        Number(guest.addOns?.extraStay?.days || 1) - 1
-                                      ),
-                                    },
-                                  },
-                                })
+                                updateExtraStayDays(
+                                  guest.id,
+                                  Math.max(
+                                    1,
+                                    Number(guest.addOns?.extraStay?.days || 1) - 1
+                                  )
+                                )
                               }
                               className="font-black text-stone-400 hover:text-teal-700"
                             >
@@ -1283,16 +1349,10 @@ const getInfoContent = (type: string) => {
                             <button
                               type="button"
                               onClick={() =>
-                                updateGuest(guest.id, {
-                                  addOns: {
-                                    ...guest.addOns,
-                                    extraStay: {
-                                      ...guest.addOns?.extraStay,
-                                      days:
-                                        Number(guest.addOns?.extraStay?.days || 1) + 1,
-                                    },
-                                  },
-                                })
+                                updateExtraStayDays(
+                                  guest.id,
+                                  Number(guest.addOns?.extraStay?.days || 1) + 1
+                                )
                               }
                               className="font-black text-stone-400 hover:text-teal-700"
                             >
@@ -1301,210 +1361,169 @@ const getInfoContent = (type: string) => {
                           </div>
                         </div>
 
-                        <div className="flex flex-[1.2] flex-col justify-center rounded-xl bg-teal-700 px-4 py-2.5 text-white">
-                          <span className="mb-1 text-[8px] font-black uppercase tracking-widest text-teal-200">
-                            {ui.guestCard.extraStay.periodLabel}
-                          </span>
-                          <div className="flex items-center gap-2 text-[10px] font-black">
-                            <span>
-                              {formatDateShort(
-                                guest.addOns?.extraStay?.startDate || ''
-                              )}
-                            </span>
-                            <ArrowRight className="h-3 w-3 text-teal-300" />
-                            <span>
-                              {calculateEndDate(
-                                guest.addOns?.extraStay?.startDate || '',
-                                Number(guest.addOns?.extraStay?.days || 1)
-                              )}
-                            </span>
+                        <div className="flex-1 space-y-1">
+                          <label className="flex items-center gap-1.5 text-[9px] font-black uppercase tracking-widest text-stone-500">
+                            <Calendar className="h-3 w-3 text-teal-700" />
+                            {ui.guestCard.extraStay?.endDate || 'End Date'}
+                          </label>
+                          <div className="flex h-[38px] items-center rounded-lg border-2 border-stone-100 bg-white px-3 text-xs font-bold text-stone-900">
+                            {guest.addOns?.extraStay?.endDate
+                              ? formatDateShort(guest.addOns.extraStay.endDate)
+                              : 'TBD'}
                           </div>
                         </div>
                       </div>
+
+                      <div className="rounded-xl border border-teal-100 bg-white p-3">
+                        <div className="flex items-center justify-between text-xs font-bold text-stone-700">
+                          <span>Rate</span>
+                          <span>₹{Number(guest.addOns?.extraStay?.price || 0)}/night</span>
+                        </div>
+                        <div className="mt-1 flex items-center justify-between text-xs font-black text-stone-900">
+                          <span>Total</span>
+                          <span>
+                            ₹
+                            {Number(guest.addOns?.extraStay?.price || 0) *
+                              Number(guest.addOns?.extraStay?.days || 1)}
+                          </span>
+                        </div>
+                      </div>
+
+                      {minExtraStayStartDate &&
+                        guest.addOns?.extraStay?.startDate &&
+                        guest.addOns.extraStay.startDate < minExtraStayStartDate && (
+                          <ErrorLabel
+                            message={`Start date must be after event end date. Minimum allowed: ${formatDateShort(
+                              minExtraStayStartDate
+                            )}`}
+                          />
+                        )}
                     </div>
                   )}
                 </div>
               )}
-
-              <div className="mt-5">
-                <label className="mb-2 ml-1 block text-[10px] font-black uppercase tracking-widest text-stone-700">
-                  {ui.guestCard.remark}
-                </label>
-                <textarea
-                  value={guest.remark}
-                  onChange={(e) => updateGuest(guest.id, { remark: e.target.value })}
-                  placeholder={ui.guestCard.remarkPlaceholder}
-                  rows={2}
-                  className="w-full resize-none rounded-xl border-2 border-stone-100 bg-stone-50 px-4 py-2.5 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 focus:border-teal-700 focus:bg-white"
-                />
-              </div>
             </div>
           );
         })}
+      </div>
+
+      <div className="sticky bottom-0 mt-8 flex items-center justify-between gap-3 border-t border-stone-200 bg-white/95 px-2 py-4 backdrop-blur">
+        <button
+          type="button"
+          onClick={onBack}
+          className="rounded-xl border border-stone-200 px-5 py-3 text-xs font-black text-stone-700 transition-all hover:bg-stone-50"
+        >
+          Back
+        </button>
 
         <button
-          onClick={addGuest}
-          className="group flex w-full flex-col items-center gap-3 rounded-3xl border-2 border-dashed border-stone-300 py-10 text-stone-400 transition-all hover:border-teal-400 hover:bg-stone-50 hover:text-teal-700"
+          type="button"
+          onClick={handleProceedClick}
+          className="flex items-center gap-2 rounded-xl bg-stone-900 px-5 py-3 text-xs font-black text-white transition-all hover:bg-stone-800"
         >
-          <div className="flex h-10 w-10 items-center justify-center rounded-full bg-stone-100 shadow-sm group-hover:bg-white">
-            <PlusCircle className="h-6 w-6" />
-          </div>
-          <span className="text-xs font-black uppercase tracking-[0.2em]">
-            {ui.addPartner}
-          </span>
+          Continue <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
-      <div className="fixed bottom-0 left-0 right-0 z-[100] border-t border-stone-200 bg-white/95 p-6 shadow-2xl backdrop-blur-md">
-        <div className="mx-auto flex max-w-4xl gap-4">
-          <button
-            onClick={onBack}
-            className="flex-1 rounded-xl border-2 border-stone-100 bg-white py-3.5 text-[11px] font-black uppercase tracking-widest text-stone-500 transition-all hover:bg-stone-50"
-          >
-            {ui.footer.back}
-          </button>
-
-          <button
-            onClick={handleProceedClick}
-            className={`group flex flex-[2] items-center justify-center gap-2 rounded-xl py-3.5 text-base font-black shadow-lg transition-all active:scale-95 ${
-              !allGuestsValid && touched
-                ? 'cursor-not-allowed bg-stone-200 text-stone-400'
-                : 'bg-teal-700 text-white hover:bg-teal-800'
-            }`}
-          >
-            {ui.footer.proceed}
-            <ChevronRight className="h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </button>
-        </div>
-      </div>
-
-      {showAddOnInfo &&
-        (() => {
-          const info = getInfoContent(showAddOnInfo);
-          if (!info) return null;
-
-          return (
-            <div className="fixed inset-0 z-[200] flex items-center justify-center bg-stone-900/80 p-6 backdrop-blur-sm">
-              <div className="animate-scaleUp w-full max-w-sm overflow-hidden rounded-[32px] bg-white shadow-2xl">
-                <div className="relative h-40">
-                  {info.img ? (
-                    <img src={info.img} className="h-full w-full object-cover" alt="" />
-                  ) : (
-                    <div className="h-full w-full bg-stone-100" />
-                  )}
-
-                  <button
-                    onClick={() => setShowAddOnInfo(null)}
-                    className="absolute right-4 top-4 rounded-xl bg-white/20 p-2 text-white backdrop-blur-xl transition-all hover:bg-white/40"
-                  >
-                    <X className="h-4 w-4" />
-                  </button>
-
-                  <div className="absolute inset-0 bg-gradient-to-t from-white via-transparent to-transparent" />
-                </div>
-
-                <div className="p-8">
-                  <h3 className="mb-4 text-xl font-black tracking-tighter text-stone-900">
-                    {info.title}
-                  </h3>
-                  <p className="mb-8 text-xs font-medium leading-relaxed text-stone-500">
-                    {info.desc}
-                  </p>
-                  <button
-                    onClick={() => setShowAddOnInfo(null)}
-                    className="w-full rounded-xl bg-stone-900 py-3 text-sm font-black text-white transition-all hover:bg-black"
-                  >
-                    Okay
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })()}
-
-      {showKidsModal && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-stone-900/90 p-4 backdrop-blur-md">
-          <div className="w-full max-w-lg animate-scaleUp overflow-hidden rounded-[40px] bg-white shadow-2xl">
-            <div className="bg-teal-700 p-8 text-white">
-              <Sparkles className="mb-4 h-10 w-10 text-teal-300 opacity-70" />
-              <h3 className="text-2xl font-black uppercase leading-none tracking-tighter">
-                {/* ✅ DYNAMIC TITLE FROM DB */}
-                {kidsAddonFromDb?.title || kidsAddonFromDb?.AddonTitle || 'Kids Explorer Plan'}
+      {showAddOnInfo && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+            <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
+              <h3 className="text-sm font-black text-stone-900">
+                {getInfoContent(showAddOnInfo)?.title || 'Add-on Info'}
               </h3>
-              <p className="mt-2 text-xs font-bold uppercase tracking-widest text-teal-100 opacity-80">
-                Exclusive for ages 4-17 • ₹10,000 Flat
+              <button
+                type="button"
+                onClick={() => setShowAddOnInfo(null)}
+                className="rounded-lg p-2 hover:bg-stone-100"
+              >
+                <X className="h-4 w-4 text-stone-500" />
+              </button>
+            </div>
+
+            {getInfoContent(showAddOnInfo)?.img && (
+              <img
+                src={getInfoContent(showAddOnInfo)?.img}
+                alt={getInfoContent(showAddOnInfo)?.title}
+                className="h-44 w-full object-cover"
+              />
+            )}
+
+            <div className="px-5 py-4">
+              <p className="whitespace-pre-line text-sm leading-6 text-stone-700">
+                {getInfoContent(showAddOnInfo)?.desc || 'No details available.'}
               </p>
             </div>
+          </div>
+        </div>
+      )}
 
-            <div className="space-y-6 p-8">
-              {/* ✅ DYNAMIC DESCRIPTION FROM DB */}
-              {kidsAddonFromDb?.description || kidsAddonFromDb?.AddonDescription ? (
-                <div className="bg-stone-50 rounded-2xl p-5 border border-stone-100">
-                   <p className="text-xs text-stone-600 font-medium leading-relaxed whitespace-pre-line">
-                      {kidsAddonFromDb?.description || kidsAddonFromDb?.AddonDescription}
-                   </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-2 gap-3">
-                    {[
-                    { icon: <Wind className="h-4 w-4" />, label: 'Adventure Park' },
-                    { icon: <Sun className="h-4 w-4" />, label: 'Guided Sports' },
-                    { icon: <Flower2 className="h-4 w-4" />, label: 'Zen Arts Craft' },
-                    { icon: <Utensils className="h-4 w-4" />, label: 'Kids Buffet' },
-                    ].map((item, i) => (
-                    <div
-                        key={i}
-                        className="flex items-center gap-2.5 rounded-2xl border border-stone-100 bg-stone-50 p-3"
+      {showKidsModal && (
+        <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-black text-stone-900">
+              Kids Plan Confirmation
+            </h3>
+            <p className="mt-2 text-sm text-stone-600">
+              We found guest(s) aged between 4 and 17. Please confirm if they should be considered under the kids plan.
+            </p>
+
+            <div className="mt-5 space-y-3">
+              {eligibleKids.map((guest: any) => (
+                <div
+                  key={guest.id}
+                  className="flex items-center justify-between rounded-2xl border border-stone-200 p-4"
+                >
+                  <div>
+                    <p className="text-sm font-black text-stone-900">{guest.name || 'Guest'}</p>
+                    <p className="text-xs font-medium text-stone-500">Age: {guest.age}</p>
+                  </div>
+
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => toggleKidsPlan(String(guest.id), true)}
+                      className={`rounded-xl px-4 py-2 text-xs font-black ${
+                        guest.isKidsPlanOpted
+                          ? 'bg-stone-900 text-white'
+                          : 'border border-stone-200 text-stone-700'
+                      }`}
                     >
-                        <div className="text-teal-700">{item.icon}</div>
-                        <span className="text-[9px] font-black uppercase tracking-widest text-stone-600">
-                        {item.label}
-                        </span>
-                    </div>
-                    ))}
-                </div>
-              )}
-
-              <div className="border-t border-stone-100 pt-6">
-                <p className="mb-4 text-center text-[10px] font-black uppercase tracking-widest text-stone-400">
-                  Opt-in for your juniors
-                </p>
-
-                <div className="custom-scrollbar max-h-40 space-y-2 overflow-y-auto pr-2">
-                  {eligibleKids.map((kid: any) => (
-                    <div
-                      key={kid.id}
-                      className="flex items-center justify-between rounded-2xl border border-stone-200 bg-stone-50 p-4"
+                      Yes
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => toggleKidsPlan(String(guest.id), false)}
+                      className={`rounded-xl px-4 py-2 text-xs font-black ${
+                        guest.isKidsPlanOpted === false
+                          ? 'bg-stone-900 text-white'
+                          : 'border border-stone-200 text-stone-700'
+                      }`}
                     >
-                      <div>
-                        <p className="text-sm font-black text-stone-900">
-                          {kid.name || 'Junior Guest'}
-                        </p>
-                        <p className="text-[10px] font-bold uppercase text-stone-400">
-                          Age: {kid.age}
-                        </p>
-                      </div>
-
-                      <button
-                        onClick={() => toggleKidsPlan(kid.id, !kid.isKidsPlanOpted)}
-                        className={`rounded-xl px-6 py-2 text-[10px] font-black uppercase tracking-widest transition-all ${
-                          kid.isKidsPlanOpted
-                            ? 'bg-teal-700 text-white shadow-md'
-                            : 'border-2 border-stone-200 bg-white text-stone-400 hover:border-stone-300'
-                        }`}
-                      >
-                        {kid.isKidsPlanOpted ? 'Applied' : 'Add Plan'}
-                      </button>
-                    </div>
-                  ))}
+                      No
+                    </button>
+                  </div>
                 </div>
-              </div>
+              ))}
+            </div>
 
+            <div className="mt-6 flex justify-end gap-3">
               <button
-                onClick={onProceed}
-                className="w-full rounded-2xl bg-stone-900 py-4 text-xs font-black uppercase tracking-[0.2em] text-white shadow-xl transition-all active:scale-95 hover:bg-black"
+                type="button"
+                onClick={() => setShowKidsModal(false)}
+                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-black text-stone-700"
               >
-                Proceed to Billing
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowKidsModal(false);
+                  onProceed();
+                }}
+                className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white"
+              >
+                Continue
               </button>
             </div>
           </div>

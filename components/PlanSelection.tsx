@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Plan } from '../types';
-import { Check, Sparkles } from 'lucide-react';
+import { Check } from 'lucide-react';
 
 interface PlanSelectionProps {
   plans: Plan[];
@@ -9,14 +8,18 @@ interface PlanSelectionProps {
   onSelect: (plan: Plan) => void;
   onBack: () => void;
 }
-// const getPlanImage = (plan: any) => {
-//   return (
-//     plan.images?.find((img: any) => img.isMain === true || img.isMain === 1)?.imageUrl ||
-//     plan.images?.find((img: any) => img.isThumbnail === true || img.isThumbnail === 1)?.imageUrl ||
-//     plan.images?.[0]?.imageUrl ||
-//     "https://via.placeholder.com/1200x600?text=No+Image"
-//   );
-// };
+
+const getThumbnailImage = (plan: any) => {
+  return (
+    plan.images?.find((img: any) => Number(img.isThumbnail) === 1)?.imageUrl ||
+    plan.images?.find((img: any) => Number(img.isMain) === 1)?.imageUrl ||
+    plan.images?.[0]?.imageUrl ||
+    plan.thumbnail ||
+    plan.bannerImage ||
+    'https://via.placeholder.com/1200x600?text=No+Image'
+  );
+};
+
 const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBack }) => {
   return (
     <div className="max-w-4xl mx-auto px-6 py-12 w-full animate-fadeIn">
@@ -25,91 +28,108 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBa
         <p className="text-stone-600"></p>
       </div>
 
-   <div className="grid gap-8">
-  {plans.map((plan) => {
-    console.log("📦 Single Plan:", plan);
+      <div className="grid gap-8">
+        {plans.map((plan: any) => {
+          const amenities = plan.amenities || plan.icons || [];
+          const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
+          const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
+          const planDescription = plan.PlanDescription || plan.description || '';
+          const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);
+          const discountedPrice = Number(
+            plan.discountedPrice || plan.OfferPrice || plan.finalPrice || plan.PlanPrice || 0
+          );
 
-    return (
-      <div
-        key={plan.id}
-        className="bg-white rounded-3xl overflow-hidden shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
-      >
-        <div className="w-full md:w-72 h-56 md:h-auto overflow-hidden relative">
-  <img
-    src={plan.thumbnail}
-    alt={plan.PlanTitle || plan.PlanName || "Plan Image"}
-    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-  />
+          return (
+            <div
+              key={plan.planID || plan.id}
+              className="bg-white rounded-3xl overflow-hidden shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
+            >
+              <div className="w-full md:w-72 h-56 md:h-auto overflow-hidden relative">
+                <img
+                  src={getThumbnailImage(plan)}
+                  alt={planTitle}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                />
+              </div>
 
-</div>
+              <div className="flex-1 p-6 md:p-8 flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <h3 className="text-2xl font-black text-stone-900 mb-1">{planTitle}</h3>
 
-        <div className="flex-1 p-6 md:p-8 flex flex-col">
-          <div className="flex justify-between items-start mb-4">
-            <div>
-              <h3 className="text-2xl font-black text-stone-900 mb-1">{plan.title}</h3>
-              <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
-    {plan.stayRoomType || plan.title || plan.PlanTitle}
-  </p>
-              <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
-    {plan.PlanDescription || plan.description}
-  </p>
-            </div>
-          </div>
+                    {planSubtitle ? (
+                      <p className="text-stone-500 text-sm font-medium whitespace-pre-line mb-2">
+                        {planSubtitle}
+                      </p>
+                    ) : null}
 
-          <div className="grid grid-cols-2 gap-y-3 mb-6">
-  {plan.amenities.slice(0, 4).map((amenity) => (
-    <div
-      key={amenity.id}
-      className="flex items-center gap-2 text-sm text-stone-600 font-medium"
-    >
-      {amenity.iconUrl ? (
-        <img
-          src={amenity.iconUrl}
-          alt={amenity.title}
-          className="w-4 h-4 object-contain"
-          onError={(e) => {
-            e.currentTarget.style.display = "none";
-          }}
-        />
-      ) : (
-        <Check className="w-4 h-4 text-teal-500" />
-      )}
-      <span>{amenity.title}</span>
-    </div>
-  ))}
-</div>
+                    <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
+                      {planDescription}
+                    </p>
+                  </div>
+                </div>
 
-          <div className="mt-auto flex items-end justify-between pt-6 border-t border-stone-50">
-            <div>
-              <span className="text-stone-400 line-through text-sm font-bold">
-                ₹{plan.finalPrice.toLocaleString()}
-              </span>
-              <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-stone-900">
-                  ₹{plan.discountedPrice?.toLocaleString()}
-                </span>
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-        / person
-      </span>
-                <span className="text-xs text-teal-600 font-bold">{plan.gstDetails}</span>
+                <div className="grid grid-cols-2 gap-y-3 mb-6">
+                  {amenities.slice(0, 4).map((amenity: any) => {
+                    const amenityTitle = amenity.Title || amenity.title || '';
+                    const amenityIcon = amenity.IconUrl || amenity.iconUrl || '';
+
+                    return (
+                      <div
+                        key={amenity.id}
+                        className="flex items-center gap-2 text-sm text-stone-600 font-medium"
+                      >
+                        {amenityIcon ? (
+                          <img
+                            src={amenityIcon}
+                            alt={amenityTitle}
+                            className="w-4 h-4 object-contain"
+                            onError={(e) => {
+                              e.currentTarget.style.display = 'none';
+                            }}
+                          />
+                        ) : (
+                          <Check className="w-4 h-4 text-teal-500" />
+                        )}
+                        <span>{amenityTitle}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-auto flex items-end justify-between pt-6 border-t border-stone-50">
+                  <div>
+                    <span className="text-stone-400 line-through text-sm font-bold">
+                      ₹{finalPrice.toLocaleString()}
+                    </span>
+
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-3xl font-black text-stone-900">
+                        ₹{discountedPrice.toLocaleString()}
+                      </span>
+
+                      <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                        / person
+                      </span>
+
+                      <span className="text-xs text-teal-600 font-bold">
+                        {plan.gstDetails || ''}
+                      </span>
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => onSelect(plan)}
+                    className="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-teal-100"
+                  >
+                    {ui.cta}
+                  </button>
+                </div>
               </div>
             </div>
-
-            <button
-              onClick={() => {
-                console.log("🛒 Selected Plan:", plan);
-                onSelect(plan);
-              }}
-              className="bg-teal-700 hover:bg-teal-800 text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-teal-100"
-            >
-              {ui.cta}
-            </button>
-          </div>
-        </div>
+          );
+        })}
       </div>
-    );
-  })}
-</div>
     </div>
   );
 };

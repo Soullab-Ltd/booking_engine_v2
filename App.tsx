@@ -58,7 +58,7 @@ let allData;
 if (slug) {
   allData = await getAllDataBySlug(slug, bookingIdFromUrl);
 } else {
-  allData = await getAllData(eventId || '41', bookingIdFromUrl);
+  allData = await getAllData(eventId || '44', bookingIdFromUrl);
 }
         console.log('✅ API Response:', allData);
 
@@ -234,23 +234,31 @@ const selectedPlanId = Number(
 
       case 4:
         return (
-         <GuestForm
-          guests={bookingState.guests}
-          setGuests={(g) => setBookingState((p) => ({ ...p, guests: g }))}
-          ui={data.uiContent.guestForm}
-          roomTypes={data.plans || []}
-          addons={data.addons || []}
-          selectedEventId={selectedEventId}
-          selectedPlanId={selectedPlanId}
-          onProceed={nextStep}
-          onBack={prevStep}
-        />
+        <GuestForm
+  guests={bookingState.guests}
+  setGuests={(g) => setBookingState((p) => ({ ...p, guests: g }))}
+  ui={data.uiContent.guestForm}
+  roomTypes={data.plans || []}
+  addons={data.addons || []}
+  selectedEventId={selectedEventId}
+  selectedPlanId={selectedPlanId}
+  eventEndDate={
+    data?.eventData?.event?.endDate ||
+    data?.eventData?.event?.EndDate ||
+    data?.eventData?.event?.eventEndDate ||
+    data?.eventData?.event?.EventEndDate ||
+    ''
+  }
+  onProceed={nextStep}
+  onBack={prevStep}
+/>
         );
 
       case 5:
         return (
           <BookingSummary
             bookingState={{ ...bookingState, plan: bookingState.selectedPlan }}
+              setBookingState={setBookingState}
             ui={data.uiContent.bookingSummary}
             config={data.config}
             event={data.eventData.event}
