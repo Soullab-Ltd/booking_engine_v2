@@ -511,13 +511,8 @@ const getStayEndDate = (startDate: string, days: number) => {
       const fallback = getDefaultExtraStay();
       const incomingStartDate = normalizeDateInput(existingExtraStay.startDate);
       
-      const safeStartDate =
-  incomingStartDate && minExtraStayStartDate
-    ? incomingStartDate < minExtraStayStartDate
-      ? minExtraStayStartDate
-      : incomingStartDate
-    : minExtraStayStartDate;
-      const safeDays = Math.max(1, Number(existingExtraStay.days || 1));
+      const safeStartDate = minExtraStayStartDate;
+      const safeDays = Math.min(10, Math.max(1, Number(existingExtraStay.days || 1)));
 
       return {
         ...guest,
@@ -742,12 +737,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     const guest = guests.find((g: any) => String(g.id) === String(guestId));
     const currentExtraStay = guest?.addOns?.extraStay || getDefaultExtraStay();
-    const safeStartDate =
-      currentExtraStay.startDate && minExtraStayStartDate
-        ? currentExtraStay.startDate < minExtraStayStartDate
-          ? minExtraStayStartDate
-          : currentExtraStay.startDate
-        : currentExtraStay.startDate || minExtraStayStartDate;
+    const safeStartDate = minExtraStayStartDate;
 
     updateGuest(guestId, {
       addOns: {
@@ -771,13 +761,8 @@ const getStayEndDate = (startDate: string, days: number) => {
     if (!guest) return;
 
     const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
-    const safeDays = Math.max(1, Number(days || 1));
-    const safeStartDate =
-      extraStay.startDate && minExtraStayStartDate
-        ? extraStay.startDate < minExtraStayStartDate
-          ? minExtraStayStartDate
-          : extraStay.startDate
-        : extraStay.startDate || minExtraStayStartDate;
+    const safeDays = Math.min(10, Math.max(1, Number(days || 1)));
+    const safeStartDate = minExtraStayStartDate;
 
     updateGuest(guestId, {
       addOns: {
@@ -796,13 +781,8 @@ const getStayEndDate = (startDate: string, days: number) => {
     if (!guest) return;
 
     const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
-    const normalizedStartDate = normalizeDateInput(startDate);
-   const safeStartDate =
-  normalizedStartDate && minExtraStayStartDate
-    ? normalizedStartDate < minExtraStayStartDate
-      ? minExtraStayStartDate
-      : normalizedStartDate
-    : minExtraStayStartDate;
+    const safeStartDate = minExtraStayStartDate;
+
     updateGuest(guestId, {
       addOns: {
         extraStay: {
@@ -1223,12 +1203,9 @@ const getStayEndDate = (startDate: string, days: number) => {
                                   enabled: true,
                                   startDate: minExtraStayStartDate,
                                   endDate:
-                                    guest.addOns?.extraStay?.startDate ||
                                     minExtraStayStartDate
                                       ? getStayEndDate(
-                                          guest.addOns?.extraStay?.startDate ||
-                                            minExtraStayStartDate ||
-                                            defaultStay.startDate,
+                                            minExtraStayStartDate,
                                           Number(
                                             guest.addOns?.extraStay?.days || 1
                                           )
@@ -1318,16 +1295,17 @@ const getStayEndDate = (startDate: string, days: number) => {
                           </label>
                           <input
                             type="date"
+                            readOnly
                             min={minExtraStayStartDate || undefined}
-                            value={guest.addOns?.extraStay?.startDate || ''}
+                            value={guest.addOns?.extraStay?.startDate || minExtraStayStartDate}
                             onChange={(e) =>
                               updateExtraStayStartDate(guest.id, e.target.value)
                             }
-                            className="w-full rounded-lg border-2 border-stone-100 bg-white px-3 py-2 text-xs font-bold text-stone-900 outline-none focus:border-[var(--theme)]"
+                            className="w-full rounded-lg border-2 border-stone-100 bg-stone-100 px-3 py-2 text-xs font-bold text-stone-500 outline-none cursor-not-allowed"
                           />
                           {minExtraStayStartDate && (
                             <p className="text-[9px] font-bold text-stone-500">
-                              Starts from {formatDateShort(minExtraStayStartDate)}
+                              Starts exactly from {formatDateShort(minExtraStayStartDate)}
                             </p>
                           )}
                         </div>
@@ -1360,17 +1338,23 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                             <button
                               type="button"
+                              disabled={Number(guest.addOns?.extraStay?.days || 1) >= 10}
                               onClick={() =>
                                 updateExtraStayDays(
                                   guest.id,
                                   Number(guest.addOns?.extraStay?.days || 1) + 1
                                 )
                               }
-                              className="font-black text-stone-400 hover:text-[var(--theme)]"
+                              className={`font-black transition-all ${
+                                Number(guest.addOns?.extraStay?.days || 1) >= 10 
+                                  ? 'text-stone-200 cursor-not-allowed' 
+                                  : 'text-stone-400 hover:text-[var(--theme)]'
+                              }`}
                             >
                               <PlusCircle className="h-4 w-4" />
                             </button>
                           </div>
+                          <p className="text-[8px] font-bold text-stone-400 uppercase text-center mt-1">Max 10 days</p>
                         </div>
 
                         <div className="flex-1 space-y-1">
