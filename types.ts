@@ -20,6 +20,7 @@ export interface Guest {
   isKidsPlanOpted: boolean;
   foodPreference: FoodPreference;
   travelAssistance: boolean;
+  
   addOns: {
     foodPass: boolean;
     adventurePass: boolean;
@@ -32,7 +33,7 @@ export interface Guest {
   };
   remark: string;
 
-  gender: 'Male' | 'Female' | 'Prefer not to say' | ''; 
+  gender: string | null;
   city: string;  
   state: string; 
   country: string;

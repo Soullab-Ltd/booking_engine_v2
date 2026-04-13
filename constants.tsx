@@ -179,9 +179,11 @@ export const createEmptyGuest = (): Guest => ({
   name: "",
   phone: "",
   email: "",
-  age: 0,
+  age: undefined as unknown as number,
   foodPreference: FoodPreference.REGULAR,
   travelAssistance: false,
+  gender: null,
+  isKidsPlanOpted: false,
   addOns: {
     foodPass: false,
     adventurePass: false,
@@ -189,13 +191,13 @@ export const createEmptyGuest = (): Guest => ({
       enabled: false,
       days: 1,
       type: "PVI Dorms",
-      startDate: new Date().toISOString().split('T')[0]
-    }
+      startDate: new Date().toISOString().split("T")[0],
+    },
   },
   remark: "",
-  gender: '',
-  city: '',
-  state: '',
+  city: "",
+  state: "",
+  country: "",
 });
 
 export const TAX_RATE = 0.18;

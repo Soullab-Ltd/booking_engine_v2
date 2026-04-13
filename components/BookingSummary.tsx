@@ -77,7 +77,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToRefund, setAgreedToRefund] = useState(false);
 
-  const [atgRequested, setAtgRequested] = useState(false);
+  const [is80GRequired, setIs80GRequired] = useState(false);
   const [atgData, setAtgData] = useState({ pan: '', aadhar: '' });
   const [atgFiles, setAtgFiles] = useState<{
     pan: File | null;
@@ -120,7 +120,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         }
 
         const res = await fetch(
-          `http://localhost:8081/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
+          `http://localhost:4000/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
         );
 
         if (!res.ok) {
@@ -179,21 +179,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         appliedCoupon?.only_student_or_service
     );
   }, [appliedCoupon]);
+  const getCanonicalPlanPrice = (bookingState: any) => {
+  const selectedPlan = bookingState?.selectedPlan || bookingState?.plan || {};
 
-  const defaultPlanPrice = useMemo(() => {
-    return Number(
-      (bookingState as any)?.plan?.finalPrice ??
-        (bookingState as any)?.plan?.OfferPrice ??
-        (bookingState as any)?.plan?.discountedPrice ??
-        (bookingState as any)?.plan?.PlanPrice ??
-        (bookingState as any)?.selectedPlan?.finalPrice ??
-        (bookingState as any)?.selectedPlan?.OfferPrice ??
-        (bookingState as any)?.selectedPlan?.discountedPrice ??
-        (bookingState as any)?.selectedPlan?.PlanPrice ??
-        0
-    );
-  }, [bookingState]);
-
+  return Math.max(0, Number(selectedPlan?.OfferPrice || 0));
+};
+ const defaultPlanPrice = useMemo(() => {
+  return getCanonicalPlanPrice(bookingState);
+}, [bookingState]);
   const selectedPlanTitle =
     (bookingState as any)?.plan?.PlanTitle ||
     (bookingState as any)?.plan?.PlanName ||
@@ -231,69 +224,75 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     let stayTotal = 0;
 
     const guestPricingDetails = guests.map((guest: any, index: number) => {
-      const basePrice = getGuestBasePrice(guest, defaultPlanPrice);
-      const pricingLabel = getGuestPricingLabel(guest);
+  const basePrice = getGuestBasePrice(guest, defaultPlanPrice);
 
-      planTotal += basePrice;
+  const actualPlanName =
+    (bookingState as any)?.selectedPlan?.PlanTitle ||
+    (bookingState as any)?.selectedPlan?.PlanName ||
+    (bookingState as any)?.plan?.PlanTitle ||
+    (bookingState as any)?.plan?.PlanName ||
+    'Selected Plan';
 
-      const addons: { id: string; title: string; price: number }[] = [];
-      const stays: { id: string; title: string; price: number }[] = [];
+  planTotal += basePrice;
 
-      const selectedAddons = guest?.addOns?.selectedAddons || [];
+  const addons: { id: string; title: string; price: number }[] = [];
+  const stays: { id: string; title: string; price: number }[] = [];
 
-      selectedAddons.forEach((addon: any, addonIndex: number) => {
-        const unitPrice = Number(addon?.price || 0);
-        const quantity = Number(addon?.quantity || 1);
+  const selectedAddons = guest?.addOns?.selectedAddons || [];
 
-        let addonTotal = 0;
+  selectedAddons.forEach((addon: any, addonIndex: number) => {
+    const unitPrice = Number(addon?.price || 0);
+    const quantity = Number(addon?.quantity || 1);
 
-        if (addon?.isPricePerNight) {
-          const nights = Number(guest?.addOns?.extraStay?.days || 1);
-          addonTotal = unitPrice * quantity * nights;
-        } else {
-          addonTotal = unitPrice * quantity;
-        }
+    let addonTotal = 0;
 
-        addons.push({
-          id: String(addon?.addonId || `${guest?.id || index}-${addonIndex}`),
-          title: addon?.title || 'Add-on',
-          price: addonTotal,
-        });
+    if (addon?.isPricePerNight) {
+      const nights = Number(guest?.addOns?.extraStay?.days || 1);
+      addonTotal = unitPrice * quantity * nights;
+    } else {
+      addonTotal = unitPrice * quantity;
+    }
 
-        addonsTotal += addonTotal;
-      });
-
-      if (guest?.addOns?.extraStay?.enabled) {
-        const days = Number(guest?.addOns?.extraStay?.days || 1);
-        const pricePerNight = Number(
-          guest?.addOns?.extraStay?.price ??
-            guest?.addOns?.extraStay?.pricePerNight ??
-            0
-        );
-
-        const extraStayAmount = days * pricePerNight;
-
-        stays.push({
-          id: `stay-${guest?.id || index}`,
-          title: guest?.addOns?.extraStay?.type
-            ? `Extra Stay - ${guest.addOns.extraStay.type}`
-            : 'Extra Stay',
-          price: extraStayAmount,
-        });
-
-        stayTotal += extraStayAmount;
-      }
-
-      return {
-        guestId: String(guest?.id ?? index),
-        guestName: guest?.name || `Guest ${index + 1}`,
-        age: Number(guest?.age || 0),
-        pricingLabel,
-        basePrice,
-        addons,
-        stays,
-      };
+    addons.push({
+      id: String(addon?.addonId || `${guest?.id || index}-${addonIndex}`),
+      title: addon?.title || 'Add-on',
+      price: addonTotal,
     });
+
+    addonsTotal += addonTotal;
+  });
+
+  if (guest?.addOns?.extraStay?.enabled) {
+    const days = Number(guest?.addOns?.extraStay?.days || 1);
+    const pricePerNight = Number(
+      guest?.addOns?.extraStay?.price ??
+        guest?.addOns?.extraStay?.pricePerNight ??
+        0
+    );
+
+    const extraStayAmount = days * pricePerNight;
+
+    stays.push({
+      id: `stay-${guest?.id || index}`,
+      title: guest?.addOns?.extraStay?.type
+        ? `Extra Stay - ${guest.addOns.extraStay.type}`
+        : 'Extra Stay',
+      price: extraStayAmount,
+    });
+
+    stayTotal += extraStayAmount;
+  }
+
+  return {
+    guestId: String(guest?.id ?? index),
+    guestName: guest?.name || `Guest ${index + 1}`,
+    age: Number(guest?.age || 0),
+    pricingLabel: actualPlanName,
+    basePrice,
+    addons,
+    stays,
+  };
+});
 
     const grossAmount = planTotal + addonsTotal + stayTotal;
 
@@ -367,7 +366,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     pricingBreakdown.stayTotal,
     appliedCoupon,
     setBookingState,
-  ]);
+  ], [is80GRequired, setBookingState]);
 
   const handleCheckCustomCode = async () => {
     if (!customCodeInput.trim()) return;
@@ -383,7 +382,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       const code = customCodeInput.trim().toUpperCase();
 
       const res = await fetch(
-        `http://localhost:8081/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
+        `http://localhost:4000/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
       );
 
       const data = await res.json().catch(() => null);
@@ -500,7 +499,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       return false;
     }
 
-    if (atgRequested) {
+    if (is80GRequired) {
       const hasPan = atgData.pan.length === 10;
       const hasAadhar = atgData.aadhar.length >= 12;
       const hasFiles = atgFiles.pan !== null && atgFiles.aadhar !== null;
@@ -512,7 +511,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   }, [
     agreedToTerms,
     agreedToRefund,
-    atgRequested,
+    is80GRequired,
     atgData,
     atgFiles,
     couponRequiresIdUpload,
@@ -521,7 +520,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     couponIdProofUrl,
   ]);
 
-  const handlePayment = async () => {
+const handlePayment = async () => {
   setIsProcessing(true);
   setCouponError('');
 
@@ -529,14 +528,83 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     if (!selectedEventId) throw new Error('Invalid event selected');
     if (!selectedPlanId) throw new Error('Invalid plan selected');
 
+    const guestsPayload = guests.map((g: any) => ({
+      id: String(g.id || '').trim(),
+      name: String(g.name || '').trim(),
+      email: String(g.email || '').trim(),
+      phoneNumber: String(g.phone || g.phoneNumber || '').trim(),
+      gender: String(g.gender || '').trim(),
+      state: String(g.state || '').trim(),
+      city: String(g.city || '').trim(),
+      country: String(g.country || '').trim(),
+      age: Number(g.age || 0),
+      isKidsPlanOpted: Boolean(g.isKidsPlanOpted),
+      foodPrefs: String(g.foodPreference || g.foodPrefs || 'Regular').trim(),
+      travelAsst:
+        g.travelAssistance === true || g.travelAsst === 'Yes' ? 'Yes' : 'No',
+      remarks: String(g.remark || g.remarks || '').trim(),
+      idImageUrl: String(g.idImageUrl || '').trim(),
+    }));
+
+    for (const [index, g] of guestsPayload.entries()) {
+      if (!g.name) throw new Error(`Guest ${index + 1}: name is required`);
+      if (!g.email) throw new Error(`Guest ${index + 1}: email is required`);
+      if (!g.phoneNumber) throw new Error(`Guest ${index + 1}: phone number is required`);
+      if (!g.gender) throw new Error(`Guest ${index + 1}: gender is required`);
+      if (!Number.isFinite(g.age) || g.age < 1 || g.age > 120) {
+        throw new Error(`Guest ${index + 1}: invalid age`);
+      }
+
+      if ('EventID' in (g as any) || 'EventName' in (g as any) || 'banner' in (g as any)) {
+        throw new Error(`Guest ${index + 1}: invalid event data found in guest payload`);
+      }
+    }
+
+    const bookingAddonsPayload = guests.flatMap((g: any) =>
+      (g.addOns?.selectedAddons || []).map((a: any) => ({
+        guest_ref_id: g.id,
+        addon_id: Number(a.addonId),
+        title: String(a.title || '').trim(),
+        type: String(a.type || '').trim(),
+        quantity: Number(a.quantity || 1),
+        unit_price: Number(a.price || 0),
+        total_amount: Number(a.price || 0) * Number(a.quantity || 1),
+      }))
+    );
+
+    const staysPayload = guests
+      .filter((g: any) => g.addOns?.extraStay?.enabled)
+      .map((g: any) => ({
+        guest_ref_id: g.id,
+        plan_id: Number(g.addOns.extraStay.planId),
+        plan_name: String(g.addOns.extraStay.type || '').trim(),
+        room_type: String(g.addOns.extraStay.type || '').trim(),
+        start_date: g.addOns.extraStay.startDate,
+        end_date: g.addOns.extraStay.endDate || null,
+        days: Number(g.addOns.extraStay.days || 1),
+        price_per_night: Number(g.addOns.extraStay.price || 0),
+        total_amount:
+          Number(g.addOns.extraStay.price || 0) *
+          Number(g.addOns.extraStay.days || 1),
+      }));
+
+    const resolvedStartDate =
+      staysPayload[0]?.start_date ||
+      (bookingState as any)?.startDate ||
+      (event as any)?.EventStartDate;
+
+    const resolvedEndDate =
+      staysPayload[0]?.end_date ||
+      (bookingState as any)?.endDate ||
+      (event as any)?.EventEndDate ||
+      resolvedStartDate;
+
     const payload = {
       eventId: selectedEventId,
       planId: selectedPlanId,
-      startDate: new Date(
-        guests[0]?.addOns?.extraStay?.startDate || Date.now()
-      ).toISOString(),
-      endDate: new Date().toISOString(),
-      guestsCount: guests.length,
+      startDate: new Date(resolvedStartDate).toISOString(),
+      endDate: new Date(resolvedEndDate).toISOString(),
+      guestsCount: guestsPayload.length,
       grossAmount: Math.round(pricingBreakdown.grossAmount),
       discountAmount: Math.round(pricingBreakdown.discountAmount),
       totalAmount: Math.round(pricingBreakdown.totalAmount),
@@ -546,55 +614,15 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       couponCode: appliedCoupon ? getCouponCode(appliedCoupon) : null,
       appliedDiscountId: appliedCoupon ? getCouponId(appliedCoupon) : null,
       paymentId: 'MOCK_PAY_' + Date.now(),
-      isAtgRequested: atgRequested ? 1 : 0,
-      panNumber: atgData.pan,
-      aadharNumber: atgData.aadhar,
-
-      guests: guests.map((g: any) => ({
-        id: g.id,
-        name: g.name,
-        email: g.email,
-        phoneNumber: g.phone,
-        gender: g.gender,
-        state: g.state,
-        city: g.city,
-        country: g.country,
-        age: Number(g.age),
-        isKidsPlanOpted: !!g.isKidsPlanOpted,
-        foodPrefs: g.foodPreference || 'Regular',
-        travelAsst: g.travelAssistance ? 'Yes' : 'No',
-        remarks: g.remark || '',
-        idImageUrl: '',
-      })),
-
-      bookingAddons: guests.flatMap((g: any) =>
-        (g.addOns?.selectedAddons || []).map((a: any) => ({
-          guest_ref_id: g.id,
-          addon_id: Number(a.addonId),
-          title: a.title,
-          type: a.type,
-          quantity: Number(a.quantity || 1),
-          unit_price: Number(a.price || 0),
-          total_amount: Number(a.price || 0) * Number(a.quantity || 1),
-        }))
-      ),
-
-      stays: guests
-        .filter((g: any) => g.addOns?.extraStay?.enabled)
-        .map((g: any) => ({
-          guest_ref_id: g.id,
-          plan_id: Number(g.addOns.extraStay.planId),
-          plan_name: g.addOns.extraStay.type,
-          room_type: g.addOns.extraStay.type,
-          start_date: g.addOns.extraStay.startDate,
-          end_date: g.addOns.extraStay.endDate || null,
-          days: Number(g.addOns.extraStay.days),
-          price_per_night: Number(g.addOns.extraStay.price),
-          total_amount:
-            Number(g.addOns.extraStay.price) *
-            Number(g.addOns.extraStay.days),
-        })),
+      isAtgRequested: is80GRequired ? 1 : 0,
+      panNumber: atgData.pan || '',
+      aadharNumber: atgData.aadhar || '',
+      guests: guestsPayload,
+      bookingAddons: bookingAddonsPayload,
+      stays: staysPayload,
     };
+
+    console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
 
     const formData = new FormData();
     formData.append('data', JSON.stringify(payload));
@@ -606,16 +634,19 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
     }
 
-    const responseRaw = await fetch('http://localhost:8081/bookings', {
+    const responseRaw = await fetch('http://localhost:4000/bookings', {
       method: 'POST',
       body: formData,
     });
 
+    const responseText = await responseRaw.text();
+
     if (!responseRaw.ok) {
-      throw new Error('Server responded with an error');
+      console.error('❌ Booking API error response:', responseText);
+      throw new Error(responseText || 'Server responded with an error');
     }
 
-    const response = await responseRaw.json();
+    const response = JSON.parse(responseText);
 
     const bookingId =
       response?.bookingId ||
@@ -960,8 +991,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <label className="flex cursor-pointer items-center gap-4 p-6 hover:bg-stone-100/50">
               <input
                 type="checkbox"
-                checked={atgRequested}
-                onChange={(e) => setAtgRequested(e.target.checked)}
+                checked={is80GRequired}
+                onChange={(e) => setIs80GRequired(e.target.checked)}
                 className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-[var(--theme)] cursor-pointer"
               />
               <div className="flex-1 text-left">
@@ -974,7 +1005,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               </div>
             </label>
 
-            {atgRequested && (
+            {is80GRequired && (
               <div className="border-t border-stone-200 bg-white p-6 animate-slideUp">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="flex flex-col gap-3 text-left">

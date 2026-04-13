@@ -525,9 +525,9 @@ const getStayEndDate = (startDate: string, days: number) => {
             planId:
               existingExtraStay.planId || matchedPlan?.id || fallback.planId,
             price: Number(
-              existingExtraStay.price ??
-                matchedPlan?.pricePerNight ??
-                fallback.price
+              matchedPlan?.pricePerNight ??
+                fallback.price ??
+                0
             ),
             startDate: safeStartDate || '',
             endDate: safeStartDate
@@ -584,8 +584,18 @@ const getStayEndDate = (startDate: string, days: number) => {
     } else if (String(guest.phone).length < 10) {
       errors.phone = 'Min 10 digits required';
     }
+    const age = Number(guest.age);
 
-    if (!guest.age || Number(guest.age) <= 0) errors.age = 'Age is required';
+      if (!guest.age && guest.age !== 0) {
+        errors.age = 'Age is required';
+      } else if (isNaN(age)) {
+        errors.age = 'Invalid age';
+      } else if (age < 1 || age > 120) {
+        errors.age = 'Age must be between 1 and 120';
+      }
+    if (!guest.gender) {
+      errors.gender = 'Gender is required';
+    }  
     if (!guest.country) errors.country = 'Country is required';
     if (!guest.state) errors.state = 'State is required';
     if (!guest.city?.trim()) errors.city = 'City is required';
@@ -832,7 +842,9 @@ const getStayEndDate = (startDate: string, days: number) => {
   const handleProceedClick = () => {
     setTouched(true);
 
-    if (!allGuestsValid) return;
+      if (!allGuestsValid) {
+        return; // ✅ already exists
+      }
 
     if (showExtraStaySection) {
       const invalidExtraStayGuest = guests.find((guest: any) => {
@@ -945,9 +957,9 @@ const getStayEndDate = (startDate: string, days: number) => {
                     type="tel"
                     value={guest.phone}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      updateGuest(guest.id, { phone: val });
-                    }}
+                        const val = e.target.value.replace(/\D/g, '');
+                        updateGuest(guest.id, { phone: val });
+                      }}
                     placeholder={ui.guestCard.fields.phonePlaceholder}
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.phone
@@ -997,10 +1009,11 @@ const getStayEndDate = (startDate: string, days: number) => {
                   {touched && <ErrorLabel message={errors.age} />}
                 </div>
 
-                <div className="space-y-1">
+              <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Gender
+                    Gender <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
+
                   <div className="flex gap-2">
                     {['Male', 'Female', 'Prefer not to say'].map((gender) => (
                       <label
@@ -1022,6 +1035,9 @@ const getStayEndDate = (startDate: string, days: number) => {
                       </label>
                     ))}
                   </div>
+
+                  {/* ✅ ADD THIS */}
+                  {touched && <ErrorLabel message={errors.gender} />}
                 </div>
 
                 <div className="space-y-1">
