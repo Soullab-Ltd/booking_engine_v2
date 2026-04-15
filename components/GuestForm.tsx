@@ -984,10 +984,12 @@ const getStayEndDate = (startDate: string, days: number) => {
                   <input
                     type="tel"
                     value={guest.phone}
+                    maxLength={13}
                     onChange={(e) => {
-                        const val = normalizePhoneInput(e.target.value);
-                        updateGuest(guest.id, { phone: val });
-                      }}
+    // Slice ensures that even with copy-paste, it never exceeds 13
+    const val = normalizePhoneInput(e.target.value).slice(0, 13);
+    updateGuest(guest.id, { phone: val });
+  }}
                     placeholder={
                       guest.country === 'India'
                         ? 'Enter 10-digit mobile number'
