@@ -23,6 +23,19 @@ interface PlanDetailProps {
   onBack: () => void;
 }
 
+const getPriceTypeLabel = (priceType?: string) => {
+  const normalized = String(priceType || '').trim().toLowerCase();
+  const raw = String(priceType || '').trim();
+
+  if (normalized === 'per_room') return 'per room';
+  if (normalized === 'per_night') return 'per night';
+  if (normalized === 'per_person_per_night') return 'per person / night';
+  if (normalized === 'per_person') return 'per person';
+  if (raw) return raw.replace(/_/g, ' ');
+
+  return 'per person';
+};
+
 const AmenityIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
   if (n.includes('wifi')) return <Wifi className="w-6 h-6" />;
@@ -35,6 +48,21 @@ const AmenityIcon = ({ name }: { name: string }) => {
   if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="w-6 h-6" />;
   if (n.includes('private entry') || n.includes('deck')) return <DoorOpen className="w-6 h-6" />;
   return <CheckCircle className="w-6 h-6" />;
+};
+
+const isPlanSoldOut = (plan: any) => {
+  if (plan?.isSoldOut === true) return true;
+  if (plan?.isSoldOut === false) return false;
+
+  const availableRooms = Number(
+    plan?.availableRooms ?? plan?.inventory?.availableRooms
+  );
+
+  if (!Number.isNaN(availableRooms)) {
+    return availableRooms <= 0;
+  }
+
+  return Number(plan?.remainingInventory ?? 0) <= 0;
 };
 
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
@@ -64,28 +92,45 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
     : [plan.thumbnail || plan.bannerImage || fallbackImage];
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
 
   const goPrev = () => {
+    setIsHeroImageLoaded(false);
     setActiveIndex((prev) =>
       prev === 0 ? carouselImages.length - 1 : prev - 1
     );
   };
 
   const goNext = () => {
+    setIsHeroImageLoaded(false);
     setActiveIndex((prev) =>
       prev === carouselImages.length - 1 ? 0 : prev + 1
     );
   };
 
   const activeImage = carouselImages[activeIndex] || fallbackImage;
+  const priceTypeLabel = getPriceTypeLabel((plan as any).priceType);
+  const soldOut = isPlanSoldOut(plan);
+  const gstLabel =
+    (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
+      ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
+      : plan.gstDetails || '';
 
   return (
     <div className="animate-fadeIn pb-32 bg-white">
       <div className="relative h-[450px] w-full overflow-hidden">
+        {!isHeroImageLoaded ? (
+          <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-stone-200 via-stone-300 to-stone-200" />
+        ) : null}
         <img
           src={activeImage}
           alt={plan.PlanTitle || plan.PlanName || 'Plan image'}
-          className="w-full h-full object-cover brightness-75 scale-105 transition-all duration-500"
+          loading="eager"
+          onLoad={() => setIsHeroImageLoaded(true)}
+          onError={() => setIsHeroImageLoaded(true)}
+          className={`w-full h-full object-cover brightness-75 scale-105 transition-all duration-500 ${
+            isHeroImageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-white via-black/20 to-transparent" />
@@ -125,6 +170,11 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
               {plan.PlanTitle}
             </h1>
+            {soldOut ? (
+              <span className="mt-4 inline-block rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
+                Sold Out
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -133,7 +183,10 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             {carouselImages.map((_: string, index: number) => (
               <button
                 key={index}
-                onClick={() => setActiveIndex(index)}
+                onClick={() => {
+                  setIsHeroImageLoaded(false);
+                  setActiveIndex(index);
+                }}
                 className={`h-2.5 w-2.5 rounded-full transition-all ${
                   index === activeIndex ? 'bg-white w-6' : 'bg-white/50'
                 }`}
@@ -216,20 +269,27 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   Retreat Offering
                 </span>
                 <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest mt-1">
-                  per person
+                  {priceTypeLabel}
                 </span>
                 <div className="text-right">
                   <span className="text-5xl font-black text-stone-900">
                     ₹ {Number(plan.discountedPrice || plan.OfferPrice || 0).toLocaleString()}
                   </span>
-                  <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">
-                    {plan.gstDetails}
-                  </p>
+                  {gstLabel ? (
+                    <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">
+                      {gstLabel}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
 
             <div className="space-y-4 pt-8 border-t border-stone-50 mb-12">
+              {soldOut ? (
+                <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                  This plan is currently sold out. Please choose another available option.
+                </div>
+              ) : null}
               <div className="flex items-center gap-3 text-sm text-stone-500 font-medium">
                 <ShieldCheck className="w-5 h-5 text-teal-500" />
                 Flat Rs 10000 for kids aged 17 years and below!
@@ -241,10 +301,18 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             </div>
 
             <button
-              onClick={onProceed}
-              className="w-full bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white py-5 rounded-[24px] font-black text-lg transition-all shadow-xl shadow-[var(--theme-light)] flex items-center justify-center gap-3 group active:scale-95"
+              onClick={() => {
+                if (!soldOut) onProceed();
+              }}
+              disabled={soldOut}
+              className={`w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 ${
+                soldOut
+                  ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
+                  : 'bg-[var(--theme)] text-white shadow-xl shadow-[var(--theme-light)] group active:scale-95 hover:bg-[var(--theme-dark)]'
+              }`}
             >
-              Book Now! <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+              {soldOut ? 'Sold Out' : 'Book Now!'}
+              <ArrowRight className={`w-6 h-6 ${soldOut ? '' : 'group-hover:translate-x-2 transition-transform'}`} />
             </button>
           </div>
         </div>

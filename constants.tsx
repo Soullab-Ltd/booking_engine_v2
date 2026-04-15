@@ -106,7 +106,7 @@ export const MOCK_INSIGHTS = [
   },
   {
     title: "Sattvic Sustenance",
-    text: "Fuel your soul with high-prana meals. Whether at Annadana or Soul Nest, our food is prepared with love and mindfulness to support your energetic transformation.",
+    text: "Fuel your soul with high-prana meals at Pyramid Valley International, where food is prepared with love and mindfulness to support your energetic transformation.",
     img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop"
   }
 ];
@@ -117,11 +117,11 @@ export const MOCK_PLANS: Plan[] = [
     title: "Plan A: PVI Dorms",
     thumbnail: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&auto=format&fit=crop",
     description: "4 Days and 3 Nights - Dorm Accommodation (1 bed per person).",
-    fullDescription: "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the traditional Annadana hall.",
+    fullDescription: "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the Pyramid Valley International dining hall.",
     discountedPrice: 9000,
     finalPrice: 7000,
     gstDetails: "Inclusive of GST",
-    amenities: ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
+    amenities: ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
   },
   {
     id: "pB",
@@ -132,46 +132,41 @@ export const MOCK_PLANS: Plan[] = [
     discountedPrice: 22000,
     finalPrice: 19000,
     gstDetails: "Inclusive of GST",
-    amenities: ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
+    amenities: ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
   },
   {
     id: "pC",
     title: "Plan C: Premium Triple",
     thumbnail: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-    description: "4 Days and 3 Nights - Premium Triple Occupancy at Soul Nest.",
-    fullDescription: "Experience the premium hospitality of PVI at Soul Nest. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the exclusive Soul Nest dining.",
+    description: "4 Days and 3 Nights - Premium Triple Occupancy at Pyramid Valley International.",
+    fullDescription: "Experience the premium hospitality of Pyramid Valley International. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the Pyramid Valley International dining hall.",
     discountedPrice: 25000,
     finalPrice: 21000,
     gstDetails: "Inclusive of GST",
-    amenities: ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Soul Nest", "Free WiFi in Room", "Swimming Pool Access"]
+    amenities: ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Pyramid Valley International", "Free WiFi in Room", "Swimming Pool Access"]
   },
   {
     id: "pD",
     title: "Plan D: Premium Double",
     thumbnail: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&auto=format&fit=crop",
     description: "4 Days and 3 Nights - King Size Bed for 2 Guests.",
-    fullDescription: "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Soul Nest.",
+    fullDescription: "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Pyramid Valley International.",
     discountedPrice: 48000,
     finalPrice: 40000,
     gstDetails: "Inclusive of GST",
-    amenities: ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
+    amenities: ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Pyramid Valley International", "In-room High-speed WiFi", "Swimming Pool Access"]
   },
   {
     id: "pE",
     title: "Plan E: Premium Single",
     thumbnail: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
     description: "4 Days and 3 Nights - Private King Size Bed for 1 Guest.",
-    fullDescription: "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Soul Nest at your disposal.",
+    fullDescription: "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Pyramid Valley International at your disposal.",
     discountedPrice: 48000,
     finalPrice: 40000,
     gstDetails: "Inclusive of GST",
-    amenities: ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
+    amenities: ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Pyramid Valley International", "In-room High-speed WiFi", "Swimming Pool Access"]
   }
-];
-
-export const MOCK_COUPONS = [
-  { name: "Early Seeker Discount", code: "SDFEARLY", discount: 5, description: "For early registrations." },
-  { name: "Group Manifestation", code: "POWER3", discount: 10, description: "Register 3 or more seekers." }
 ];
 
 export const createEmptyGuest = (): Guest => ({

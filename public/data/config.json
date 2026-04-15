@@ -8,10 +8,6 @@
     "ADVENTURE_PASS": 5000,
     "EXTRA_STAY_BASE": 1800
   },
-  "COUPONS": [
-    { "name": "Early Seeker Discount", "code": "SDFEARLY", "discount": 5, "description": "For early registrations." },
-    { "name": "Group Manifestation", "code": "POWER3", "discount": 10, "description": "Register 3 or more seekers." }
-  ],
   "ROOM_TYPES": [
     {
       "name": "PVI Dorms",

@@ -30,8 +30,209 @@ export interface EventResponse {
   addons?: any[]; // ✅ add this
 }
 
+const EVENT_BANNER_FALLBACK =
+  'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
+const EVENT_DESCRIPTION_FALLBACK =
+  'Event details will be updated soon. Please continue to explore plans and booking options for this retreat at Pyramid Valley International.';
+
+const normalizeVenueText = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+
+  return value
+    .replace(/Soul fuel Cafe/gi, 'Pyramid Valley International dining hall')
+    .replace(/Soul Nest In/gi, 'Pyramid Valley International')
+    .replace(/Soul Nest dining/gi, 'Pyramid Valley International dining hall')
+    .replace(/Meals at Soul Nest/gi, 'Meals at Pyramid Valley International')
+    .replace(/Meals at Annadana/gi, 'Meals at Pyramid Valley International')
+    .replace(/Annadana hall/gi, 'Pyramid Valley International dining hall')
+    .replace(/\bAnnadana\b/gi, 'Pyramid Valley International')
+    .replace(/\bSoul Nest\b/gi, 'Pyramid Valley International');
+};
+
+const getNormalizedGstFields = (item: any) => {
+  const rawType = String(item?.gstType || '').trim().toLowerCase();
+  const gstType =
+    rawType === 'inclusive' || rawType === 'exclusive' ? rawType : '';
+  const gstRate = Number(item?.gstRate ?? 0);
+
+  if (!Number.isFinite(gstRate) || gstRate <= 0) {
+    return {
+      gstType,
+      gstRate: 0,
+      gstDetails: '',
+    };
+  }
+
+  if (gstType === 'inclusive') {
+    return {
+      gstType,
+      gstRate,
+      gstDetails: 'Inclusive of GST',
+    };
+  }
+
+  if (gstType === 'exclusive') {
+    return {
+      gstType,
+      gstRate,
+      gstDetails: `+ ${gstRate}% GST`,
+    };
+  }
+
+  return {
+    gstType: '',
+    gstRate,
+    gstDetails: item?.gstDetails || '',
+  };
+};
+
+const PLAN_IMAGE_FALLBACK = 'https://placehold.co/400';
+const DEFAULT_PLAN_COLOR = '#0f766e';
+
+const normalizeOptionalText = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+  return normalizeVenueText(value).trim();
+};
+
+const getPrimaryPlanImage = (plan: any): string => {
+  return (
+    plan.bannerImage ||
+    plan.banner ||
+    plan.images?.find((img: any) => img.isMain)?.imageUrl ||
+    plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
+    plan.images?.[0]?.imageUrl ||
+    PLAN_IMAGE_FALLBACK
+  );
+};
+
+const getPlanSubtitle = (plan: any): string => {
+  return normalizeOptionalText(
+    plan.PlanSubtitle ||
+      plan.stayRoomType ||
+      plan.subtitle ||
+      plan.roomType ||
+      ''
+  );
+};
+
+const getPlanDescription = (plan: any): string => {
+  return normalizeOptionalText(
+    plan.PlanDescription ||
+      plan.description ||
+      plan.shortDescription ||
+      ''
+  );
+};
+
+const getPlanFullDescription = (plan: any, fallbackDescription: string): string => {
+  return normalizeOptionalText(
+    plan.fullDescription ||
+      plan.longDescription ||
+      plan.PlanDescription ||
+      plan.description ||
+      fallbackDescription
+  );
+};
+
+const getPlanMaxPax = (plan: any): number => {
+  const rawMaxPax =
+    plan.maxPax ??
+    plan.maxOccupancy ??
+    plan.maxGuests ??
+    plan.capacity ??
+    plan.occupancy;
+
+  const maxPax = Number(rawMaxPax ?? 0);
+  return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
+};
+
+const validateAdminPlanData = (plan: any, normalizedPlan: Partial<Plan>) => {
+  const missingFields = [
+    ['PlanName', plan.PlanName],
+    ['PlanSubtitle', plan.PlanSubtitle],
+    ['planColor', plan.planColor],
+    ['banner', plan.banner],
+    ['bannerImage', plan.bannerImage],
+    ['fullDescription', plan.fullDescription],
+    ['maxPax', plan.maxPax],
+  ]
+    .filter(([, value]) => value === null || value === undefined || value === '')
+    .map(([fieldName]) => fieldName);
+
+  if (missingFields.length > 0) {
+    const planLabel =
+      normalizedPlan.PlanTitle ||
+      normalizedPlan.PlanName ||
+      `Plan ${normalizedPlan.planID ?? ''}`.trim();
+
+    console.warn(
+      `[plan-admin-validation] ${planLabel} is missing admin fields: ${missingFields.join(', ')}`
+    );
+  }
+};
+
+const normalizePlan = (plan: any): Plan => {
+  const normalizedTitle = normalizeOptionalText(
+    plan.PlanTitle || plan.PlanName || plan.title || ''
+  );
+  const normalizedSubtitle = getPlanSubtitle(plan);
+  const normalizedDescription = getPlanDescription(plan);
+  const normalizedFullDescription = getPlanFullDescription(plan, normalizedDescription);
+  const primaryImage = getPrimaryPlanImage(plan);
+
+  const normalizedPlan: Plan = {
+    ...plan,
+    ...getNormalizedGstFields(plan),
+    id: String(plan.planID ?? plan.PlanID ?? ''),
+    planID: plan.planID ?? plan.PlanID,
+    PlanID: plan.PlanID ?? plan.planID,
+    PlanName: normalizeOptionalText(plan.PlanName || normalizedTitle),
+    priceType: plan.priceType || '',
+    remainingInventory: Number(plan.remainingInventory ?? 0),
+    title: normalizedTitle,
+    sequence: Number(plan.sequence ?? 0),
+    PlanTitle: normalizedTitle,
+    PlanSubtitle: normalizedSubtitle,
+    thumbnail: primaryImage,
+    banner: primaryImage,
+    bannerImage: normalizeOptionalText(plan.bannerImage || primaryImage),
+    description: normalizedDescription,
+    stayRoomType: normalizeOptionalText(plan.stayRoomType || normalizedSubtitle),
+    PlanDescription: normalizedDescription,
+    fullDescription: normalizedFullDescription,
+    longDescription: normalizeOptionalText(plan.longDescription || normalizedFullDescription),
+    planColor: normalizeOptionalText(plan.planColor || DEFAULT_PLAN_COLOR),
+    maxPax: getPlanMaxPax(plan),
+    PlanPrice: Number(plan.PlanPrice || 0),
+    OfferPrice: Number(plan.OfferPrice || 0),
+    discountedPrice: Number(plan.OfferPrice || 0),
+    finalPrice: Number(plan.PlanPrice || 0),
+    isSoldOut: Boolean(plan.isSoldOut),
+    availableRooms: Number(
+      plan.availableRooms ?? plan.inventory?.availableRooms ?? plan.remainingInventory ?? 0
+    ),
+    inventory: {
+      ...(plan.inventory || {}),
+      availableRooms: Number(
+        plan.inventory?.availableRooms ?? plan.availableRooms ?? plan.remainingInventory ?? 0
+      ),
+    },
+    amenities: (plan.amenities || []).map((icon: any) => ({
+      id: icon.id,
+      title: normalizeOptionalText(icon.title || icon.Title || ''),
+      iconUrl: encodeURI(icon.iconUrl || icon.IconUrl || ''),
+      type: icon.type || '',
+      planID: icon.planID,
+    })),
+    images: Array.isArray(plan.images) ? plan.images : [],
+  };
+
+  validateAdminPlanData(plan, normalizedPlan);
+  return normalizedPlan;
+};
+
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`http://localhost:3000/data/${path}`);
+  const response = await fetch(`http://localhost:3002/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
@@ -94,46 +295,16 @@ console.log(
     })),
   };
 
-  const mappedPlans: Plan[] = (apiData.plans || []).map((plan: any) => ({
-    ...plan,
-    id: String(plan.planID ?? plan.PlanID ?? ""),
-    planID: plan.planID ?? plan.PlanID,
-    PlanID: plan.PlanID ?? plan.planID,
-    title: plan.PlanTitle || "",
-    sequence:plan.sequence || "",
-    PlanTitle: plan.PlanTitle || "",
-    thumbnail:
-      plan.bannerImage ||
-      plan.banner ||
-      plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-      plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: plan.PlanDescription || "",
-    PlanDescription: plan.PlanDescription || "",
-    fullDescription: plan.fullDescription || "",
-    discountedPrice: Number(plan.OfferPrice || 0),
-    OfferPrice: Number(plan.OfferPrice || 0),
-    finalPrice: Number(plan.PlanPrice || 0),
-    PlanPrice: Number(plan.PlanPrice || 0),
-    gstDetails: plan.gstDetails || "",
-    amenities: (plan.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: plan.images || [],
-  }));
+  const mappedPlans: Plan[] = (apiData.plans || []).map(normalizePlan);
 
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
     ...addon,
     id: addon.id ?? addon.AddonID,
     AddonID: addon.AddonID ?? addon.id,
-    title: addon.title ?? addon.AddonTitle ?? "",
-    AddonTitle: addon.AddonTitle ?? addon.title ?? "",
-    description: addon.description ?? addon.AddonDescription ?? "",
-    AddonDescription: addon.AddonDescription ?? addon.description ?? "",
+    title: normalizeVenueText(addon.title ?? addon.AddonTitle ?? ""),
+    AddonTitle: normalizeVenueText(addon.AddonTitle ?? addon.title ?? ""),
+    description: normalizeVenueText(addon.description ?? addon.AddonDescription ?? ""),
+    AddonDescription: normalizeVenueText(addon.AddonDescription ?? addon.description ?? ""),
     type: addon.type ?? "",
     adultPrice:
       addon.adultPrice ??
@@ -166,13 +337,13 @@ console.log(
       apiData.banner ||
       apiData.images?.find((img: any) => img.isMain)?.url ||
       apiData.images?.find((img: any) => img.isThumbnail)?.url ||
-      "",
+      EVENT_BANNER_FALLBACK,
     date: `${apiData.startDate} to ${apiData.endDate}`,
     startDate: apiData.startDate || '',
     endDate: apiData.endDate || '',
     time: apiData.time || "06:00 AM",
-    venue: apiData.venue || "PVI Bengaluru",
-    description: apiData.description,
+    venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
+    description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
     schedules: apiData.schedules || [],
     plans: mappedPlans || [],
     addons: mappedAddons || [],
@@ -183,36 +354,13 @@ console.log(
   addons: mappedAddons || [],
 };
 
-  const plans: Plan[] = (apiData.plans || []).map((p: any) => ({
-    ...p,
-    id: String(p.planID ?? p.PlanID ?? ""),
-    planID: p.planID ?? p.PlanID,
-    sequence: Number(p.sequence ?? 0),
-    PlanID: p.PlanID ?? p.planID,
-    title: p.PlanTitle || "",
-    PlanTitle: p.PlanTitle || "",
-    thumbnail:
-      p.bannerImage ||
-      p.banner ||
-      p.images?.find((img: any) => img.isMain)?.imageUrl ||
-      p.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: p.PlanDescription || "",
-    PlanDescription: p.PlanDescription || "",
-    finalPrice: Number(p.PlanPrice || 0),
-    PlanPrice: Number(p.PlanPrice || 0),
-    discountedPrice: Number(p.OfferPrice || 0),
-    OfferPrice: Number(p.OfferPrice || 0),
-    pricePerNight: Number(p.pricePerNight || 0),
-    amenities: (p.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: p.images || [],
-  }))  .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
+  const plans: Plan[] = (apiData.plans || [])
+    .map(normalizePlan)
+    .map((plan: Plan) => ({
+      ...plan,
+      pricePerNight: Number((plan as any).pricePerNight || 0),
+    }))
+    .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
 
   return {
     eventData,
@@ -277,46 +425,16 @@ export const getAllDataBySlug = async (
   };
 
   const mappedPlans: Plan[] = (apiData.plans || [])
-  .map((plan: any) => ({
-    ...plan,
-    id: String(plan.planID ?? plan.PlanID ?? ""),
-    planID: plan.planID ?? plan.PlanID,
-    PlanID: plan.PlanID ?? plan.planID,
-    sequence: Number(plan.sequence ?? 0),
-    title: plan.PlanTitle || "",
-    PlanTitle: plan.PlanTitle || "",
-    thumbnail:
-      plan.bannerImage ||
-      plan.banner ||
-      plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-      plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: plan.PlanDescription || "",
-    PlanDescription: plan.PlanDescription || "",
-    fullDescription: plan.fullDescription || "",
-    discountedPrice: Number(plan.OfferPrice || 0),
-    OfferPrice: Number(plan.OfferPrice || 0),
-    finalPrice: Number(plan.PlanPrice || 0),
-    PlanPrice: Number(plan.PlanPrice || 0),
-    gstDetails: plan.gstDetails || "",
-    amenities: (plan.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: plan.images || [],
-  }))
-  .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
+    .map(normalizePlan)
+    .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
     ...addon,
     id: addon.id ?? addon.AddonID,
     AddonID: addon.AddonID ?? addon.id,
-    title: addon.title ?? addon.AddonTitle ?? "",
-    AddonTitle: addon.AddonTitle ?? addon.title ?? "",
-    description: addon.description ?? addon.AddonDescription ?? "",
-    AddonDescription: addon.AddonDescription ?? addon.description ?? "",
+    title: normalizeVenueText(addon.title ?? addon.AddonTitle ?? ""),
+    AddonTitle: normalizeVenueText(addon.AddonTitle ?? addon.title ?? ""),
+    description: normalizeVenueText(addon.description ?? addon.AddonDescription ?? ""),
+    AddonDescription: normalizeVenueText(addon.AddonDescription ?? addon.description ?? ""),
     type: addon.type ?? "",
     adultPrice:
       addon.adultPrice ??
@@ -341,18 +459,18 @@ export const getAllDataBySlug = async (
     event: {
       id: apiData.EventID,
       EventID: apiData.EventID,
-      title: apiData.EventName,
-      EventName: apiData.EventName,
+      title: normalizeVenueText(apiData.EventName),
+      EventName: normalizeVenueText(apiData.EventName),
       slug: apiData.slug || "",
       banner:
         apiData.banner ||
         apiData.images?.find((img: any) => img.isMain)?.url ||
         apiData.images?.find((img: any) => img.isThumbnail)?.url ||
-        "",
+        EVENT_BANNER_FALLBACK,
       date: `${apiData.startDate} to ${apiData.endDate}`,
       time: apiData.time || "06:00 AM",
-      venue: apiData.venue || "PVI Bengaluru",
-      description: apiData.description,
+      venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
+      description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
       schedules: apiData.schedules || [],
       plans: mappedPlans || [],
       addons: mappedAddons || [],
@@ -363,34 +481,9 @@ export const getAllDataBySlug = async (
     addons: mappedAddons || [],
   };
 
-  const plans: Plan[] = (apiData.plans || []).map((p: any) => ({
-    ...p,
-    id: String(p.planID ?? p.PlanID ?? ""),
-    planID: p.planID ?? p.PlanID,
-    PlanID: p.PlanID ?? p.planID,
-    title: p.PlanTitle || "",
-    PlanTitle: p.PlanTitle || "",
-    thumbnail:
-      p.bannerImage ||
-      p.banner ||
-      p.images?.find((img: any) => img.isMain)?.imageUrl ||
-      p.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: p.PlanDescription || "",
-    PlanDescription: p.PlanDescription || "",
-    finalPrice: Number(p.PlanPrice || 0),
-    PlanPrice: Number(p.PlanPrice || 0),
-    discountedPrice: Number(p.OfferPrice || 0),
-    OfferPrice: Number(p.OfferPrice || 0),
-    pricePerNight: Number(p.pricePerNight || 0),
-    amenities: (p.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: p.images || [],
+  const plans: Plan[] = (apiData.plans || []).map(normalizePlan).map((plan: Plan) => ({
+    ...plan,
+    pricePerNight: Number((plan as any).pricePerNight || 0),
   }));
 
   return {
@@ -410,10 +503,13 @@ export const createBooking = async (bookingData: any) => {
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to create booking');
+    const error = await response.json().catch(() => null);
+    const message =
+      error?.message ||
+      error?.error ||
+      'We could not create your booking right now. Please try again.';
+    throw new Error(message);
   }
 
   return response.json();
 };
-

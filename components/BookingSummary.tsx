@@ -21,7 +21,6 @@ interface BookingSummaryProps {
   setBookingState: React.Dispatch<React.SetStateAction<BookingState>>;
   event: EventData;
   ui: any;
-  config: any;
   onConfirm: (success: boolean, bookingId?: string | number) => void;
   onBack: () => void;
 }
@@ -58,15 +57,140 @@ const getCouponCode = (coupon: any): string => {
   return String(coupon?.code ?? coupon?.couponCode ?? '');
 };
 
+const isPlanSoldOut = (plan: any): boolean => {
+  if (plan?.isSoldOut === true) return true;
+  if (plan?.isSoldOut === false) return false;
+
+  const availableRooms = Number(
+    plan?.availableRooms ?? plan?.inventory?.availableRooms
+  );
+
+  if (!Number.isNaN(availableRooms)) {
+    return availableRooms <= 0;
+  }
+
+  return Number(plan?.remainingInventory ?? 0) <= 0;
+};
+
+const formatFieldLabel = (field: string): string => {
+  return field
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const getActionableBookingErrorMessage = (
+  responseText: string,
+  status: number
+): string => {
+  const trimmedText = String(responseText || '').trim();
+  let parsed: any = null;
+
+  try {
+    parsed = trimmedText ? JSON.parse(trimmedText) : null;
+  } catch {
+    parsed = null;
+  }
+
+  const rawMessage =
+    parsed?.message ||
+    parsed?.error ||
+    parsed?.details?.message ||
+    trimmedText;
+
+  const validationErrors = Array.isArray(parsed?.errors)
+    ? parsed.errors
+    : Array.isArray(parsed?.details?.errors)
+    ? parsed.details.errors
+    : [];
+
+  const fieldErrors = validationErrors
+    .map((item: any) => {
+      const field = String(item?.field || item?.path || '').trim();
+      const message = String(item?.message || item?.msg || '').trim();
+
+      if (!field && !message) return '';
+      if (!field) return message;
+      if (!message) return `${formatFieldLabel(field)} is invalid.`;
+
+      return `${formatFieldLabel(field)}: ${message}`;
+    })
+    .filter(Boolean);
+
+  if (fieldErrors.length > 0) {
+    return fieldErrors.join(' ');
+  }
+
+  const normalizedMessage = String(rawMessage || '').toLowerCase();
+
+  if (normalizedMessage.includes('duplicate') || normalizedMessage.includes('already exists')) {
+    return 'This booking looks like it was already submitted. Please wait a moment and check your booking status before trying again.';
+  }
+
+  if (
+    normalizedMessage.includes('coupon') &&
+    (normalizedMessage.includes('invalid') ||
+      normalizedMessage.includes('expired') ||
+      normalizedMessage.includes('not applicable'))
+  ) {
+    return 'The selected coupon could not be applied. Please remove it or try another valid coupon.';
+  }
+
+  if (
+    normalizedMessage.includes('inventory') ||
+    normalizedMessage.includes('availability') ||
+    normalizedMessage.includes('sold out')
+  ) {
+    return 'This plan or add-on is no longer available in the requested quantity. Please go back and review availability.';
+  }
+
+  if (normalizedMessage.includes('guest')) {
+    return rawMessage || 'Please review the guest details and correct any missing or invalid fields.';
+  }
+
+  if (status >= 500) {
+    return 'We could not complete your booking right now. Please try again in a moment or contact support if the issue continues.';
+  }
+
+  if (rawMessage) {
+    return rawMessage;
+  }
+
+  return 'We could not submit your booking. Please review your details and try again.';
+};
+
+const getIsoDateString = (value: any, label: string): string => {
+  const raw = String(value || '').trim();
+
+  if (!raw) {
+    throw new Error(`${label} is missing. Please refresh the page and try again.`);
+  }
+
+  const parsed = new Date(raw);
+
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${label} is invalid. Please refresh the page and try again.`);
+  }
+
+  return parsed.toISOString();
+};
+
 const BookingSummary: React.FC<BookingSummaryProps> = ({
   bookingState,
   setBookingState,
   event,
   ui,
-  config,
   onConfirm,
   onBack,
 }) => {
+  const eventBanner =
+    (event as any)?.banner ||
+    'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
+  const eventDescription =
+    String((event as any)?.description || '').trim() ||
+    'Event details will be updated soon. Please review your plan, guests, and booking details before payment.';
+
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -154,6 +278,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             });
           } else {
             setAppliedCoupon(null);
+            setBookingState((prev: any) => ({
+              ...prev,
+              couponCode: '',
+              appliedDiscountId: null,
+              couponIdProof: null,
+              couponIdProofUrl: '',
+            }));
           }
         } else {
           setAppliedCoupon(null);
@@ -527,6 +658,9 @@ const handlePayment = async () => {
   try {
     if (!selectedEventId) throw new Error('Invalid event selected');
     if (!selectedPlanId) throw new Error('Invalid plan selected');
+    if (isPlanSoldOut((bookingState as any)?.selectedPlan || (bookingState as any)?.plan)) {
+      throw new Error('This plan is sold out. Please go back and choose another available plan.');
+    }
 
     const guestsPayload = guests.map((g: any) => ({
       id: String(g.id || '').trim(),
@@ -591,19 +725,21 @@ const handlePayment = async () => {
     const resolvedStartDate =
       staysPayload[0]?.start_date ||
       (bookingState as any)?.startDate ||
+      (event as any)?.startDate ||
       (event as any)?.EventStartDate;
 
     const resolvedEndDate =
       staysPayload[0]?.end_date ||
       (bookingState as any)?.endDate ||
+      (event as any)?.endDate ||
       (event as any)?.EventEndDate ||
       resolvedStartDate;
 
     const payload = {
       eventId: selectedEventId,
       planId: selectedPlanId,
-      startDate: new Date(resolvedStartDate).toISOString(),
-      endDate: new Date(resolvedEndDate).toISOString(),
+      startDate: getIsoDateString(resolvedStartDate, 'Start date'),
+      endDate: getIsoDateString(resolvedEndDate, 'End date'),
       guestsCount: guestsPayload.length,
       grossAmount: Math.round(pricingBreakdown.grossAmount),
       discountAmount: Math.round(pricingBreakdown.discountAmount),
@@ -643,7 +779,9 @@ const handlePayment = async () => {
 
     if (!responseRaw.ok) {
       console.error('❌ Booking API error response:', responseText);
-      throw new Error(responseText || 'Server responded with an error');
+      throw new Error(
+        getActionableBookingErrorMessage(responseText, responseRaw.status)
+      );
     }
 
     const response = JSON.parse(responseText);
@@ -660,7 +798,9 @@ const handlePayment = async () => {
     }
   } catch (err: any) {
     console.error('Payment Error:', err);
-    setCouponError('Submission Error: ' + (err?.message || 'Unknown error'));
+    setCouponError(
+      err?.message || 'We could not submit your booking. Please try again.'
+    );
     setIsProcessing(false);
   }
 };
@@ -674,14 +814,19 @@ const handlePayment = async () => {
       <div className="mb-10 bg-white rounded-[32px] overflow-hidden shadow-sm border border-stone-100">
         <div className="h-48 relative">
           <img
-            src={(event as any).banner}
+            src={eventBanner}
             className="w-full h-full object-cover brightness-75"
             alt=""
           />
           <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent flex items-end p-8 text-white">
-            <h2 className="text-3xl font-black">
-              {(event as any).title || (event as any).EventName}
-            </h2>
+            <div>
+              <h2 className="text-3xl font-black">
+                {(event as any).title || (event as any).EventName}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium text-stone-100/90 line-clamp-2">
+                {eventDescription}
+              </p>
+            </div>
           </div>
         </div>
       </div>

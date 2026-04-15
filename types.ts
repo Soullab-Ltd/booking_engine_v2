@@ -65,15 +65,24 @@ export interface ScheduleDay {
 export interface Plan {
   id?: string;
   planID: number;
+  PlanID?: number;
+  PlanName?: string;
+  priceType?: string;
+  remainingInventory?: number;
   title?: string;
   sequence:number;
   PlanTitle?: string;
+  PlanSubtitle?: string;
   thumbnail?: string;
   banner: string | null;
+  bannerImage?: string;
   description?: string;
   stayRoomType?: string;
   PlanDescription?: string;
   fullDescription?: string;
+  longDescription?: string;
+  planColor?: string;
+  maxPax?: number;
   PlanPrice: number;
   OfferPrice: number;
   discountedPrice?: number;

@@ -86,6 +86,16 @@ const COUNTRIES = [
   'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
 ];
 
+const normalizePhoneInput = (value: string) => {
+  const trimmed = value.trim();
+  const hasLeadingPlus = trimmed.startsWith('+');
+  const digitsOnly = trimmed.replace(/\D/g, '');
+
+  return `${hasLeadingPlus ? '+' : ''}${digitsOnly}`;
+};
+
+const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
+
 interface StayAddonMapping {
   planId?: number | string;
   pricePerNight?: number | string;
@@ -169,6 +179,13 @@ const ErrorLabel = ({ message }: { message?: string }) => {
       <AlertCircle className="h-3 w-3" /> {message}
     </span>
   );
+};
+
+const isValidEmail = (value?: string) => {
+  const email = String(value || '').trim();
+  if (!email) return false;
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const CountrySelector = ({
@@ -569,20 +586,28 @@ const getStayEndDate = (startDate: string, days: number) => {
 
   const getGuestErrors = (guest: Guest | any) => {
     const errors: Record<string, string> = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!guest.name?.trim()) errors.name = 'Name is required';
 
     if (!guest.email?.trim()) {
       errors.email = 'Email is required';
-    } else if (!emailRegex.test(guest.email)) {
+    } else if (!isValidEmail(guest.email)) {
       errors.email = 'Invalid email format';
     }
 
     if (!guest.phone?.trim()) {
       errors.phone = 'Phone is required';
-    } else if (String(guest.phone).length < 10) {
-      errors.phone = 'Min 10 digits required';
+    } else {
+      const phoneDigits = getPhoneDigits(guest.phone);
+      const isIndianGuest = String(guest.country || '').trim().toLowerCase() === 'india';
+
+      if (isIndianGuest) {
+        if (phoneDigits.length !== 10) {
+          errors.phone = 'Enter a valid 10-digit phone number';
+        }
+      } else if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+        errors.phone = 'Enter a valid international phone number';
+      }
     }
     const age = Number(guest.age);
 
@@ -872,7 +897,7 @@ const getStayEndDate = (startDate: string, days: number) => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl animate-fadeIn px-4 py-8 pb-40">
+    <div className="mx-auto w-full max-w-4xl animate-fadeIn px-4 py-8 pb-52 sm:pb-16">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-stone-200 pb-6 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-stone-900">
@@ -894,6 +919,9 @@ const getStayEndDate = (startDate: string, days: number) => {
       <div className="space-y-6">
         {guests.map((guest: any, index) => {
           const errors = getGuestErrors(guest);
+          const hasTypedEmail = String(guest.email || '').trim().length > 0;
+          const emailLooksValid = isValidEmail(guest.email);
+          const showRealtimeEmailError = hasTypedEmail && !emailLooksValid;
 
           return (
             <div
@@ -957,10 +985,14 @@ const getStayEndDate = (startDate: string, days: number) => {
                     type="tel"
                     value={guest.phone}
                     onChange={(e) => {
-                        const val = e.target.value.replace(/\D/g, '');
+                        const val = normalizePhoneInput(e.target.value);
                         updateGuest(guest.id, { phone: val });
                       }}
-                    placeholder={ui.guestCard.fields.phonePlaceholder}
+                    placeholder={
+                      guest.country === 'India'
+                        ? 'Enter 10-digit mobile number'
+                        : '+12345678901'
+                    }
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.phone
                         ? 'border-red-200 bg-white'
@@ -982,10 +1014,22 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.email
                         ? 'border-red-200 bg-white'
+                        : showRealtimeEmailError
+                        ? 'border-red-200 bg-red-50'
+                        : hasTypedEmail && emailLooksValid
+                        ? 'border-emerald-200 bg-emerald-50'
                         : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
-                  {touched && <ErrorLabel message={errors.email} />}
+                  {showRealtimeEmailError ? (
+                    <ErrorLabel message="Enter a valid email address" />
+                  ) : null}
+                  {!showRealtimeEmailError && hasTypedEmail && emailLooksValid ? (
+                    <span className="mt-1 flex items-center gap-1 text-[9px] font-bold text-emerald-600 animate-fadeIn">
+                      <CheckCircle2 className="h-3 w-3" /> Email looks valid
+                    </span>
+                  ) : null}
+                  {touched && !hasTypedEmail && <ErrorLabel message={errors.email} />}
                 </div>
 
                 <div className="space-y-1">

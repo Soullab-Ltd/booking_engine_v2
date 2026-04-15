@@ -15,6 +15,12 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, insights, ui, onProceed }) => {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
+  const bannerImage =
+    event.banner ||
+    'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
+  const eventDescription =
+    event.description?.trim() ||
+    'Event details will be updated soon. Please continue to explore plans and booking options for this retreat at Pyramid Valley International.';
 
 
   if (!schedules || schedules.length === 0) {
@@ -26,7 +32,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
       {/* Hero Section */}
       <div className="relative h-[600px] md:h-[850px] w-full overflow-hidden">
         <img 
-            src={event.banner || "https://via.placeholder.com/1200x600?text=No+Image"}
+            src={bannerImage}
  
           alt={event.title} 
           className="w-full h-full object-cover scale-105 opacity-90"
@@ -74,7 +80,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">{ui.about.label}</h2>
                </div>
                <p className="text-3xl text-stone-800 font-bold tracking-tight leading-tight">
-                 {event.description}
+                 {eventDescription}
                </p>
             </section>
 
