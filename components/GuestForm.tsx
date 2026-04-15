@@ -95,6 +95,7 @@ const normalizePhoneInput = (value: string) => {
 };
 
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
+const OTHER_STATE_OPTION = '__OTHER_STATE__';
 
 interface StayAddonMapping {
   planId?: number | string;
@@ -296,6 +297,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const [showAddOnInfo, setShowAddOnInfo] = useState<string | null>(null);
   const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
+  const [customIndianStateGuests, setCustomIndianStateGuests] = useState<Record<string, boolean>>({});
 
   const parseIds = (value: any): number[] => {
     if (!value) return [];
@@ -587,7 +589,13 @@ const getStayEndDate = (startDate: string, days: number) => {
   const getGuestErrors = (guest: Guest | any) => {
     const errors: Record<string, string> = {};
 
-    if (!guest.name?.trim()) errors.name = 'Name is required';
+    const trimmedName = String(guest.name || '').trim();
+
+    if (!trimmedName) {
+      errors.name = 'Name is required';
+    } else if (trimmedName.length < 2) {
+      errors.name = 'Name must be at least 2 characters';
+    }
 
     if (!guest.email?.trim()) {
       errors.email = 'Email is required';
@@ -667,6 +675,19 @@ const getStayEndDate = (startDate: string, days: number) => {
     });
 
     setGuests(updatedGuests);
+  };
+
+  const handleCountryChange = (guestId: string, country: string) => {
+    setCustomIndianStateGuests((prev) => ({
+      ...prev,
+      [String(guestId)]: false,
+    }));
+
+    updateGuest(guestId, {
+      country,
+      state: '',
+      city: '',
+    });
   };
 
   const addGuest = () => {
@@ -967,6 +988,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                     type="text"
                     value={guest.name}
                     onChange={(e) => updateGuest(guest.id, { name: e.target.value })}
+                    minLength={2}
                     placeholder={ui.guestCard.fields.namePlaceholder}
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.name
@@ -1119,7 +1141,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
-                    onChange={(val) => updateGuest(guest.id, { country: val, state: '' })}
+                    onChange={(val) => handleCountryChange(guest.id, val)}
                     hasError={touched && !!errors.country}
                   />
                   {touched && <ErrorLabel message={errors.country} />}
@@ -1133,8 +1155,24 @@ const getStayEndDate = (startDate: string, days: number) => {
                   {guest.country === 'India' ? (
                     <div className="relative">
                       <select
-                        value={guest.state}
-                        onChange={(e) => updateGuest(guest.id, { state: e.target.value })}
+                        value={
+                          customIndianStateGuests[String(guest.id)]
+                            ? OTHER_STATE_OPTION
+                            : guest.state || ''
+                        }
+                        onChange={(e) => {
+                          const selectedValue = e.target.value;
+                          const isOtherSelected = selectedValue === OTHER_STATE_OPTION;
+
+                          setCustomIndianStateGuests((prev) => ({
+                            ...prev,
+                            [String(guest.id)]: isOtherSelected,
+                          }));
+
+                          updateGuest(guest.id, {
+                            state: isOtherSelected ? '' : selectedValue,
+                          });
+                        }}
                         className={`h-[42px] w-full cursor-pointer appearance-none rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none ${
                           touched && errors.state
                             ? 'border-red-200 bg-white'
@@ -1149,6 +1187,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                             {state}
                           </option>
                         ))}
+                        <option value={OTHER_STATE_OPTION}>Other</option>
                       </select>
                     </div>
                   ) : (
@@ -1164,6 +1203,20 @@ const getStayEndDate = (startDate: string, days: number) => {
                       }`}
                     />
                   )}
+                  {guest.country === 'India' &&
+                  customIndianStateGuests[String(guest.id)] ? (
+                    <input
+                      type="text"
+                      value={guest.state || ''}
+                      onChange={(e) => updateGuest(guest.id, { state: e.target.value })}
+                      placeholder="Enter other state"
+                      className={`mt-2 h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
+                        touched && errors.state
+                          ? 'border-red-200 bg-white'
+                          : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
+                      }`}
+                    />
+                  ) : null}
                   {touched && <ErrorLabel message={errors.state} />}
                 </div>
 
@@ -1316,6 +1369,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                             <input
                               type="radio"
                               name={`extra-stay-plan-${guest.id}`}
+                              value={String(room.id)}
                               checked={
                                 String(guest.addOns?.extraStay?.planId) === String(room.id)
                               }

@@ -433,11 +433,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       const uploadedFile = couponIdProof;
       const uploadedUrl = couponIdProofUrl;
 
-      if (
-        (couponRequiresIdUpload || onlyStudentOrService) &&
-        !uploadedFile &&
-        !uploadedUrl
-      ) {
+      if (couponRequiresIdUpload && !uploadedFile && !uploadedUrl) {
         discountAmount = 0;
       } else {
         const discountType =
@@ -622,11 +618,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     const uploadedFile = couponIdProof;
     const uploadedUrl = couponIdProofUrl;
 
-    if (
-      (couponRequiresIdUpload || onlyStudentOrService) &&
-      !uploadedFile &&
-      !uploadedUrl
-    ) {
+    if (couponRequiresIdUpload && !uploadedFile && !uploadedUrl) {
       return false;
     }
 
@@ -928,7 +920,7 @@ const handlePayment = async () => {
                       </td>
                     </tr>
                   ) : appliedCoupon &&
-                    (couponRequiresIdUpload || onlyStudentOrService) &&
+                    couponRequiresIdUpload &&
                     !couponIdProof &&
                     !couponIdProofUrl ? (
                     <tr className="bg-amber-50/50">
@@ -1347,8 +1339,7 @@ const handlePayment = async () => {
                     className="text-[var(--theme)] underline hover:text-teal-900"
                   >
                     terms and conditions
-                  </a>
-                  .
+                  </a>.
                 </span>
               </label>
 
@@ -1368,8 +1359,7 @@ const handlePayment = async () => {
                     className="text-[var(--theme)] underline hover:text-teal-900"
                   >
                     refund policy
-                  </a>
-                  .
+                  </a>.
                 </span>
               </label>
             </div>
@@ -1420,9 +1410,7 @@ const handlePayment = async () => {
                 <div className="flex items-center gap-2">
                   <AlertCircle className="w-4 h-4 text-stone-300" />
                   <span className="text-[10px] font-bold uppercase tracking-widest text-stone-400">
-                    {(couponRequiresIdUpload || onlyStudentOrService) &&
-                    !couponIdProof &&
-                    !couponIdProofUrl
+                    {couponRequiresIdUpload && !couponIdProof && !couponIdProofUrl
                       ? 'ID Proof Missing'
                       : !agreedToTerms || !agreedToRefund
                       ? 'Accept Policies'
@@ -1481,7 +1469,7 @@ const handlePayment = async () => {
                 </div>
 
                 <p className="text-xs text-stone-500 font-medium leading-relaxed">
-                  To apply this exclusive offer, please upload a valid identity proof
+                  To apply this coupon, please upload a valid identity proof
                   (College ID / Govt ID).
                 </p>
               </div>

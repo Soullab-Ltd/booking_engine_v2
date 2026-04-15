@@ -88,6 +88,20 @@ const getNormalizedGstFields = (item: any) => {
 
 const PLAN_IMAGE_FALLBACK = 'https://placehold.co/400';
 const DEFAULT_PLAN_COLOR = '#0f766e';
+const REQUIRED_ADMIN_PLAN_FIELDS = [
+  'PlanName',
+  'PlanSubtitle',
+  'planColor',
+  'banner',
+  'bannerImage',
+  'fullDescription',
+  'maxPax',
+] as const;
+
+type RequiredAdminPlanField = (typeof REQUIRED_ADMIN_PLAN_FIELDS)[number];
+
+const isBlankAdminValue = (value: unknown) =>
+  value === null || value === undefined || value === '';
 
 const normalizeOptionalText = (value: unknown): string => {
   if (typeof value !== 'string') return '';
@@ -146,29 +160,61 @@ const getPlanMaxPax = (plan: any): number => {
   return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
 };
 
+const getPlanLabel = (normalizedPlan: Partial<Plan>) =>
+  normalizedPlan.PlanTitle ||
+  normalizedPlan.PlanName ||
+  `Plan ${normalizedPlan.planID ?? ''}`.trim();
+
+const getMissingAdminPlanFields = (plan: any): RequiredAdminPlanField[] =>
+  REQUIRED_ADMIN_PLAN_FIELDS.filter((fieldName) => isBlankAdminValue(plan?.[fieldName]));
+
 const validateAdminPlanData = (plan: any, normalizedPlan: Partial<Plan>) => {
-  const missingFields = [
-    ['PlanName', plan.PlanName],
-    ['PlanSubtitle', plan.PlanSubtitle],
-    ['planColor', plan.planColor],
-    ['banner', plan.banner],
-    ['bannerImage', plan.bannerImage],
-    ['fullDescription', plan.fullDescription],
-    ['maxPax', plan.maxPax],
-  ]
-    .filter(([, value]) => value === null || value === undefined || value === '')
-    .map(([fieldName]) => fieldName);
+  const missingFields = getMissingAdminPlanFields(plan);
 
   if (missingFields.length > 0) {
-    const planLabel =
-      normalizedPlan.PlanTitle ||
-      normalizedPlan.PlanName ||
-      `Plan ${normalizedPlan.planID ?? ''}`.trim();
-
     console.warn(
-      `[plan-admin-validation] ${planLabel} is missing admin fields: ${missingFields.join(', ')}`
+      `[plan-admin-validation] ${getPlanLabel(normalizedPlan)} is missing admin fields: ${missingFields.join(', ')}`
     );
   }
+
+  return missingFields;
+};
+
+const logAdminPlanValidationSummary = (rawPlans: any[], normalizedPlans: Plan[]) => {
+  const planIssues = rawPlans
+    .map((plan, index) => ({
+      planLabel: getPlanLabel(normalizedPlans[index] || {}),
+      missingFields: getMissingAdminPlanFields(plan),
+    }))
+    .filter((entry) => entry.missingFields.length > 0);
+
+  if (!planIssues.length) return;
+
+  const missingFieldCounts = REQUIRED_ADMIN_PLAN_FIELDS.reduce(
+    (acc, fieldName) => {
+      acc[fieldName] = planIssues.filter((entry) =>
+        entry.missingFields.includes(fieldName)
+      ).length;
+      return acc;
+    },
+    {} as Record<RequiredAdminPlanField, number>
+  );
+
+  const totalPlans = rawPlans.length;
+  const fieldsMissingForAllPlans = REQUIRED_ADMIN_PLAN_FIELDS.filter(
+    (fieldName) => totalPlans > 0 && missingFieldCounts[fieldName] === totalPlans
+  );
+
+  if (fieldsMissingForAllPlans.length > 0) {
+    console.error(
+      `[plan-admin-validation] Admin data is incomplete for all ${totalPlans} plans. Populate these fields in admin: ${fieldsMissingForAllPlans.join(', ')}`
+    );
+  }
+
+  console.warn(
+    '[plan-admin-validation] Missing field counts by admin field:',
+    missingFieldCounts
+  );
 };
 
 const normalizePlan = (plan: any): Plan => {
@@ -232,7 +278,7 @@ const normalizePlan = (plan: any): Plan => {
 };
 
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`http://localhost:3002/data/${path}`);
+  const response = await fetch(`http://localhost:3000/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
@@ -295,7 +341,9 @@ console.log(
     })),
   };
 
-  const mappedPlans: Plan[] = (apiData.plans || []).map(normalizePlan);
+  const rawPlans = apiData.plans || [];
+  const mappedPlans: Plan[] = rawPlans.map(normalizePlan);
+  logAdminPlanValidationSummary(rawPlans, mappedPlans);
 
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
     ...addon,
@@ -354,7 +402,7 @@ console.log(
   addons: mappedAddons || [],
 };
 
-  const plans: Plan[] = (apiData.plans || [])
+  const plans: Plan[] = rawPlans
     .map(normalizePlan)
     .map((plan: Plan) => ({
       ...plan,
@@ -424,9 +472,11 @@ export const getAllDataBySlug = async (
     })),
   };
 
-  const mappedPlans: Plan[] = (apiData.plans || [])
+  const rawPlans = apiData.plans || [];
+  const mappedPlans: Plan[] = rawPlans
     .map(normalizePlan)
     .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
+  logAdminPlanValidationSummary(rawPlans, mappedPlans);
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
     ...addon,
     id: addon.id ?? addon.AddonID,
@@ -481,7 +531,7 @@ export const getAllDataBySlug = async (
     addons: mappedAddons || [],
   };
 
-  const plans: Plan[] = (apiData.plans || []).map(normalizePlan).map((plan: Plan) => ({
+  const plans: Plan[] = rawPlans.map(normalizePlan).map((plan: Plan) => ({
     ...plan,
     pricePerNight: Number((plan as any).pricePerNight || 0),
   }));
