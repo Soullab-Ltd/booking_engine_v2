@@ -617,15 +617,19 @@ const getStayEndDate = (startDate: string, days: number) => {
         errors.phone = 'Enter a valid international phone number';
       }
     }
-    const age = Number(guest.age);
+const age = Number(guest.age);
 
-      if (!guest.age && guest.age !== 0) {
-        errors.age = 'Age is required';
-      } else if (isNaN(age)) {
-        errors.age = 'Invalid age';
-      } else if (age < 1 || age > 120) {
-        errors.age = 'Age must be between 1 and 120';
-      }
+  if (!guest.age && guest.age !== 0) {
+    errors.age = 'Age is required';
+  } else if (isNaN(age)) {
+    errors.age = 'Please enter a valid number';
+  } else if (age < 1) {
+    errors.age = 'Age must be at least 1';
+  } else if (age > 120) {
+    errors.age = 'Age cannot exceed 120 years';
+  }
+
+
     if (!guest.gender) {
       errors.gender = 'Gender is required';
     }  
@@ -888,6 +892,23 @@ const getStayEndDate = (startDate: string, days: number) => {
   const handleProceedClick = () => {
     setTouched(true);
 
+
+console.log('--- GUEST FORM SUBMISSION DEBUG ---');
+    console.log('Total Guests:', guests.length);
+    console.log('Full Guests Data:', JSON.stringify(guests, null, 2));
+    
+    // Check specifically for age types
+    guests.forEach((g, i) => {
+      console.log(`Guest ${i + 1} ("${g.name}"):`, {
+        ageValue: g.age,
+        ageType: typeof g.age,
+        isAgeValid: !isNaN(Number(g.age)) && g.age !== null
+      });
+    });
+
+
+
+
       if (!allGuestsValid) {
         return; // ✅ already exists
       }
@@ -1006,10 +1027,12 @@ const getStayEndDate = (startDate: string, days: number) => {
                   <input
                     type="tel"
                     value={guest.phone}
+                    maxLength={13}
                     onChange={(e) => {
-                        const val = normalizePhoneInput(e.target.value);
-                        updateGuest(guest.id, { phone: val });
-                      }}
+    // Slice ensures that even with copy-paste, it never exceeds 13
+    const val = normalizePhoneInput(e.target.value).slice(0, 13);
+    updateGuest(guest.id, { phone: val });
+  }}
                     placeholder={
                       guest.country === 'India'
                         ? 'Enter 10-digit mobile number'
@@ -1062,9 +1085,11 @@ const getStayEndDate = (startDate: string, days: number) => {
                     type="text"
                     value={guest.age || ''}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      updateGuest(guest.id, { age: parseInt(val, 10) || 0 });
-                    }}
+  const val = e.target.value.replace(/\D/g, '');
+  const ageValue = val === '' ? null : parseInt(val, 10); 
+  
+  updateGuest(guest.id, { age: ageValue });
+}}
                     placeholder={ui.guestCard.fields.agePlaceholder}
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age

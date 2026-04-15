@@ -144,7 +144,10 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
 
             <div className="flex flex-wrap gap-4 mt-4">
               <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/5">
-                <Calendar className="w-4 h-4 text-teal-400" /> {event.date}
+                <Calendar className="w-4 h-4 text-teal-400" /> {event.date.split(/ to | - | — /).map(d => {
+    const date = new Date(d.trim());
+    return isNaN(date.getTime()) ? d : new Intl.DateTimeFormat('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }).format(date).replace(/ /g, '-');
+  }).join(' — ')}
               </span>
               <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/5">
                 <ShieldCheck className="w-4 h-4 text-teal-400" /> Fully

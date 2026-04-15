@@ -18,6 +18,18 @@ import BookingSummary from './components/BookingSummary';
 import PaymentStatus from './components/PaymentStatus';
 import DownloadsDashboard from './components/DownloadsDashboard';
 
+
+const formatDisplayDate = (dateStr: any) => {
+  if (!dateStr) return '';
+  const date = new Date(dateStr);
+  if (isNaN(date.getTime())) return dateStr;
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+  }).format(date).replace(/ /g, '-');
+};
+
 const STEP_LOADING_COPY: Record<number, string> = {
   2: 'Loading plans...',
   3: 'Loading plan details...',
@@ -333,13 +345,17 @@ const isPlanSelectionLoading =
           />
         );
 
-      case 6:
+case 6:
         return paymentResult === 'SUCCESS' ? (
           <PaymentStatus
             success={true}
             bookingId={bookingState.bookingId}
             bookingState={bookingState}
-            event={data.eventData.event}
+            // Inject the formatted date here
+            event={{ 
+              ...data.eventData.event, 
+              displayDate: `${formatDisplayDate(data.eventData.event.EventStartDate)} — ${formatDisplayDate(data.eventData.event.EventEndDate)}` 
+            }}
             ui={data.uiContent.bookingSummary}
             onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))}
           />
@@ -352,11 +368,16 @@ const isPlanSelectionLoading =
           <DownloadsDashboard
             bookingState={bookingState}
             bookingId={bookingState.bookingId}
-            event={data.eventData.event}
+            // Inject the formatted date here as well
+            event={{ 
+              ...data.eventData.event, 
+              displayDate: `${formatDisplayDate(data.eventData.event.EventStartDate)} — ${formatDisplayDate(data.eventData.event.EventEndDate)}` 
+            }}
             ui={data.uiContent.bookingSummary}
           />
         );
 
+        
       default:
         return (
           <PlanSelection

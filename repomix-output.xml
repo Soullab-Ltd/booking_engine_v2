@@ -78,14 +78,6 @@ vite.config.ts
 <files>
 This section contains the contents of the repository's files.
 
-<file path="src/index.css">
-:root {
-  --theme: #00959D;
-  --theme-dark: #007A80;
-  --theme-light: #E6F6F7;
-}
-</file>
-
 <file path=".env.example">
 # Database Configuration
 DB_HOST=localhost
@@ -250,191 +242,12 @@ export interface BookingState {
 }
 </file>
 
-<file path="public/data/config.json">
-{
-  "TAX_RATE": 0.18,
-  "STUDENT_DISCOUNT_PERCENT": 0.10,
-  "SERVICE_DISCOUNT_PERCENT": 0.15,
-  "KIDS_DISCOUNT_PERCENT": 0.20,
-  "ADDONS": {
-    "FOOD_PASS": 2500,
-    "ADVENTURE_PASS": 5000,
-    "EXTRA_STAY_BASE": 1800
-  },
-  "COUPONS": [
-    { "name": "Early Seeker Discount", "code": "SDFEARLY", "discount": 5, "description": "For early registrations." },
-    { "name": "Group Manifestation", "code": "POWER3", "discount": 10, "description": "Register 3 or more seekers." }
-  ],
-  "ROOM_TYPES": [
-    {
-      "name": "PVI Dorms",
-      "price": 1500,
-      "desc": "Clean bunk beds in a community setting.",
-      "img": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&auto=format&fit=crop"
-    },
-    {
-      "name": "Deluxe Suite",
-      "price": 3500,
-      "desc": "Comfortable attached bathroom suite.",
-      "img": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&auto=format&fit=crop"
-    }
-  ]
+<file path="src/index.css">
+:root {
+  --theme: #0F766E;
+  --theme-dark: #115E59;
+  --theme-light: #E6F6F7;
 }
-</file>
-
-<file path="public/data/event.json">
-{
-  "event": {
-    "title": "Shreans Daga Foundation: The Quantum Awakening",
-    "banner": "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?q=80&w=2000&auto=format&fit=crop",
-    "date": "Coming Soon 2025",
-    "time": "06:00 AM Daily",
-    "venue": "Pyramid Valley International, Bengaluru",
-    "description": "Join Shreans Daga for a transformative 4-day journey into spiritual science and manifestation. Held at the world-renowned Pyramid Valley, this retreat integrates deep meditation with quantum insights to help you design your destiny."
-  },
-  "schedule": [
-    { 
-      "day": "Day 1", 
-      "date": "Day One",
-      "slots": [
-        { "time": "09:00 AM", "title": "Check-in & Registration", "desc": "Welcome and orientation at the PVI reception." },
-        { "time": "11:00 AM", "title": "Quantum Intention", "desc": "Opening session with Shreans Daga." },
-        { "time": "01:00 PM", "title": "Mindful Lunch", "desc": "Sattvic meals at designated dining halls." },
-        { "time": "04:00 PM", "title": "Pyramid Meditation", "desc": "Deep meditation inside the Maitreya-Buddha Pyramid." },
-        { "time": "07:00 PM", "title": "Evening Satsang", "desc": "Group sharing and frequency alignment." }
-      ]
-    },
-    { 
-      "day": "Day 2", 
-      "date": "Day Two",
-      "slots": [
-        { "time": "06:00 AM", "title": "Sun Salutations", "desc": "Morning yoga and breathwork in the valley." },
-        { "time": "10:00 AM", "title": "Spiritual Science", "desc": "Decoding the laws of manifestation." },
-        { "time": "02:30 PM", "title": "Silent Contemplation", "desc": "Individual practice sessions across the lush campus." },
-        { "time": "05:00 PM", "title": "Workshop: Energy Centers", "desc": "Balancing the chakras for physical and mental health." }
-      ]
-    },
-    { 
-      "day": "Day 3", 
-      "date": "Day Three",
-      "slots": [
-        { "time": "06:30 AM", "title": "Inner Silence", "desc": "Extended meditation session for deep clarity." },
-        { "time": "11:00 AM", "title": "Manifestation Mastery", "desc": "Practical tools for high-vibrational living." },
-        { "time": "03:00 PM", "title": "Nature Walk", "desc": "Exploring the healing energies of PVI." },
-        { "time": "06:00 PM", "title": "Sound Healing", "desc": "Vibrational therapy for cellular regeneration." }
-      ]
-    },
-    { 
-      "day": "Day 4", 
-      "date": "Day Four",
-      "slots": [
-        { "time": "07:00 AM", "title": "Gratitude Ritual", "desc": "Final morning practice and appreciation circle." },
-        { "time": "10:00 AM", "title": "Integration Session", "desc": "Planning your spiritual path post-retreat." },
-        { "time": "12:30 PM", "title": "Closing Ceremony", "desc": "Final blessings and certification." },
-        { "time": "02:00 PM", "title": "Departure", "desc": "Carry the stillness with you." }
-      ]
-    }
-  ],
-  "mentors": {
-    "main": {
-      "name": "Shreans Daga",
-      "role": "Founder, Shreans Daga Foundation",
-      "img": "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?w=600&auto=format&fit=crop",
-      "bio": "Shreans Daga is a visionary spiritual scientist dedicated to teaching the art of manifestation and high-vibrational living. Having mastered numerous spiritual disciplines, he simplifies complex ancient wisdom into actionable quantum science for the modern world. His mission is to empower individuals to live a life of abundance, joy, and profound inner peace."
-    },
-    "others": [
-      {
-        "name": "Master Dr. Vishwa",
-        "role": "Pyramid Science Expert",
-        "img": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop",
-        "bio": "An expert in the geometry of spiritual spaces, Dr. Vishwa guides seekers in utilizing the unique energy of the Maitreya-Buddha Pyramid for accelerated spiritual growth."
-      },
-      {
-        "name": "Sadhvi Meera",
-        "role": "Bhakti & Meditation Guide",
-        "img": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop",
-        "bio": "Sadhvi Meera brings a gentle, heart-centered approach to meditation, focusing on emotional release and deep self-love."
-      }
-    ]
-  },
-  "insights": [
-    {
-      "title": "The Power of the Pyramid",
-      "text": "Pyramid Valley International houses the world's largest meditation pyramid. Its sacred geometry amplifies cosmic energy, allowing meditators to reach deeper states of consciousness 3 times faster than in conventional spaces.",
-      "img": "https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=1200&auto=format&fit=crop"
-    },
-    {
-      "title": "Quantum Manifestation",
-      "text": "Everything is energy. By learning to tune your internal frequency, you can collapse the wave function of possibility into your desired reality. This is the core teaching of the Shreans Daga Foundation.",
-      "img": "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?w=1200&auto=format&fit=crop"
-    },
-    {
-      "title": "Sattvic Sustenance",
-      "text": "Fuel your soul with high-prana meals. Whether at Annadana or Soul Nest, our food is prepared with love and mindfulness to support your energetic transformation.",
-      "img": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop"
-    }
-  ]
-}
-</file>
-
-<file path="public/data/plans.json">
-[
-  {
-    "id": "pA",
-    "title": "Plan A: PVI Dorms",
-    "thumbnail": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&auto=format&fit=crop",
-    "description": "4 Days and 3 Nights - Dorm Accommodation (1 bed per person).",
-    "fullDescription": "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the traditional Annadana hall.",
-    "discountedPrice": 9000,
-    "finalPrice": 7000,
-    "gstDetails": "Inclusive of GST",
-    "amenities": ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
-  },
-  {
-    "id": "pB",
-    "title": "Plan B: Deluxe Rooms",
-    "thumbnail": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
-    "description": "4 Days and 3 Nights - 1 Bed for 2 Guests with attached bath.",
-    "fullDescription": "Upgrade to Deluxe Rooms for more privacy and attached facilities. These rooms are perfect for couples or friends traveling together. Daily housekeeping and consistent hot water in the mornings.",
-    "discountedPrice": 22000,
-    "finalPrice": 19000,
-    "gstDetails": "Inclusive of GST",
-    "amenities": ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
-  },
-  {
-    "id": "pC",
-    "title": "Plan C: Premium Triple",
-    "thumbnail": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-    "description": "4 Days and 3 Nights - Premium Triple Occupancy at Soul Nest.",
-    "fullDescription": "Experience the premium hospitality of PVI at Soul Nest. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the exclusive Soul Nest dining.",
-    "discountedPrice": 25000,
-    "finalPrice": 21000,
-    "gstDetails": "Inclusive of GST",
-    "amenities": ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Soul Nest", "Free WiFi in Room", "Swimming Pool Access"]
-  },
-  {
-    "id": "pD",
-    "title": "Plan D: Premium Double",
-    "thumbnail": "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&auto=format&fit=crop",
-    "description": "4 Days and 3 Nights - King Size Bed for 2 Guests.",
-    "fullDescription": "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Soul Nest.",
-    "discountedPrice": 48000,
-    "finalPrice": 40000,
-    "gstDetails": "Inclusive of GST",
-    "amenities": ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
-  },
-  {
-    "id": "pE",
-    "title": "Plan E: Premium Single",
-    "thumbnail": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
-    "description": "4 Days and 3 Nights - Private King Size Bed for 1 Guest.",
-    "fullDescription": "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Soul Nest at your disposal.",
-    "discountedPrice": 48000,
-    "finalPrice": 40000,
-    "gstDetails": "Inclusive of GST",
-    "amenities": ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
-  }
-]
 </file>
 
 <file path="Dockerfile">
@@ -603,6 +416,189 @@ export default defineConfig(({ mode }) => {
       }
     };
 });
+</file>
+
+<file path="public/data/config.json">
+{
+  "TAX_RATE": 0.18,
+  "STUDENT_DISCOUNT_PERCENT": 0.10,
+  "SERVICE_DISCOUNT_PERCENT": 0.15,
+  "KIDS_DISCOUNT_PERCENT": 0.20,
+  "ADDONS": {
+    "FOOD_PASS": 2500,
+    "ADVENTURE_PASS": 5000,
+    "EXTRA_STAY_BASE": 1800
+  },
+  "ROOM_TYPES": [
+    {
+      "name": "PVI Dorms",
+      "price": 1500,
+      "desc": "Clean bunk beds in a community setting.",
+      "img": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&auto=format&fit=crop"
+    },
+    {
+      "name": "Deluxe Suite",
+      "price": 3500,
+      "desc": "Comfortable attached bathroom suite.",
+      "img": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&auto=format&fit=crop"
+    }
+  ]
+}
+</file>
+
+<file path="public/data/event.json">
+{
+  "event": {
+    "title": "Shreans Daga Foundation: The Quantum Awakening",
+    "banner": "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?q=80&w=2000&auto=format&fit=crop",
+    "date": "Coming Soon 2025",
+    "time": "06:00 AM Daily",
+    "venue": "Pyramid Valley International, Bengaluru",
+    "description": "Join Shreans Daga for a transformative 4-day journey into spiritual science and manifestation. Held at the world-renowned Pyramid Valley, this retreat integrates deep meditation with quantum insights to help you design your destiny."
+  },
+  "schedule": [
+    { 
+      "day": "Day 1", 
+      "date": "Day One",
+      "slots": [
+        { "time": "09:00 AM", "title": "Check-in & Registration", "desc": "Welcome and orientation at the PVI reception." },
+        { "time": "11:00 AM", "title": "Quantum Intention", "desc": "Opening session with Shreans Daga." },
+        { "time": "01:00 PM", "title": "Mindful Lunch", "desc": "Sattvic meals at designated dining halls." },
+        { "time": "04:00 PM", "title": "Pyramid Meditation", "desc": "Deep meditation inside the Maitreya-Buddha Pyramid." },
+        { "time": "07:00 PM", "title": "Evening Satsang", "desc": "Group sharing and frequency alignment." }
+      ]
+    },
+    { 
+      "day": "Day 2", 
+      "date": "Day Two",
+      "slots": [
+        { "time": "06:00 AM", "title": "Sun Salutations", "desc": "Morning yoga and breathwork in the valley." },
+        { "time": "10:00 AM", "title": "Spiritual Science", "desc": "Decoding the laws of manifestation." },
+        { "time": "02:30 PM", "title": "Silent Contemplation", "desc": "Individual practice sessions across the lush campus." },
+        { "time": "05:00 PM", "title": "Workshop: Energy Centers", "desc": "Balancing the chakras for physical and mental health." }
+      ]
+    },
+    { 
+      "day": "Day 3", 
+      "date": "Day Three",
+      "slots": [
+        { "time": "06:30 AM", "title": "Inner Silence", "desc": "Extended meditation session for deep clarity." },
+        { "time": "11:00 AM", "title": "Manifestation Mastery", "desc": "Practical tools for high-vibrational living." },
+        { "time": "03:00 PM", "title": "Nature Walk", "desc": "Exploring the healing energies of PVI." },
+        { "time": "06:00 PM", "title": "Sound Healing", "desc": "Vibrational therapy for cellular regeneration." }
+      ]
+    },
+    { 
+      "day": "Day 4", 
+      "date": "Day Four",
+      "slots": [
+        { "time": "07:00 AM", "title": "Gratitude Ritual", "desc": "Final morning practice and appreciation circle." },
+        { "time": "10:00 AM", "title": "Integration Session", "desc": "Planning your spiritual path post-retreat." },
+        { "time": "12:30 PM", "title": "Closing Ceremony", "desc": "Final blessings and certification." },
+        { "time": "02:00 PM", "title": "Departure", "desc": "Carry the stillness with you." }
+      ]
+    }
+  ],
+  "mentors": {
+    "main": {
+      "name": "Shreans Daga",
+      "role": "Founder, Shreans Daga Foundation",
+      "img": "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?w=600&auto=format&fit=crop",
+      "bio": "Shreans Daga is a visionary spiritual scientist dedicated to teaching the art of manifestation and high-vibrational living. Having mastered numerous spiritual disciplines, he simplifies complex ancient wisdom into actionable quantum science for the modern world. His mission is to empower individuals to live a life of abundance, joy, and profound inner peace."
+    },
+    "others": [
+      {
+        "name": "Master Dr. Vishwa",
+        "role": "Pyramid Science Expert",
+        "img": "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop",
+        "bio": "An expert in the geometry of spiritual spaces, Dr. Vishwa guides seekers in utilizing the unique energy of the Maitreya-Buddha Pyramid for accelerated spiritual growth."
+      },
+      {
+        "name": "Sadhvi Meera",
+        "role": "Bhakti & Meditation Guide",
+        "img": "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop",
+        "bio": "Sadhvi Meera brings a gentle, heart-centered approach to meditation, focusing on emotional release and deep self-love."
+      }
+    ]
+  },
+  "insights": [
+    {
+      "title": "The Power of the Pyramid",
+      "text": "Pyramid Valley International houses the world's largest meditation pyramid. Its sacred geometry amplifies cosmic energy, allowing meditators to reach deeper states of consciousness 3 times faster than in conventional spaces.",
+      "img": "https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=1200&auto=format&fit=crop"
+    },
+    {
+      "title": "Quantum Manifestation",
+      "text": "Everything is energy. By learning to tune your internal frequency, you can collapse the wave function of possibility into your desired reality. This is the core teaching of the Shreans Daga Foundation.",
+      "img": "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?w=1200&auto=format&fit=crop"
+    },
+    {
+      "title": "Sattvic Sustenance",
+      "text": "Fuel your soul with high-prana meals at Pyramid Valley International, where food is prepared with love and mindfulness to support your energetic transformation.",
+      "img": "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop"
+    }
+  ]
+}
+</file>
+
+<file path="public/data/plans.json">
+[
+  {
+    "id": "pA",
+    "title": "Plan A: PVI Dorms",
+    "thumbnail": "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - Dorm Accommodation (1 bed per person).",
+    "fullDescription": "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the Pyramid Valley International dining hall.",
+    "discountedPrice": 9000,
+    "finalPrice": 7000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
+  },
+  {
+    "id": "pB",
+    "title": "Plan B: Deluxe Rooms",
+    "thumbnail": "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - 1 Bed for 2 Guests with attached bath.",
+    "fullDescription": "Upgrade to Deluxe Rooms for more privacy and attached facilities. These rooms are perfect for couples or friends traveling together. Daily housekeeping and consistent hot water in the mornings.",
+    "discountedPrice": 22000,
+    "finalPrice": 19000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
+  },
+  {
+    "id": "pC",
+    "title": "Plan C: Premium Triple",
+    "thumbnail": "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - Premium Triple Occupancy at Pyramid Valley International.",
+    "fullDescription": "Experience the premium hospitality of Pyramid Valley International. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the Pyramid Valley International dining hall.",
+    "discountedPrice": 25000,
+    "finalPrice": 21000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Pyramid Valley International", "Free WiFi in Room", "Swimming Pool Access"]
+  },
+  {
+    "id": "pD",
+    "title": "Plan D: Premium Double",
+    "thumbnail": "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - King Size Bed for 2 Guests.",
+    "fullDescription": "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Pyramid Valley International.",
+    "discountedPrice": 48000,
+    "finalPrice": 40000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Pyramid Valley International", "In-room High-speed WiFi", "Swimming Pool Access"]
+  },
+  {
+    "id": "pE",
+    "title": "Plan E: Premium Single",
+    "thumbnail": "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+    "description": "4 Days and 3 Nights - Private King Size Bed for 1 Guest.",
+    "fullDescription": "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Pyramid Valley International at your disposal.",
+    "discountedPrice": 48000,
+    "finalPrice": 40000,
+    "gstDetails": "Inclusive of GST",
+    "amenities": ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Pyramid Valley International", "In-room High-speed WiFi", "Swimming Pool Access"]
+  }
+]
 </file>
 
 <file path="public/data/ui-content.json">
@@ -782,211 +778,6 @@ export default defineConfig(({ mode }) => {
     }
   }
 }
-</file>
-
-<file path="constants.tsx">
-import React from 'react';
-import { EventData, Plan, FoodPreference, Guest } from './types';
-
-export const MOCK_EVENT: EventData = {
-  title: "Shreans Daga Foundation: The Quantum Awakening",
-  banner: "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?q=80&w=2000&auto=format&fit=crop",
-  date: "Coming Soon 2025",
-  time: "06:00 AM Daily",
-  venue: "Pyramid Valley International, Bengaluru",
-  description: "Join Shreans Daga for a transformative 4-day journey into spiritual science and manifestation. Held at the world-renowned Pyramid Valley, this retreat integrates deep meditation with quantum insights to help you design your destiny."
-};
-
-export const MOCK_SCHEDULE = [
-  { 
-    day: "Day 1", 
-    date: "Day One",
-    slots: [
-      { time: "09:00 AM", title: "Check-in & Registration", desc: "Welcome and orientation at the PVI reception." },
-      { time: "11:00 AM", title: "Quantum Intention", desc: "Opening session with Shreans Daga." },
-      { time: "01:00 PM", title: "Mindful Lunch", desc: "Sattvic meals at designated dining halls." },
-      { time: "04:00 PM", title: "Pyramid Meditation", desc: "Deep meditation inside the Maitreya-Buddha Pyramid." },
-      { time: "07:00 PM", title: "Evening Satsang", desc: "Group sharing and frequency alignment." }
-    ]
-  },
-  { 
-    day: "Day 2", 
-    date: "Day Two",
-    slots: [
-      { time: "06:00 AM", title: "Sun Salutations", desc: "Morning yoga and breathwork in the valley." },
-      { time: "10:00 AM", title: "Spiritual Science", desc: "Decoding the laws of manifestation." },
-      { time: "02:30 PM", title: "Silent Contemplation", desc: "Individual practice sessions across the lush campus." },
-      { time: "05:00 PM", title: "Workshop: Energy Centers", desc: "Balancing the chakras for physical and mental health." }
-    ]
-  },
-  { 
-    day: "Day 3", 
-    date: "Day Three",
-    slots: [
-      { time: "06:30 AM", title: "Inner Silence", desc: "Extended meditation session for deep clarity." },
-      { time: "11:00 AM", title: "Manifestation Mastery", desc: "Practical tools for high-vibrational living." },
-      { time: "03:00 PM", title: "Nature Walk", desc: "Exploring the healing energies of PVI." },
-      { time: "06:00 PM", title: "Sound Healing", desc: "Vibrational therapy for cellular regeneration." }
-    ]
-  },
-  { 
-    day: "Day 4", 
-    date: "Day Four",
-    slots: [
-      { time: "07:00 AM", title: "Gratitude Ritual", desc: "Final morning practice and appreciation circle." },
-      { time: "10:00 AM", title: "Integration Session", desc: "Planning your spiritual path post-retreat." },
-      { time: "12:30 PM", title: "Closing Ceremony", desc: "Final blessings and certification." },
-      { time: "02:00 PM", title: "Departure", desc: "Carry the stillness with you." }
-    ]
-  }
-];
-
-export const MOCK_MENTORS = {
-  main: {
-    name: "Shreans Daga",
-    role: "Founder, Shreans Daga Foundation",
-    img: "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?w=600&auto=format&fit=crop",
-    bio: "Shreans Daga is a visionary spiritual scientist dedicated to teaching the art of manifestation and high-vibrational living. Having mastered numerous spiritual disciplines, he simplifies complex ancient wisdom into actionable quantum science for the modern world. His mission is to empower individuals to live a life of abundance, joy, and profound inner peace."
-  },
-  others: [
-    {
-      name: "Master Dr. Vishwa",
-      role: "Pyramid Science Expert",
-      img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop",
-      bio: "An expert in the geometry of spiritual spaces, Dr. Vishwa guides seekers in utilizing the unique energy of the Maitreya-Buddha Pyramid for accelerated spiritual growth."
-    },
-    {
-      name: "Sadhvi Meera",
-      role: "Bhakti & Meditation Guide",
-      img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop",
-      bio: "Sadhvi Meera brings a gentle, heart-centered approach to meditation, focusing on emotional release and deep self-love."
-    }
-  ]
-};
-
-export const MOCK_ROOM_TYPES = [
-  {
-    name: "PVI Dorms",
-    price: 1500,
-    desc: "Clean bunk beds in a community setting.",
-    img: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&auto=format&fit=crop"
-  },
-  {
-    name: "Deluxe Suite",
-    price: 3500,
-    desc: "Comfortable attached bathroom suite.",
-    img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&auto=format&fit=crop"
-  }
-];
-
-export const MOCK_INSIGHTS = [
-  {
-    title: "The Power of the Pyramid",
-    text: "Pyramid Valley International houses the world's largest meditation pyramid. Its sacred geometry amplifies cosmic energy, allowing meditators to reach deeper states of consciousness 3 times faster than in conventional spaces.",
-    img: "https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=1200&auto=format&fit=crop"
-  },
-  {
-    title: "Quantum Manifestation",
-    text: "Everything is energy. By learning to tune your internal frequency, you can collapse the wave function of possibility into your desired reality. This is the core teaching of the Shreans Daga Foundation.",
-    img: "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?w=1200&auto=format&fit=crop"
-  },
-  {
-    title: "Sattvic Sustenance",
-    text: "Fuel your soul with high-prana meals. Whether at Annadana or Soul Nest, our food is prepared with love and mindfulness to support your energetic transformation.",
-    img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop"
-  }
-];
-
-export const MOCK_PLANS: Plan[] = [
-  {
-    id: "pA",
-    title: "Plan A: PVI Dorms",
-    thumbnail: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&auto=format&fit=crop",
-    description: "4 Days and 3 Nights - Dorm Accommodation (1 bed per person).",
-    fullDescription: "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the traditional Annadana hall.",
-    discountedPrice: 9000,
-    finalPrice: 7000,
-    gstDetails: "Inclusive of GST",
-    amenities: ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
-  },
-  {
-    id: "pB",
-    title: "Plan B: Deluxe Rooms",
-    thumbnail: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
-    description: "4 Days and 3 Nights - 1 Bed for 2 Guests with attached bath.",
-    fullDescription: "Upgrade to Deluxe Rooms for more privacy and attached facilities. These rooms are perfect for couples or friends traveling together. Daily housekeeping and consistent hot water in the mornings.",
-    discountedPrice: 22000,
-    finalPrice: 19000,
-    gstDetails: "Inclusive of GST",
-    amenities: ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Annadana", "Free WiFi in Public Area", "Parking Available"]
-  },
-  {
-    id: "pC",
-    title: "Plan C: Premium Triple",
-    thumbnail: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
-    description: "4 Days and 3 Nights - Premium Triple Occupancy at Soul Nest.",
-    fullDescription: "Experience the premium hospitality of PVI at Soul Nest. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the exclusive Soul Nest dining.",
-    discountedPrice: 25000,
-    finalPrice: 21000,
-    gstDetails: "Inclusive of GST",
-    amenities: ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Soul Nest", "Free WiFi in Room", "Swimming Pool Access"]
-  },
-  {
-    id: "pD",
-    title: "Plan D: Premium Double",
-    thumbnail: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&auto=format&fit=crop",
-    description: "4 Days and 3 Nights - King Size Bed for 2 Guests.",
-    fullDescription: "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Soul Nest.",
-    discountedPrice: 48000,
-    finalPrice: 40000,
-    gstDetails: "Inclusive of GST",
-    amenities: ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
-  },
-  {
-    id: "pE",
-    title: "Plan E: Premium Single",
-    thumbnail: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
-    description: "4 Days and 3 Nights - Private King Size Bed for 1 Guest.",
-    fullDescription: "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Soul Nest at your disposal.",
-    discountedPrice: 48000,
-    finalPrice: 40000,
-    gstDetails: "Inclusive of GST",
-    amenities: ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Soul Nest", "In-room High-speed WiFi", "Swimming Pool Access"]
-  }
-];
-
-export const MOCK_COUPONS = [
-  { name: "Early Seeker Discount", code: "SDFEARLY", discount: 5, description: "For early registrations." },
-  { name: "Group Manifestation", code: "POWER3", discount: 10, description: "Register 3 or more seekers." }
-];
-
-export const createEmptyGuest = (): Guest => ({
-  id: Math.random().toString(36).substr(2, 9),
-  name: "",
-  phone: "",
-  email: "",
-  age: 0,
-  foodPreference: FoodPreference.REGULAR,
-  travelAssistance: false,
-  addOns: {
-    foodPass: false,
-    adventurePass: false,
-    extraStay: {
-      enabled: false,
-      days: 1,
-      type: "PVI Dorms",
-      startDate: new Date().toISOString().split('T')[0]
-    }
-  },
-  remark: "",
-  gender: '',
-  city: '',
-  state: '',
-});
-
-export const TAX_RATE = 0.18;
-export const STUDENT_DISCOUNT_PERCENT = 0.10;
-export const SERVICE_DISCOUNT_PERCENT = 0.15;
 </file>
 
 <file path="index.tsx">
@@ -1185,6 +976,208 @@ async function startServer() {
 startServer();
 </file>
 
+<file path="constants.tsx">
+import React from 'react';
+import { EventData, Plan, FoodPreference, Guest } from './types';
+
+export const MOCK_EVENT: EventData = {
+  title: "Shreans Daga Foundation: The Quantum Awakening",
+  banner: "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?q=80&w=2000&auto=format&fit=crop",
+  date: "Coming Soon 2025",
+  time: "06:00 AM Daily",
+  venue: "Pyramid Valley International, Bengaluru",
+  description: "Join Shreans Daga for a transformative 4-day journey into spiritual science and manifestation. Held at the world-renowned Pyramid Valley, this retreat integrates deep meditation with quantum insights to help you design your destiny."
+};
+
+export const MOCK_SCHEDULE = [
+  { 
+    day: "Day 1", 
+    date: "Day One",
+    slots: [
+      { time: "09:00 AM", title: "Check-in & Registration", desc: "Welcome and orientation at the PVI reception." },
+      { time: "11:00 AM", title: "Quantum Intention", desc: "Opening session with Shreans Daga." },
+      { time: "01:00 PM", title: "Mindful Lunch", desc: "Sattvic meals at designated dining halls." },
+      { time: "04:00 PM", title: "Pyramid Meditation", desc: "Deep meditation inside the Maitreya-Buddha Pyramid." },
+      { time: "07:00 PM", title: "Evening Satsang", desc: "Group sharing and frequency alignment." }
+    ]
+  },
+  { 
+    day: "Day 2", 
+    date: "Day Two",
+    slots: [
+      { time: "06:00 AM", title: "Sun Salutations", desc: "Morning yoga and breathwork in the valley." },
+      { time: "10:00 AM", title: "Spiritual Science", desc: "Decoding the laws of manifestation." },
+      { time: "02:30 PM", title: "Silent Contemplation", desc: "Individual practice sessions across the lush campus." },
+      { time: "05:00 PM", title: "Workshop: Energy Centers", desc: "Balancing the chakras for physical and mental health." }
+    ]
+  },
+  { 
+    day: "Day 3", 
+    date: "Day Three",
+    slots: [
+      { time: "06:30 AM", title: "Inner Silence", desc: "Extended meditation session for deep clarity." },
+      { time: "11:00 AM", title: "Manifestation Mastery", desc: "Practical tools for high-vibrational living." },
+      { time: "03:00 PM", title: "Nature Walk", desc: "Exploring the healing energies of PVI." },
+      { time: "06:00 PM", title: "Sound Healing", desc: "Vibrational therapy for cellular regeneration." }
+    ]
+  },
+  { 
+    day: "Day 4", 
+    date: "Day Four",
+    slots: [
+      { time: "07:00 AM", title: "Gratitude Ritual", desc: "Final morning practice and appreciation circle." },
+      { time: "10:00 AM", title: "Integration Session", desc: "Planning your spiritual path post-retreat." },
+      { time: "12:30 PM", title: "Closing Ceremony", desc: "Final blessings and certification." },
+      { time: "02:00 PM", title: "Departure", desc: "Carry the stillness with you." }
+    ]
+  }
+];
+
+export const MOCK_MENTORS = {
+  main: {
+    name: "Shreans Daga",
+    role: "Founder, Shreans Daga Foundation",
+    img: "https://images.unsplash.com/photo-1544161515-4ae6ce6e8584?w=600&auto=format&fit=crop",
+    bio: "Shreans Daga is a visionary spiritual scientist dedicated to teaching the art of manifestation and high-vibrational living. Having mastered numerous spiritual disciplines, he simplifies complex ancient wisdom into actionable quantum science for the modern world. His mission is to empower individuals to live a life of abundance, joy, and profound inner peace."
+  },
+  others: [
+    {
+      name: "Master Dr. Vishwa",
+      role: "Pyramid Science Expert",
+      img: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=400&auto=format&fit=crop",
+      bio: "An expert in the geometry of spiritual spaces, Dr. Vishwa guides seekers in utilizing the unique energy of the Maitreya-Buddha Pyramid for accelerated spiritual growth."
+    },
+    {
+      name: "Sadhvi Meera",
+      role: "Bhakti & Meditation Guide",
+      img: "https://images.unsplash.com/photo-1551836022-d5d88e9218df?w=400&auto=format&fit=crop",
+      bio: "Sadhvi Meera brings a gentle, heart-centered approach to meditation, focusing on emotional release and deep self-love."
+    }
+  ]
+};
+
+export const MOCK_ROOM_TYPES = [
+  {
+    name: "PVI Dorms",
+    price: 1500,
+    desc: "Clean bunk beds in a community setting.",
+    img: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=400&auto=format&fit=crop"
+  },
+  {
+    name: "Deluxe Suite",
+    price: 3500,
+    desc: "Comfortable attached bathroom suite.",
+    img: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=400&auto=format&fit=crop"
+  }
+];
+
+export const MOCK_INSIGHTS = [
+  {
+    title: "The Power of the Pyramid",
+    text: "Pyramid Valley International houses the world's largest meditation pyramid. Its sacred geometry amplifies cosmic energy, allowing meditators to reach deeper states of consciousness 3 times faster than in conventional spaces.",
+    img: "https://images.unsplash.com/photo-1528715471579-d1bcf0ba5e83?w=1200&auto=format&fit=crop"
+  },
+  {
+    title: "Quantum Manifestation",
+    text: "Everything is energy. By learning to tune your internal frequency, you can collapse the wave function of possibility into your desired reality. This is the core teaching of the Shreans Daga Foundation.",
+    img: "https://images.unsplash.com/photo-1499209974431-9dac3adaf471?w=1200&auto=format&fit=crop"
+  },
+  {
+    title: "Sattvic Sustenance",
+    text: "Fuel your soul with high-prana meals at Pyramid Valley International, where food is prepared with love and mindfulness to support your energetic transformation.",
+    img: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=1200&auto=format&fit=crop"
+  }
+];
+
+export const MOCK_PLANS: Plan[] = [
+  {
+    id: "pA",
+    title: "Plan A: PVI Dorms",
+    thumbnail: "https://images.unsplash.com/photo-1598928506311-c55ded91a20c?w=800&auto=format&fit=crop",
+    description: "4 Days and 3 Nights - Dorm Accommodation (1 bed per person).",
+    fullDescription: "Stay in our clean, community-focused PVI Dorms. This plan is perfect for budget-conscious seekers who enjoy the energy of a group setting. Meals are served at the Pyramid Valley International dining hall.",
+    discountedPrice: 9000,
+    finalPrice: 7000,
+    gstDetails: "Inclusive of GST",
+    amenities: ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
+  },
+  {
+    id: "pB",
+    title: "Plan B: Deluxe Rooms",
+    thumbnail: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=800&auto=format&fit=crop",
+    description: "4 Days and 3 Nights - 1 Bed for 2 Guests with attached bath.",
+    fullDescription: "Upgrade to Deluxe Rooms for more privacy and attached facilities. These rooms are perfect for couples or friends traveling together. Daily housekeeping and consistent hot water in the mornings.",
+    discountedPrice: 22000,
+    finalPrice: 19000,
+    gstDetails: "Inclusive of GST",
+    amenities: ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
+  },
+  {
+    id: "pC",
+    title: "Plan C: Premium Triple",
+    thumbnail: "https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?w=800&auto=format&fit=crop",
+    description: "4 Days and 3 Nights - Premium Triple Occupancy at Pyramid Valley International.",
+    fullDescription: "Experience the premium hospitality of Pyramid Valley International. With triple occupancy, this room offers 3 single beds, 24/7 hot/cold water, and WiFi directly in the room. Meals are served at the Pyramid Valley International dining hall.",
+    discountedPrice: 25000,
+    finalPrice: 21000,
+    gstDetails: "Inclusive of GST",
+    amenities: ["3 Single Beds", "Premium Bathroom Essentials", "Elevator Access", "24hr Hot/Cold Water", "Meals at Pyramid Valley International", "Free WiFi in Room", "Swimming Pool Access"]
+  },
+  {
+    id: "pD",
+    title: "Plan D: Premium Double",
+    thumbnail: "https://images.unsplash.com/photo-1512918728675-ed5a9ecdebfd?w=800&auto=format&fit=crop",
+    description: "4 Days and 3 Nights - King Size Bed for 2 Guests.",
+    fullDescription: "The Premium Double plan offers a spacious King Size bed for couples or partners seeking the highest level of comfort. Includes premium amenities, in-room tea/coffee maker, and access to all luxury facilities at Pyramid Valley International.",
+    discountedPrice: 48000,
+    finalPrice: 40000,
+    gstDetails: "Inclusive of GST",
+    amenities: ["King Size Bed", "Premium Bathroom Essentials", "Elevator Access", "Tea/Coffee Maker", "Meals at Pyramid Valley International", "In-room High-speed WiFi", "Swimming Pool Access"]
+  },
+  {
+    id: "pE",
+    title: "Plan E: Premium Single",
+    thumbnail: "https://images.unsplash.com/photo-1590490360182-c33d57733427?w=800&auto=format&fit=crop",
+    description: "4 Days and 3 Nights - Private King Size Bed for 1 Guest.",
+    fullDescription: "For the ultimate solitary retreat, Plan E offers private single occupancy in our Premium King rooms. Enjoy total seclusion and luxury, with all the high-end amenities of Pyramid Valley International at your disposal.",
+    discountedPrice: 48000,
+    finalPrice: 40000,
+    gstDetails: "Inclusive of GST",
+    amenities: ["Private King Bed", "Solitary Premium Stay", "Elevator Access", "Tea/Coffee Maker", "Meals at Pyramid Valley International", "In-room High-speed WiFi", "Swimming Pool Access"]
+  }
+];
+
+export const createEmptyGuest = (): Guest => ({
+  id: Math.random().toString(36).substr(2, 9),
+  name: "",
+  phone: "",
+  email: "",
+  age: undefined as unknown as number,
+  foodPreference: FoodPreference.REGULAR,
+  travelAssistance: false,
+  gender: null,
+  isKidsPlanOpted: false,
+  addOns: {
+    foodPass: false,
+    adventurePass: false,
+    extraStay: {
+      enabled: false,
+      days: 1,
+      type: "PVI Dorms",
+      startDate: new Date().toISOString().split("T")[0],
+    },
+  },
+  remark: "",
+  city: "",
+  state: "",
+  country: "",
+});
+
+export const TAX_RATE = 0.18;
+export const STUDENT_DISCOUNT_PERCENT = 0.10;
+export const SERVICE_DISCOUNT_PERCENT = 0.15;
+</file>
+
 <file path="package.json">
 {
   "name": "eventbook-pro",
@@ -1206,9 +1199,13 @@ startServer();
     "react-dom": "^19.2.3"
   },
   "devDependencies": {
+    "@tailwindcss/postcss": "^4.2.2",
     "@types/node": "^22.14.0",
     "@types/nodemailer": "^7.0.11",
     "@vitejs/plugin-react": "^5.0.0",
+    "autoprefixer": "^10.5.0",
+    "postcss": "^8.5.9",
+    "tailwindcss": "^4.2.2",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }
@@ -1232,6 +1229,12 @@ interface LandingPageProps {
 
 const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, insights, ui, onProceed }) => {
   const [activeDayIndex, setActiveDayIndex] = useState(0);
+  const bannerImage =
+    event.banner ||
+    'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
+  const eventDescription =
+    event.description?.trim() ||
+    'Event details will be updated soon. Please continue to explore plans and booking options for this retreat at Pyramid Valley International.';
 
 
   if (!schedules || schedules.length === 0) {
@@ -1243,7 +1246,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
       {/* Hero Section */}
       <div className="relative h-[600px] md:h-[850px] w-full overflow-hidden">
         <img 
-            src={event.banner || "https://via.placeholder.com/1200x600?text=No+Image"}
+            src={bannerImage}
  
           alt={event.title} 
           className="w-full h-full object-cover scale-105 opacity-90"
@@ -1291,7 +1294,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">{ui.about.label}</h2>
                </div>
                <p className="text-3xl text-stone-800 font-bold tracking-tight leading-tight">
-                 {event.description}
+                 {eventDescription}
                </p>
             </section>
 
@@ -2203,6 +2206,19 @@ interface PlanDetailProps {
   onBack: () => void;
 }
 
+const getPriceTypeLabel = (priceType?: string) => {
+  const normalized = String(priceType || '').trim().toLowerCase();
+  const raw = String(priceType || '').trim();
+
+  if (normalized === 'per_room') return 'per room';
+  if (normalized === 'per_night') return 'per night';
+  if (normalized === 'per_person_per_night') return 'per person / night';
+  if (normalized === 'per_person') return 'per person';
+  if (raw) return raw.replace(/_/g, ' ');
+
+  return 'per person';
+};
+
 const AmenityIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
   if (n.includes('wifi')) return <Wifi className="w-6 h-6" />;
@@ -2215,6 +2231,21 @@ const AmenityIcon = ({ name }: { name: string }) => {
   if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="w-6 h-6" />;
   if (n.includes('private entry') || n.includes('deck')) return <DoorOpen className="w-6 h-6" />;
   return <CheckCircle className="w-6 h-6" />;
+};
+
+const isPlanSoldOut = (plan: any) => {
+  if (plan?.isSoldOut === true) return true;
+  if (plan?.isSoldOut === false) return false;
+
+  const availableRooms = Number(
+    plan?.availableRooms ?? plan?.inventory?.availableRooms
+  );
+
+  if (!Number.isNaN(availableRooms)) {
+    return availableRooms <= 0;
+  }
+
+  return Number(plan?.remainingInventory ?? 0) <= 0;
 };
 
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
@@ -2244,28 +2275,45 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
     : [plan.thumbnail || plan.bannerImage || fallbackImage];
 
   const [activeIndex, setActiveIndex] = useState(0);
+  const [isHeroImageLoaded, setIsHeroImageLoaded] = useState(false);
 
   const goPrev = () => {
+    setIsHeroImageLoaded(false);
     setActiveIndex((prev) =>
       prev === 0 ? carouselImages.length - 1 : prev - 1
     );
   };
 
   const goNext = () => {
+    setIsHeroImageLoaded(false);
     setActiveIndex((prev) =>
       prev === carouselImages.length - 1 ? 0 : prev + 1
     );
   };
 
   const activeImage = carouselImages[activeIndex] || fallbackImage;
+  const priceTypeLabel = getPriceTypeLabel((plan as any).priceType);
+  const soldOut = isPlanSoldOut(plan);
+  const gstLabel =
+    (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
+      ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
+      : plan.gstDetails || '';
 
   return (
     <div className="animate-fadeIn pb-32 bg-white">
       <div className="relative h-[450px] w-full overflow-hidden">
+        {!isHeroImageLoaded ? (
+          <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-stone-200 via-stone-300 to-stone-200" />
+        ) : null}
         <img
           src={activeImage}
           alt={plan.PlanTitle || plan.PlanName || 'Plan image'}
-          className="w-full h-full object-cover brightness-75 scale-105 transition-all duration-500"
+          loading="eager"
+          onLoad={() => setIsHeroImageLoaded(true)}
+          onError={() => setIsHeroImageLoaded(true)}
+          className={`w-full h-full object-cover brightness-75 scale-105 transition-all duration-500 ${
+            isHeroImageLoaded ? 'opacity-100' : 'opacity-0'
+          }`}
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-white via-black/20 to-transparent" />
@@ -2305,6 +2353,11 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
               {plan.PlanTitle}
             </h1>
+            {soldOut ? (
+              <span className="mt-4 inline-block rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
+                Sold Out
+              </span>
+            ) : null}
           </div>
         </div>
 
@@ -2313,7 +2366,10 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             {carouselImages.map((_: string, index: number) => (
               <button
                 key={index}
-                onClick={() => setActiveIndex(index)}
+                onClick={() => {
+                  setIsHeroImageLoaded(false);
+                  setActiveIndex(index);
+                }}
                 className={`h-2.5 w-2.5 rounded-full transition-all ${
                   index === activeIndex ? 'bg-white w-6' : 'bg-white/50'
                 }`}
@@ -2396,20 +2452,27 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   Retreat Offering
                 </span>
                 <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest mt-1">
-                  per person
+                  {priceTypeLabel}
                 </span>
                 <div className="text-right">
                   <span className="text-5xl font-black text-stone-900">
                     ₹ {Number(plan.discountedPrice || plan.OfferPrice || 0).toLocaleString()}
                   </span>
-                  <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">
-                    {plan.gstDetails}
-                  </p>
+                  {gstLabel ? (
+                    <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">
+                      {gstLabel}
+                    </p>
+                  ) : null}
                 </div>
               </div>
             </div>
 
             <div className="space-y-4 pt-8 border-t border-stone-50 mb-12">
+              {soldOut ? (
+                <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
+                  This plan is currently sold out. Please choose another available option.
+                </div>
+              ) : null}
               <div className="flex items-center gap-3 text-sm text-stone-500 font-medium">
                 <ShieldCheck className="w-5 h-5 text-teal-500" />
                 Flat Rs 10000 for kids aged 17 years and below!
@@ -2421,10 +2484,18 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             </div>
 
             <button
-              onClick={onProceed}
-              className="w-full bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white py-5 rounded-[24px] font-black text-lg transition-all shadow-xl shadow-[var(--theme-light)] flex items-center justify-center gap-3 group active:scale-95"
+              onClick={() => {
+                if (!soldOut) onProceed();
+              }}
+              disabled={soldOut}
+              className={`w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 ${
+                soldOut
+                  ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
+                  : 'bg-[var(--theme)] text-white shadow-xl shadow-[var(--theme-light)] group active:scale-95 hover:bg-[var(--theme-dark)]'
+              }`}
             >
-              Book Now! <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
+              {soldOut ? 'Sold Out' : 'Book Now!'}
+              <ArrowRight className={`w-6 h-6 ${soldOut ? '' : 'group-hover:translate-x-2 transition-transform'}`} />
             </button>
           </div>
         </div>
@@ -2434,6 +2505,521 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 };
 
 export default PlanDetail;
+</file>
+
+<file path="components/PlanSelection.tsx">
+import React, { useEffect, useState } from 'react';
+import { Plan } from '../types';
+import {
+  Check,
+  Loader2,
+  Wifi,
+  Sun,
+  Wind,
+  Bed,
+  ConciergeBell,
+  DoorOpen,
+  Utensils,
+  Heart,
+  Flower2,
+  Car,
+} from 'lucide-react';
+
+const loadedPlanImageCache = new Set<string>();
+const pendingPlanImageCache = new Map<string, Promise<void>>();
+
+interface PlanSelectionProps {
+  plans: Plan[];
+  ui: any;
+  onSelect: (plan: Plan) => void;
+  onBack: () => void;
+  isLoading?: boolean;
+}
+
+const getPriceTypeLabel = (priceType?: string) => {
+  const normalized = String(priceType || '').trim().toLowerCase();
+  const raw = String(priceType || '').trim();
+
+  if (normalized === 'per_room') return 'per room';
+  if (normalized === 'per_night') return 'per night';
+  if (normalized === 'per_person_per_night') return 'per person / night';
+  if (normalized === 'per_person') return 'per person';
+  if (raw) return raw.replace(/_/g, ' ');
+
+  return 'per person';
+};
+
+const getThumbnailImage = (plan: any) => {
+  return (
+    plan.images?.find((img: any) => Number(img.isThumbnail) === 1)?.imageUrl ||
+    plan.images?.find((img: any) => Number(img.isMain) === 1)?.imageUrl ||
+    plan.images?.[0]?.imageUrl ||
+    plan.thumbnail ||
+    plan.bannerImage ||
+    'https://via.placeholder.com/1200x600?text=No+Image'
+  );
+};
+
+const primePlanImage = (src: string) => {
+  if (!src || loadedPlanImageCache.has(src)) {
+    return Promise.resolve();
+  }
+
+  const existingRequest = pendingPlanImageCache.get(src);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const request = new Promise<void>((resolve) => {
+    const image = new Image();
+
+    const finish = () => {
+      loadedPlanImageCache.add(src);
+      pendingPlanImageCache.delete(src);
+      resolve();
+    };
+
+    image.onload = finish;
+    image.onerror = finish;
+    image.src = src;
+
+    if (image.complete) {
+      finish();
+    }
+  });
+
+  pendingPlanImageCache.set(src, request);
+  return request;
+};
+
+const isPlanSoldOut = (plan: any) => {
+  if (plan?.isSoldOut === true) return true;
+  if (plan?.isSoldOut === false) return false;
+
+  const availableRooms = Number(
+    plan?.availableRooms ?? plan?.inventory?.availableRooms
+  );
+
+  if (!Number.isNaN(availableRooms)) {
+    return availableRooms <= 0;
+  }
+
+  return Number(plan?.remainingInventory ?? 0) <= 0;
+};
+
+const AmenityFallbackIcon = ({ name }: { name: string }) => {
+  const normalizedName = String(name || '').toLowerCase();
+
+  if (normalizedName.includes('wifi')) return <Wifi className="h-4 w-4 text-[var(--theme)]" />;
+  if (normalizedName.includes('heating') || normalizedName.includes('floor') || normalizedName.includes('ac')) {
+    return <Sun className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('spa')) return <Heart className="h-4 w-4 text-[var(--theme)]" />;
+  if (normalizedName.includes('bed') || normalizedName.includes('stay') || normalizedName.includes('room')) {
+    return <Bed className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('meal') || normalizedName.includes('banquet') || normalizedName.includes('food')) {
+    return <Utensils className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('view') || normalizedName.includes('riverside') || normalizedName.includes('air')) {
+    return <Wind className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('concierge') || normalizedName.includes('support')) {
+    return <ConciergeBell className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('meditation') || normalizedName.includes('altar')) {
+    return <Flower2 className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('private entry') || normalizedName.includes('deck')) {
+    return <DoorOpen className="h-4 w-4 text-[var(--theme)]" />;
+  }
+  if (normalizedName.includes('parking') || normalizedName.includes('car')) {
+    return <Car className="h-4 w-4 text-[var(--theme)]" />;
+  }
+
+  return <Check className="h-4 w-4 text-[var(--theme)]" />;
+};
+
+const AmenityVisual = ({
+  name,
+  iconUrl,
+}: {
+  name: string;
+  iconUrl?: string;
+}) => {
+  const [imageFailed, setImageFailed] = useState(false);
+
+  if (iconUrl && !imageFailed) {
+    return (
+      <img
+        src={iconUrl}
+        alt={name}
+        className="h-4 w-4 object-contain"
+        onError={() => setImageFailed(true)}
+      />
+    );
+  }
+
+  return <AmenityFallbackIcon name={name} />;
+};
+
+const PlanCardImage = ({
+  src,
+  alt,
+}: {
+  src: string;
+  alt: string;
+}) => {
+  const [isReady, setIsReady] = useState(() => loadedPlanImageCache.has(src));
+
+  useEffect(() => {
+    let isMounted = true;
+    setIsReady(loadedPlanImageCache.has(src));
+
+    primePlanImage(src).then(() => {
+      if (isMounted) {
+        setIsReady(true);
+      }
+    });
+
+    return () => {
+      isMounted = false;
+    }
+  }, [src]);
+
+  return (
+    <div className="w-full md:w-72 h-56 md:h-auto overflow-hidden rounded-t-3xl md:rounded-l-3xl md:rounded-tr-none relative bg-stone-100">
+      {!isReady ? (
+        <div className="absolute inset-0 bg-stone-100" />
+      ) : null}
+      <img
+        src={src}
+        alt={alt}
+        className={`block w-full h-full object-cover transition-opacity duration-200 ${
+          isReady ? 'opacity-100' : 'opacity-0'
+        }`}
+      />
+    </div>
+  );
+};
+
+const PlanSelection: React.FC<PlanSelectionProps> = ({
+  plans,
+  ui,
+  onSelect,
+  onBack,
+  isLoading = false,
+}) => {
+  useEffect(() => {
+    plans.forEach((plan: any) => {
+      void primePlanImage(getThumbnailImage(plan));
+    });
+  }, [plans]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-20 w-full">
+        <div className="rounded-[32px] border border-stone-100 bg-white p-12 text-center shadow-sm">
+          <Loader2 className="w-10 h-10 text-[var(--theme)] animate-spin mx-auto mb-4" />
+          <h2 className="text-2xl font-black text-stone-900">Loading Plans</h2>
+          <p className="mt-2 text-sm font-medium text-stone-500">
+            We are fetching the latest pricing and availability for this event.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!plans.length) {
+    return (
+      <div className="max-w-4xl mx-auto px-6 py-20 w-full">
+        <div className="rounded-[32px] border-2 border-dashed border-stone-200 bg-white p-12 text-center">
+          <h2 className="text-2xl font-black text-stone-900">No Plans Available</h2>
+          <p className="mt-2 text-sm font-medium text-stone-500">
+            Plans for this event have not been published yet. Please check back shortly.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="max-w-4xl mx-auto px-6 py-12 w-full animate-fadeIn">
+      <div className="mb-10 text-center">
+        <h2 className="text-3xl font-bold text-stone-900 mb-2">{ui.title}</h2>
+        <p className="text-stone-600"></p>
+      </div>
+
+      <div className="grid gap-8">
+        {plans.map((plan: any, index: number) => {
+          const amenities = plan.amenities || plan.icons || [];
+          const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
+          const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
+          const planDescription = plan.PlanDescription || plan.description || '';
+          const soldOut = isPlanSoldOut(plan);
+          const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);
+          const discountedPrice = Number(
+            plan.discountedPrice || plan.OfferPrice || plan.finalPrice || plan.PlanPrice || 0
+          );
+          const priceTypeLabel = getPriceTypeLabel(plan.priceType);
+          const gstLabel =
+            plan.gstType === 'exclusive' && Number(plan.gstRate || 0) > 0
+              ? `+ ${Number(plan.gstRate).toLocaleString()}% GST`
+              : plan.gstDetails || '';
+
+          return (
+            <div
+              key={plan.planID || plan.id}
+              className="relative bg-white rounded-3xl shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
+            >
+              {soldOut ? (
+                <div className="pointer-events-none absolute -left-2 top-4 z-20 rotate-[-16deg]">
+                  <div className="rounded-md border-[5px] border-rose-700 bg-rose-50/85 px-5 py-3 shadow-xl">
+                    <div className="rounded-sm border-2 border-dashed border-rose-700/70 px-4 py-2">
+                      <span className="block text-center text-lg font-black uppercase tracking-[0.35em] text-rose-700">
+                        Sold Out
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              ) : null}
+              <PlanCardImage
+                src={getThumbnailImage(plan)}
+                alt={planTitle}
+              />
+
+              <div className="flex-1 p-6 md:p-8 flex flex-col">
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="mb-1 flex flex-wrap items-center gap-3">
+                      <h3 className="text-2xl font-black text-stone-900">{planTitle}</h3>
+                    </div>
+
+                    {planSubtitle ? (
+                      <p className="text-stone-500 text-sm font-medium whitespace-pre-line mb-2">
+                        {planSubtitle}
+                      </p>
+                    ) : null}
+
+                    <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
+                      {planDescription}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-y-3 mb-6">
+                  {amenities.slice(0, 4).map((amenity: any) => {
+                    const amenityTitle = amenity.Title || amenity.title || '';
+                    const amenityIcon = amenity.IconUrl || amenity.iconUrl || '';
+
+                    return (
+                      <div
+                        key={amenity.id}
+                        className="flex items-center gap-2 text-sm text-stone-600 font-medium"
+                      >
+                        <AmenityVisual name={amenityTitle} iconUrl={amenityIcon} />
+                        <span>{amenityTitle}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div className="mt-auto flex items-end justify-between pt-6 border-t border-stone-50">
+                  <div>
+                    <span className="text-stone-400 line-through text-sm font-bold">
+                      ₹{finalPrice.toLocaleString()}
+                    </span>
+
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <span className="text-3xl font-black text-stone-900">
+                        ₹{discountedPrice.toLocaleString()}
+                      </span>
+
+                      <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                        / {priceTypeLabel}
+                      </span>
+
+                      {gstLabel ? (
+                        <span className="text-xs text-[var(--theme)] font-bold">
+                          {gstLabel}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+
+                  <button
+                    onClick={() => {
+                      if (!soldOut) onSelect(plan);
+                    }}
+                    disabled={soldOut}
+                    className={`px-8 py-3 rounded-2xl font-black transition-all shadow-lg ${
+                      soldOut
+                        ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
+                        : 'bg-[var(--theme)] text-white hover:bg-[var(--theme-dark)] hover:scale-105 shadow-[var(--theme-light)]'
+                    }`}
+                  >
+                    {soldOut ? 'Sold Out' : ui.cta}
+                  </button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+export default PlanSelection;
+</file>
+
+<file path="types.ts">
+export enum FoodPreference {
+  REGULAR = 'Regular',
+  JAIN = 'Jain'
+}
+
+export interface AddOn {
+  id: string;
+  name: string;
+  price: number;
+  description: string;
+}
+
+export interface Guest {
+  id: string;
+  name: string;
+  phone: string;
+  email: string;
+  age: number;
+  isKidsPlanOpted: boolean;
+  foodPreference: FoodPreference;
+  travelAssistance: boolean;
+  
+  addOns: {
+    foodPass: boolean;
+    adventurePass: boolean;
+    extraStay: {
+      enabled: boolean;
+      days: number;
+      type: string;
+      startDate: string;
+    };
+  };
+  remark: string;
+
+  gender: string | null;
+  city: string;  
+  state: string; 
+  country: string;
+}
+
+
+
+export interface PlanIcon {
+  id: number;
+  title: string;
+  iconUrl: string;
+  type: string;
+  planID: number;
+}
+
+
+export interface ScheduleSlot {
+  time: string;
+  title: string;
+  description: string;
+}
+
+export interface ScheduleDay {
+  day: string;
+  date: string;
+  slots: ScheduleSlot[];
+}
+
+export interface Plan {
+  id?: string;
+  planID: number;
+  PlanID?: number;
+  PlanName?: string;
+  priceType?: string;
+  remainingInventory?: number;
+  title?: string;
+  sequence:number;
+  PlanTitle?: string;
+  PlanSubtitle?: string;
+  thumbnail?: string;
+  banner: string | null;
+  bannerImage?: string;
+  description?: string;
+  stayRoomType?: string;
+  PlanDescription?: string;
+  fullDescription?: string;
+  longDescription?: string;
+  planColor?: string;
+  maxPax?: number;
+  PlanPrice: number;
+  OfferPrice: number;
+  discountedPrice?: number;
+  finalPrice?: number;
+  gstDetails?: string;
+  amenities?: PlanIcon[];
+  isSpecialPlan?: boolean | number; 
+  tag?: string;
+  images: {
+    id: number;
+    imageUrl: string;
+    isMain: boolean;
+    isThumbnail: boolean;
+  }[];
+}
+
+export interface EventData {
+  id: number | string;
+  EventID?: number | string;
+  title: string;
+
+  slug: string;
+  EventName?: string;
+  banner: string;
+
+  date: string;
+
+  // ✅ ADD TYPES
+  startDate?: string;
+  endDate?: string;
+
+  time: string;
+  venue: string;
+  description: string;
+
+  schedules?: any[];
+  plans?: any[];
+  addons?: any[];
+}
+
+export interface DiscountInfo {
+  type: 'STUDENT' | 'SERVICE' | 'COUPON' | 'NONE';
+  amount: number;
+  idProofName?: string;
+  couponCode?: string;
+}
+
+export interface BookingState {
+  currentStep: number;
+  selectedPlan: Plan | null;
+  guests: Guest[];
+  discounts: DiscountInfo;
+  is80GRequired: boolean;
+  taxInfo: {
+    panNumber: string;
+    fullName: string;
+    address: string;
+    panFile?: string;
+    aadharFile?: string;
+  };
+  bookingId?: string | number;
+}
 </file>
 
 <file path="components/GuestForm.tsx">
@@ -2525,6 +3111,16 @@ const COUNTRIES = [
   'Uzbekistan', 'Vanuatu', 'Vatican City', 'Venezuela', 'Vietnam', 'Yemen', 'Zambia', 'Zimbabwe',
 ];
 
+const normalizePhoneInput = (value: string) => {
+  const trimmed = value.trim();
+  const hasLeadingPlus = trimmed.startsWith('+');
+  const digitsOnly = trimmed.replace(/\D/g, '');
+
+  return `${hasLeadingPlus ? '+' : ''}${digitsOnly}`;
+};
+
+const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
+
 interface StayAddonMapping {
   planId?: number | string;
   pricePerNight?: number | string;
@@ -2608,6 +3204,13 @@ const ErrorLabel = ({ message }: { message?: string }) => {
       <AlertCircle className="h-3 w-3" /> {message}
     </span>
   );
+};
+
+const isValidEmail = (value?: string) => {
+  const email = String(value || '').trim();
+  if (!email) return false;
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 };
 
 const CountrySelector = ({
@@ -2950,13 +3553,8 @@ const getStayEndDate = (startDate: string, days: number) => {
       const fallback = getDefaultExtraStay();
       const incomingStartDate = normalizeDateInput(existingExtraStay.startDate);
       
-      const safeStartDate =
-  incomingStartDate && minExtraStayStartDate
-    ? incomingStartDate < minExtraStayStartDate
-      ? minExtraStayStartDate
-      : incomingStartDate
-    : minExtraStayStartDate;
-      const safeDays = Math.max(1, Number(existingExtraStay.days || 1));
+      const safeStartDate = minExtraStayStartDate;
+      const safeDays = Math.min(10, Math.max(1, Number(existingExtraStay.days || 1)));
 
       return {
         ...guest,
@@ -2969,9 +3567,9 @@ const getStayEndDate = (startDate: string, days: number) => {
             planId:
               existingExtraStay.planId || matchedPlan?.id || fallback.planId,
             price: Number(
-              existingExtraStay.price ??
-                matchedPlan?.pricePerNight ??
-                fallback.price
+              matchedPlan?.pricePerNight ??
+                fallback.price ??
+                0
             ),
             startDate: safeStartDate || '',
             endDate: safeStartDate
@@ -3013,23 +3611,41 @@ const getStayEndDate = (startDate: string, days: number) => {
 
   const getGuestErrors = (guest: Guest | any) => {
     const errors: Record<string, string> = {};
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!guest.name?.trim()) errors.name = 'Name is required';
 
     if (!guest.email?.trim()) {
       errors.email = 'Email is required';
-    } else if (!emailRegex.test(guest.email)) {
+    } else if (!isValidEmail(guest.email)) {
       errors.email = 'Invalid email format';
     }
 
     if (!guest.phone?.trim()) {
       errors.phone = 'Phone is required';
-    } else if (String(guest.phone).length < 10) {
-      errors.phone = 'Min 10 digits required';
-    }
+    } else {
+      const phoneDigits = getPhoneDigits(guest.phone);
+      const isIndianGuest = String(guest.country || '').trim().toLowerCase() === 'india';
 
-    if (!guest.age || Number(guest.age) <= 0) errors.age = 'Age is required';
+      if (isIndianGuest) {
+        if (phoneDigits.length !== 10) {
+          errors.phone = 'Enter a valid 10-digit phone number';
+        }
+      } else if (phoneDigits.length < 8 || phoneDigits.length > 15) {
+        errors.phone = 'Enter a valid international phone number';
+      }
+    }
+    const age = Number(guest.age);
+
+      if (!guest.age && guest.age !== 0) {
+        errors.age = 'Age is required';
+      } else if (isNaN(age)) {
+        errors.age = 'Invalid age';
+      } else if (age < 1 || age > 120) {
+        errors.age = 'Age must be between 1 and 120';
+      }
+    if (!guest.gender) {
+      errors.gender = 'Gender is required';
+    }  
     if (!guest.country) errors.country = 'Country is required';
     if (!guest.state) errors.state = 'State is required';
     if (!guest.city?.trim()) errors.city = 'City is required';
@@ -3181,12 +3797,7 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     const guest = guests.find((g: any) => String(g.id) === String(guestId));
     const currentExtraStay = guest?.addOns?.extraStay || getDefaultExtraStay();
-    const safeStartDate =
-      currentExtraStay.startDate && minExtraStayStartDate
-        ? currentExtraStay.startDate < minExtraStayStartDate
-          ? minExtraStayStartDate
-          : currentExtraStay.startDate
-        : currentExtraStay.startDate || minExtraStayStartDate;
+    const safeStartDate = minExtraStayStartDate;
 
     updateGuest(guestId, {
       addOns: {
@@ -3210,13 +3821,8 @@ const getStayEndDate = (startDate: string, days: number) => {
     if (!guest) return;
 
     const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
-    const safeDays = Math.max(1, Number(days || 1));
-    const safeStartDate =
-      extraStay.startDate && minExtraStayStartDate
-        ? extraStay.startDate < minExtraStayStartDate
-          ? minExtraStayStartDate
-          : extraStay.startDate
-        : extraStay.startDate || minExtraStayStartDate;
+    const safeDays = Math.min(10, Math.max(1, Number(days || 1)));
+    const safeStartDate = minExtraStayStartDate;
 
     updateGuest(guestId, {
       addOns: {
@@ -3235,13 +3841,8 @@ const getStayEndDate = (startDate: string, days: number) => {
     if (!guest) return;
 
     const extraStay = guest.addOns?.extraStay || getDefaultExtraStay();
-    const normalizedStartDate = normalizeDateInput(startDate);
-   const safeStartDate =
-  normalizedStartDate && minExtraStayStartDate
-    ? normalizedStartDate < minExtraStayStartDate
-      ? minExtraStayStartDate
-      : normalizedStartDate
-    : minExtraStayStartDate;
+    const safeStartDate = minExtraStayStartDate;
+
     updateGuest(guestId, {
       addOns: {
         extraStay: {
@@ -3291,7 +3892,9 @@ const getStayEndDate = (startDate: string, days: number) => {
   const handleProceedClick = () => {
     setTouched(true);
 
-    if (!allGuestsValid) return;
+      if (!allGuestsValid) {
+        return; // ✅ already exists
+      }
 
     if (showExtraStaySection) {
       const invalidExtraStayGuest = guests.find((guest: any) => {
@@ -3319,7 +3922,7 @@ const getStayEndDate = (startDate: string, days: number) => {
   };
 
   return (
-    <div className="mx-auto w-full max-w-4xl animate-fadeIn px-4 py-8 pb-40">
+    <div className="mx-auto w-full max-w-4xl animate-fadeIn px-4 py-8 pb-52 sm:pb-16">
       <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-stone-200 pb-6 sm:flex-row sm:items-center">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-stone-900">
@@ -3341,6 +3944,9 @@ const getStayEndDate = (startDate: string, days: number) => {
       <div className="space-y-6">
         {guests.map((guest: any, index) => {
           const errors = getGuestErrors(guest);
+          const hasTypedEmail = String(guest.email || '').trim().length > 0;
+          const emailLooksValid = isValidEmail(guest.email);
+          const showRealtimeEmailError = hasTypedEmail && !emailLooksValid;
 
           return (
             <div
@@ -3404,10 +4010,14 @@ const getStayEndDate = (startDate: string, days: number) => {
                     type="tel"
                     value={guest.phone}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '');
-                      updateGuest(guest.id, { phone: val });
-                    }}
-                    placeholder={ui.guestCard.fields.phonePlaceholder}
+                        const val = normalizePhoneInput(e.target.value);
+                        updateGuest(guest.id, { phone: val });
+                      }}
+                    placeholder={
+                      guest.country === 'India'
+                        ? 'Enter 10-digit mobile number'
+                        : '+12345678901'
+                    }
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.phone
                         ? 'border-red-200 bg-white'
@@ -3429,10 +4039,22 @@ const getStayEndDate = (startDate: string, days: number) => {
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.email
                         ? 'border-red-200 bg-white'
+                        : showRealtimeEmailError
+                        ? 'border-red-200 bg-red-50'
+                        : hasTypedEmail && emailLooksValid
+                        ? 'border-emerald-200 bg-emerald-50'
                         : 'border-stone-100 bg-stone-50 focus:border-[var(--theme)] focus:bg-white'
                     }`}
                   />
-                  {touched && <ErrorLabel message={errors.email} />}
+                  {showRealtimeEmailError ? (
+                    <ErrorLabel message="Enter a valid email address" />
+                  ) : null}
+                  {!showRealtimeEmailError && hasTypedEmail && emailLooksValid ? (
+                    <span className="mt-1 flex items-center gap-1 text-[9px] font-bold text-emerald-600 animate-fadeIn">
+                      <CheckCircle2 className="h-3 w-3" /> Email looks valid
+                    </span>
+                  ) : null}
+                  {touched && !hasTypedEmail && <ErrorLabel message={errors.email} />}
                 </div>
 
                 <div className="space-y-1">
@@ -3456,10 +4078,11 @@ const getStayEndDate = (startDate: string, days: number) => {
                   {touched && <ErrorLabel message={errors.age} />}
                 </div>
 
-                <div className="space-y-1">
+              <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Gender
+                    Gender <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
                   </label>
+
                   <div className="flex gap-2">
                     {['Male', 'Female', 'Prefer not to say'].map((gender) => (
                       <label
@@ -3481,6 +4104,9 @@ const getStayEndDate = (startDate: string, days: number) => {
                       </label>
                     ))}
                   </div>
+
+                  {/* ✅ ADD THIS */}
+                  {touched && <ErrorLabel message={errors.gender} />}
                 </div>
 
                 <div className="space-y-1">
@@ -3662,12 +4288,9 @@ const getStayEndDate = (startDate: string, days: number) => {
                                   enabled: true,
                                   startDate: minExtraStayStartDate,
                                   endDate:
-                                    guest.addOns?.extraStay?.startDate ||
                                     minExtraStayStartDate
                                       ? getStayEndDate(
-                                          guest.addOns?.extraStay?.startDate ||
-                                            minExtraStayStartDate ||
-                                            defaultStay.startDate,
+                                            minExtraStayStartDate,
                                           Number(
                                             guest.addOns?.extraStay?.days || 1
                                           )
@@ -3757,16 +4380,17 @@ const getStayEndDate = (startDate: string, days: number) => {
                           </label>
                           <input
                             type="date"
+                            readOnly
                             min={minExtraStayStartDate || undefined}
-                            value={guest.addOns?.extraStay?.startDate || ''}
+                            value={guest.addOns?.extraStay?.startDate || minExtraStayStartDate}
                             onChange={(e) =>
                               updateExtraStayStartDate(guest.id, e.target.value)
                             }
-                            className="w-full rounded-lg border-2 border-stone-100 bg-white px-3 py-2 text-xs font-bold text-stone-900 outline-none focus:border-[var(--theme)]"
+                            className="w-full rounded-lg border-2 border-stone-100 bg-stone-100 px-3 py-2 text-xs font-bold text-stone-500 outline-none cursor-not-allowed"
                           />
                           {minExtraStayStartDate && (
                             <p className="text-[9px] font-bold text-stone-500">
-                              Starts from {formatDateShort(minExtraStayStartDate)}
+                              Starts exactly from {formatDateShort(minExtraStayStartDate)}
                             </p>
                           )}
                         </div>
@@ -3799,17 +4423,23 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                             <button
                               type="button"
+                              disabled={Number(guest.addOns?.extraStay?.days || 1) >= 10}
                               onClick={() =>
                                 updateExtraStayDays(
                                   guest.id,
                                   Number(guest.addOns?.extraStay?.days || 1) + 1
                                 )
                               }
-                              className="font-black text-stone-400 hover:text-[var(--theme)]"
+                              className={`font-black transition-all ${
+                                Number(guest.addOns?.extraStay?.days || 1) >= 10 
+                                  ? 'text-stone-200 cursor-not-allowed' 
+                                  : 'text-stone-400 hover:text-[var(--theme)]'
+                              }`}
                             >
                               <PlusCircle className="h-4 w-4" />
                             </button>
                           </div>
+                          <p className="text-[8px] font-bold text-stone-400 uppercase text-center mt-1">Max 10 days</p>
                         </div>
 
                         <div className="flex-1 space-y-1">
@@ -3987,285 +4617,6 @@ const getStayEndDate = (startDate: string, days: number) => {
 export default GuestForm;
 </file>
 
-<file path="types.ts">
-export enum FoodPreference {
-  REGULAR = 'Regular',
-  JAIN = 'Jain'
-}
-
-export interface AddOn {
-  id: string;
-  name: string;
-  price: number;
-  description: string;
-}
-
-export interface Guest {
-  id: string;
-  name: string;
-  phone: string;
-  email: string;
-  age: number;
-  isKidsPlanOpted: boolean;
-  foodPreference: FoodPreference;
-  travelAssistance: boolean;
-  addOns: {
-    foodPass: boolean;
-    adventurePass: boolean;
-    extraStay: {
-      enabled: boolean;
-      days: number;
-      type: string;
-      startDate: string;
-    };
-  };
-  remark: string;
-
-  gender: 'Male' | 'Female' | 'Prefer not to say' | ''; 
-  city: string;  
-  state: string; 
-  country: string;
-}
-
-
-
-export interface PlanIcon {
-  id: number;
-  title: string;
-  iconUrl: string;
-  type: string;
-  planID: number;
-}
-
-
-export interface ScheduleSlot {
-  time: string;
-  title: string;
-  description: string;
-}
-
-export interface ScheduleDay {
-  day: string;
-  date: string;
-  slots: ScheduleSlot[];
-}
-
-export interface Plan {
-  id?: string;
-  planID: number;
-  title?: string;
-  sequence:number;
-  PlanTitle?: string;
-  thumbnail?: string;
-  banner: string | null;
-  description?: string;
-  stayRoomType?: string;
-  PlanDescription?: string;
-  fullDescription?: string;
-  PlanPrice: number;
-  OfferPrice: number;
-  discountedPrice?: number;
-  finalPrice?: number;
-  gstDetails?: string;
-  amenities?: PlanIcon[];
-  isSpecialPlan?: boolean | number; 
-  tag?: string;
-  images: {
-    id: number;
-    imageUrl: string;
-    isMain: boolean;
-    isThumbnail: boolean;
-  }[];
-}
-
-export interface EventData {
-  id: number | string;
-  EventID?: number | string;
-  title: string;
-
-  slug: string;
-  EventName?: string;
-  banner: string;
-
-  date: string;
-
-  // ✅ ADD TYPES
-  startDate?: string;
-  endDate?: string;
-
-  time: string;
-  venue: string;
-  description: string;
-
-  schedules?: any[];
-  plans?: any[];
-  addons?: any[];
-}
-
-export interface DiscountInfo {
-  type: 'STUDENT' | 'SERVICE' | 'COUPON' | 'NONE';
-  amount: number;
-  idProofName?: string;
-  couponCode?: string;
-}
-
-export interface BookingState {
-  currentStep: number;
-  selectedPlan: Plan | null;
-  guests: Guest[];
-  discounts: DiscountInfo;
-  is80GRequired: boolean;
-  taxInfo: {
-    panNumber: string;
-    fullName: string;
-    address: string;
-    panFile?: string;
-    aadharFile?: string;
-  };
-  bookingId?: string | number;
-}
-</file>
-
-<file path="components/PlanSelection.tsx">
-import React from 'react';
-import { Plan } from '../types';
-import { Check } from 'lucide-react';
-
-interface PlanSelectionProps {
-  plans: Plan[];
-  ui: any;
-  onSelect: (plan: Plan) => void;
-  onBack: () => void;
-}
-
-const getThumbnailImage = (plan: any) => {
-  return (
-    plan.images?.find((img: any) => Number(img.isThumbnail) === 1)?.imageUrl ||
-    plan.images?.find((img: any) => Number(img.isMain) === 1)?.imageUrl ||
-    plan.images?.[0]?.imageUrl ||
-    plan.thumbnail ||
-    plan.bannerImage ||
-    'https://via.placeholder.com/1200x600?text=No+Image'
-  );
-};
-
-const PlanSelection: React.FC<PlanSelectionProps> = ({ plans, ui, onSelect, onBack }) => {
-  return (
-    <div className="max-w-4xl mx-auto px-6 py-12 w-full animate-fadeIn">
-      <div className="mb-10 text-center">
-        <h2 className="text-3xl font-bold text-stone-900 mb-2">{ui.title}</h2>
-        <p className="text-stone-600"></p>
-      </div>
-
-      <div className="grid gap-8">
-        {plans.map((plan: any) => {
-          const amenities = plan.amenities || plan.icons || [];
-          const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
-          const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
-          const planDescription = plan.PlanDescription || plan.description || '';
-          const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);
-          const discountedPrice = Number(
-            plan.discountedPrice || plan.OfferPrice || plan.finalPrice || plan.PlanPrice || 0
-          );
-
-          return (
-            <div
-              key={plan.planID || plan.id}
-              className="bg-white rounded-3xl overflow-hidden shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
-            >
-              <div className="w-full md:w-72 h-56 md:h-auto overflow-hidden relative">
-                <img
-                  src={getThumbnailImage(plan)}
-                  alt={planTitle}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                />
-              </div>
-
-              <div className="flex-1 p-6 md:p-8 flex flex-col">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-2xl font-black text-stone-900 mb-1">{planTitle}</h3>
-
-                    {planSubtitle ? (
-                      <p className="text-stone-500 text-sm font-medium whitespace-pre-line mb-2">
-                        {planSubtitle}
-                      </p>
-                    ) : null}
-
-                    <p className="text-stone-500 text-sm font-medium whitespace-pre-line">
-                      {planDescription}
-                    </p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-2 gap-y-3 mb-6">
-                  {amenities.slice(0, 4).map((amenity: any) => {
-                    const amenityTitle = amenity.Title || amenity.title || '';
-                    const amenityIcon = amenity.IconUrl || amenity.iconUrl || '';
-
-                    return (
-                      <div
-                        key={amenity.id}
-                        className="flex items-center gap-2 text-sm text-stone-600 font-medium"
-                      >
-                        {amenityIcon ? (
-                          <img
-                            src={amenityIcon}
-                            alt={amenityTitle}
-                            className="w-4 h-4 object-contain"
-                            onError={(e) => {
-                              e.currentTarget.style.display = 'none';
-                            }}
-                          />
-                        ) : (
-                          <Check className="w-4 h-4 text-teal-500" />
-                        )}
-                        <span>{amenityTitle}</span>
-                      </div>
-                    );
-                  })}
-                </div>
-
-                <div className="mt-auto flex items-end justify-between pt-6 border-t border-stone-50">
-                  <div>
-                    <span className="text-stone-400 line-through text-sm font-bold">
-                      ₹{finalPrice.toLocaleString()}
-                    </span>
-
-                    <div className="flex items-baseline gap-2 flex-wrap">
-                      <span className="text-3xl font-black text-stone-900">
-                        ₹{discountedPrice.toLocaleString()}
-                      </span>
-
-                      <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                        / person
-                      </span>
-
-                      <span className="text-xs text-[var(--theme)] font-bold">
-                        {plan.gstDetails || ''}
-                      </span>
-                    </div>
-                  </div>
-
-                  <button
-                    onClick={() => onSelect(plan)}
-                    className="bg-[var(--theme)] hover:bg-[var(--theme-dark)] text-white px-8 py-3 rounded-2xl font-black transition-all transform hover:scale-105 shadow-lg shadow-[var(--theme-light)]"
-                  >
-                    {ui.cta}
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
-      </div>
-    </div>
-  );
-};
-
-export default PlanSelection;
-</file>
-
 <file path="components/BookingSummary.tsx">
 import React, { useState, useMemo, useEffect } from 'react';
 import { BookingState, Guest, EventData } from '../types';
@@ -4290,7 +4641,6 @@ interface BookingSummaryProps {
   setBookingState: React.Dispatch<React.SetStateAction<BookingState>>;
   event: EventData;
   ui: any;
-  config: any;
   onConfirm: (success: boolean, bookingId?: string | number) => void;
   onBack: () => void;
 }
@@ -4327,15 +4677,140 @@ const getCouponCode = (coupon: any): string => {
   return String(coupon?.code ?? coupon?.couponCode ?? '');
 };
 
+const isPlanSoldOut = (plan: any): boolean => {
+  if (plan?.isSoldOut === true) return true;
+  if (plan?.isSoldOut === false) return false;
+
+  const availableRooms = Number(
+    plan?.availableRooms ?? plan?.inventory?.availableRooms
+  );
+
+  if (!Number.isNaN(availableRooms)) {
+    return availableRooms <= 0;
+  }
+
+  return Number(plan?.remainingInventory ?? 0) <= 0;
+};
+
+const formatFieldLabel = (field: string): string => {
+  return field
+    .replace(/[_-]+/g, ' ')
+    .replace(/([a-z])([A-Z])/g, '$1 $2')
+    .trim()
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+};
+
+const getActionableBookingErrorMessage = (
+  responseText: string,
+  status: number
+): string => {
+  const trimmedText = String(responseText || '').trim();
+  let parsed: any = null;
+
+  try {
+    parsed = trimmedText ? JSON.parse(trimmedText) : null;
+  } catch {
+    parsed = null;
+  }
+
+  const rawMessage =
+    parsed?.message ||
+    parsed?.error ||
+    parsed?.details?.message ||
+    trimmedText;
+
+  const validationErrors = Array.isArray(parsed?.errors)
+    ? parsed.errors
+    : Array.isArray(parsed?.details?.errors)
+    ? parsed.details.errors
+    : [];
+
+  const fieldErrors = validationErrors
+    .map((item: any) => {
+      const field = String(item?.field || item?.path || '').trim();
+      const message = String(item?.message || item?.msg || '').trim();
+
+      if (!field && !message) return '';
+      if (!field) return message;
+      if (!message) return `${formatFieldLabel(field)} is invalid.`;
+
+      return `${formatFieldLabel(field)}: ${message}`;
+    })
+    .filter(Boolean);
+
+  if (fieldErrors.length > 0) {
+    return fieldErrors.join(' ');
+  }
+
+  const normalizedMessage = String(rawMessage || '').toLowerCase();
+
+  if (normalizedMessage.includes('duplicate') || normalizedMessage.includes('already exists')) {
+    return 'This booking looks like it was already submitted. Please wait a moment and check your booking status before trying again.';
+  }
+
+  if (
+    normalizedMessage.includes('coupon') &&
+    (normalizedMessage.includes('invalid') ||
+      normalizedMessage.includes('expired') ||
+      normalizedMessage.includes('not applicable'))
+  ) {
+    return 'The selected coupon could not be applied. Please remove it or try another valid coupon.';
+  }
+
+  if (
+    normalizedMessage.includes('inventory') ||
+    normalizedMessage.includes('availability') ||
+    normalizedMessage.includes('sold out')
+  ) {
+    return 'This plan or add-on is no longer available in the requested quantity. Please go back and review availability.';
+  }
+
+  if (normalizedMessage.includes('guest')) {
+    return rawMessage || 'Please review the guest details and correct any missing or invalid fields.';
+  }
+
+  if (status >= 500) {
+    return 'We could not complete your booking right now. Please try again in a moment or contact support if the issue continues.';
+  }
+
+  if (rawMessage) {
+    return rawMessage;
+  }
+
+  return 'We could not submit your booking. Please review your details and try again.';
+};
+
+const getIsoDateString = (value: any, label: string): string => {
+  const raw = String(value || '').trim();
+
+  if (!raw) {
+    throw new Error(`${label} is missing. Please refresh the page and try again.`);
+  }
+
+  const parsed = new Date(raw);
+
+  if (Number.isNaN(parsed.getTime())) {
+    throw new Error(`${label} is invalid. Please refresh the page and try again.`);
+  }
+
+  return parsed.toISOString();
+};
+
 const BookingSummary: React.FC<BookingSummaryProps> = ({
   bookingState,
   setBookingState,
   event,
   ui,
-  config,
   onConfirm,
   onBack,
 }) => {
+  const eventBanner =
+    (event as any)?.banner ||
+    'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
+  const eventDescription =
+    String((event as any)?.description || '').trim() ||
+    'Event details will be updated soon. Please review your plan, guests, and booking details before payment.';
+
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -4346,7 +4821,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [agreedToRefund, setAgreedToRefund] = useState(false);
 
-  const [atgRequested, setAtgRequested] = useState(false);
+  const [is80GRequired, setIs80GRequired] = useState(false);
   const [atgData, setAtgData] = useState({ pan: '', aadhar: '' });
   const [atgFiles, setAtgFiles] = useState<{
     pan: File | null;
@@ -4389,7 +4864,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         }
 
         const res = await fetch(
-          `https://bookingapi.thriive.in/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
+          `http://localhost:8081/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
         );
 
         if (!res.ok) {
@@ -4423,6 +4898,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             });
           } else {
             setAppliedCoupon(null);
+            setBookingState((prev: any) => ({
+              ...prev,
+              couponCode: '',
+              appliedDiscountId: null,
+              couponIdProof: null,
+              couponIdProofUrl: '',
+            }));
           }
         } else {
           setAppliedCoupon(null);
@@ -4448,21 +4930,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         appliedCoupon?.only_student_or_service
     );
   }, [appliedCoupon]);
+  const getCanonicalPlanPrice = (bookingState: any) => {
+  const selectedPlan = bookingState?.selectedPlan || bookingState?.plan || {};
 
-  const defaultPlanPrice = useMemo(() => {
-    return Number(
-      (bookingState as any)?.plan?.finalPrice ??
-        (bookingState as any)?.plan?.OfferPrice ??
-        (bookingState as any)?.plan?.discountedPrice ??
-        (bookingState as any)?.plan?.PlanPrice ??
-        (bookingState as any)?.selectedPlan?.finalPrice ??
-        (bookingState as any)?.selectedPlan?.OfferPrice ??
-        (bookingState as any)?.selectedPlan?.discountedPrice ??
-        (bookingState as any)?.selectedPlan?.PlanPrice ??
-        0
-    );
-  }, [bookingState]);
-
+  return Math.max(0, Number(selectedPlan?.OfferPrice || 0));
+};
+ const defaultPlanPrice = useMemo(() => {
+  return getCanonicalPlanPrice(bookingState);
+}, [bookingState]);
   const selectedPlanTitle =
     (bookingState as any)?.plan?.PlanTitle ||
     (bookingState as any)?.plan?.PlanName ||
@@ -4500,69 +4975,75 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     let stayTotal = 0;
 
     const guestPricingDetails = guests.map((guest: any, index: number) => {
-      const basePrice = getGuestBasePrice(guest, defaultPlanPrice);
-      const pricingLabel = getGuestPricingLabel(guest);
+  const basePrice = getGuestBasePrice(guest, defaultPlanPrice);
 
-      planTotal += basePrice;
+  const actualPlanName =
+    (bookingState as any)?.selectedPlan?.PlanTitle ||
+    (bookingState as any)?.selectedPlan?.PlanName ||
+    (bookingState as any)?.plan?.PlanTitle ||
+    (bookingState as any)?.plan?.PlanName ||
+    'Selected Plan';
 
-      const addons: { id: string; title: string; price: number }[] = [];
-      const stays: { id: string; title: string; price: number }[] = [];
+  planTotal += basePrice;
 
-      const selectedAddons = guest?.addOns?.selectedAddons || [];
+  const addons: { id: string; title: string; price: number }[] = [];
+  const stays: { id: string; title: string; price: number }[] = [];
 
-      selectedAddons.forEach((addon: any, addonIndex: number) => {
-        const unitPrice = Number(addon?.price || 0);
-        const quantity = Number(addon?.quantity || 1);
+  const selectedAddons = guest?.addOns?.selectedAddons || [];
 
-        let addonTotal = 0;
+  selectedAddons.forEach((addon: any, addonIndex: number) => {
+    const unitPrice = Number(addon?.price || 0);
+    const quantity = Number(addon?.quantity || 1);
 
-        if (addon?.isPricePerNight) {
-          const nights = Number(guest?.addOns?.extraStay?.days || 1);
-          addonTotal = unitPrice * quantity * nights;
-        } else {
-          addonTotal = unitPrice * quantity;
-        }
+    let addonTotal = 0;
 
-        addons.push({
-          id: String(addon?.addonId || `${guest?.id || index}-${addonIndex}`),
-          title: addon?.title || 'Add-on',
-          price: addonTotal,
-        });
+    if (addon?.isPricePerNight) {
+      const nights = Number(guest?.addOns?.extraStay?.days || 1);
+      addonTotal = unitPrice * quantity * nights;
+    } else {
+      addonTotal = unitPrice * quantity;
+    }
 
-        addonsTotal += addonTotal;
-      });
-
-      if (guest?.addOns?.extraStay?.enabled) {
-        const days = Number(guest?.addOns?.extraStay?.days || 1);
-        const pricePerNight = Number(
-          guest?.addOns?.extraStay?.price ??
-            guest?.addOns?.extraStay?.pricePerNight ??
-            0
-        );
-
-        const extraStayAmount = days * pricePerNight;
-
-        stays.push({
-          id: `stay-${guest?.id || index}`,
-          title: guest?.addOns?.extraStay?.type
-            ? `Extra Stay - ${guest.addOns.extraStay.type}`
-            : 'Extra Stay',
-          price: extraStayAmount,
-        });
-
-        stayTotal += extraStayAmount;
-      }
-
-      return {
-        guestId: String(guest?.id ?? index),
-        guestName: guest?.name || `Guest ${index + 1}`,
-        age: Number(guest?.age || 0),
-        pricingLabel,
-        basePrice,
-        addons,
-        stays,
-      };
+    addons.push({
+      id: String(addon?.addonId || `${guest?.id || index}-${addonIndex}`),
+      title: addon?.title || 'Add-on',
+      price: addonTotal,
     });
+
+    addonsTotal += addonTotal;
+  });
+
+  if (guest?.addOns?.extraStay?.enabled) {
+    const days = Number(guest?.addOns?.extraStay?.days || 1);
+    const pricePerNight = Number(
+      guest?.addOns?.extraStay?.price ??
+        guest?.addOns?.extraStay?.pricePerNight ??
+        0
+    );
+
+    const extraStayAmount = days * pricePerNight;
+
+    stays.push({
+      id: `stay-${guest?.id || index}`,
+      title: guest?.addOns?.extraStay?.type
+        ? `Extra Stay - ${guest.addOns.extraStay.type}`
+        : 'Extra Stay',
+      price: extraStayAmount,
+    });
+
+    stayTotal += extraStayAmount;
+  }
+
+  return {
+    guestId: String(guest?.id ?? index),
+    guestName: guest?.name || `Guest ${index + 1}`,
+    age: Number(guest?.age || 0),
+    pricingLabel: actualPlanName,
+    basePrice,
+    addons,
+    stays,
+  };
+});
 
     const grossAmount = planTotal + addonsTotal + stayTotal;
 
@@ -4636,7 +5117,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     pricingBreakdown.stayTotal,
     appliedCoupon,
     setBookingState,
-  ]);
+  ], [is80GRequired, setBookingState]);
 
   const handleCheckCustomCode = async () => {
     if (!customCodeInput.trim()) return;
@@ -4652,7 +5133,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       const code = customCodeInput.trim().toUpperCase();
 
       const res = await fetch(
-        `https://bookingapi.thriive.in/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
+        `http://localhost:8081/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
       );
 
       const data = await res.json().catch(() => null);
@@ -4769,7 +5250,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       return false;
     }
 
-    if (atgRequested) {
+    if (is80GRequired) {
       const hasPan = atgData.pan.length === 10;
       const hasAadhar = atgData.aadhar.length >= 12;
       const hasFiles = atgFiles.pan !== null && atgFiles.aadhar !== null;
@@ -4781,7 +5262,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   }, [
     agreedToTerms,
     agreedToRefund,
-    atgRequested,
+    is80GRequired,
     atgData,
     atgFiles,
     couponRequiresIdUpload,
@@ -4790,22 +5271,96 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     couponIdProofUrl,
   ]);
 
-  const handlePayment = async () => {
+const handlePayment = async () => {
   setIsProcessing(true);
   setCouponError('');
 
   try {
     if (!selectedEventId) throw new Error('Invalid event selected');
     if (!selectedPlanId) throw new Error('Invalid plan selected');
+    if (isPlanSoldOut((bookingState as any)?.selectedPlan || (bookingState as any)?.plan)) {
+      throw new Error('This plan is sold out. Please go back and choose another available plan.');
+    }
+
+    const guestsPayload = guests.map((g: any) => ({
+      id: String(g.id || '').trim(),
+      name: String(g.name || '').trim(),
+      email: String(g.email || '').trim(),
+      phoneNumber: String(g.phone || g.phoneNumber || '').trim(),
+      gender: String(g.gender || '').trim(),
+      state: String(g.state || '').trim(),
+      city: String(g.city || '').trim(),
+      country: String(g.country || '').trim(),
+      age: Number(g.age || 0),
+      isKidsPlanOpted: Boolean(g.isKidsPlanOpted),
+      foodPrefs: String(g.foodPreference || g.foodPrefs || 'Regular').trim(),
+      travelAsst:
+        g.travelAssistance === true || g.travelAsst === 'Yes' ? 'Yes' : 'No',
+      remarks: String(g.remark || g.remarks || '').trim(),
+      idImageUrl: String(g.idImageUrl || '').trim(),
+    }));
+
+    for (const [index, g] of guestsPayload.entries()) {
+      if (!g.name) throw new Error(`Guest ${index + 1}: name is required`);
+      if (!g.email) throw new Error(`Guest ${index + 1}: email is required`);
+      if (!g.phoneNumber) throw new Error(`Guest ${index + 1}: phone number is required`);
+      if (!g.gender) throw new Error(`Guest ${index + 1}: gender is required`);
+      if (!Number.isFinite(g.age) || g.age < 1 || g.age > 120) {
+        throw new Error(`Guest ${index + 1}: invalid age`);
+      }
+
+      if ('EventID' in (g as any) || 'EventName' in (g as any) || 'banner' in (g as any)) {
+        throw new Error(`Guest ${index + 1}: invalid event data found in guest payload`);
+      }
+    }
+
+    const bookingAddonsPayload = guests.flatMap((g: any) =>
+      (g.addOns?.selectedAddons || []).map((a: any) => ({
+        guest_ref_id: g.id,
+        addon_id: Number(a.addonId),
+        title: String(a.title || '').trim(),
+        type: String(a.type || '').trim(),
+        quantity: Number(a.quantity || 1),
+        unit_price: Number(a.price || 0),
+        total_amount: Number(a.price || 0) * Number(a.quantity || 1),
+      }))
+    );
+
+    const staysPayload = guests
+      .filter((g: any) => g.addOns?.extraStay?.enabled)
+      .map((g: any) => ({
+        guest_ref_id: g.id,
+        plan_id: Number(g.addOns.extraStay.planId),
+        plan_name: String(g.addOns.extraStay.type || '').trim(),
+        room_type: String(g.addOns.extraStay.type || '').trim(),
+        start_date: g.addOns.extraStay.startDate,
+        end_date: g.addOns.extraStay.endDate || null,
+        days: Number(g.addOns.extraStay.days || 1),
+        price_per_night: Number(g.addOns.extraStay.price || 0),
+        total_amount:
+          Number(g.addOns.extraStay.price || 0) *
+          Number(g.addOns.extraStay.days || 1),
+      }));
+
+    const resolvedStartDate =
+      staysPayload[0]?.start_date ||
+      (bookingState as any)?.startDate ||
+      (event as any)?.startDate ||
+      (event as any)?.EventStartDate;
+
+    const resolvedEndDate =
+      staysPayload[0]?.end_date ||
+      (bookingState as any)?.endDate ||
+      (event as any)?.endDate ||
+      (event as any)?.EventEndDate ||
+      resolvedStartDate;
 
     const payload = {
       eventId: selectedEventId,
       planId: selectedPlanId,
-      startDate: new Date(
-        guests[0]?.addOns?.extraStay?.startDate || Date.now()
-      ).toISOString(),
-      endDate: new Date().toISOString(),
-      guestsCount: guests.length,
+      startDate: getIsoDateString(resolvedStartDate, 'Start date'),
+      endDate: getIsoDateString(resolvedEndDate, 'End date'),
+      guestsCount: guestsPayload.length,
       grossAmount: Math.round(pricingBreakdown.grossAmount),
       discountAmount: Math.round(pricingBreakdown.discountAmount),
       totalAmount: Math.round(pricingBreakdown.totalAmount),
@@ -4815,55 +5370,15 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       couponCode: appliedCoupon ? getCouponCode(appliedCoupon) : null,
       appliedDiscountId: appliedCoupon ? getCouponId(appliedCoupon) : null,
       paymentId: 'MOCK_PAY_' + Date.now(),
-      isAtgRequested: atgRequested ? 1 : 0,
-      panNumber: atgData.pan,
-      aadharNumber: atgData.aadhar,
-
-      guests: guests.map((g: any) => ({
-        id: g.id,
-        name: g.name,
-        email: g.email,
-        phoneNumber: g.phone,
-        gender: g.gender,
-        state: g.state,
-        city: g.city,
-        country: g.country,
-        age: Number(g.age),
-        isKidsPlanOpted: !!g.isKidsPlanOpted,
-        foodPrefs: g.foodPreference || 'Regular',
-        travelAsst: g.travelAssistance ? 'Yes' : 'No',
-        remarks: g.remark || '',
-        idImageUrl: '',
-      })),
-
-      bookingAddons: guests.flatMap((g: any) =>
-        (g.addOns?.selectedAddons || []).map((a: any) => ({
-          guest_ref_id: g.id,
-          addon_id: Number(a.addonId),
-          title: a.title,
-          type: a.type,
-          quantity: Number(a.quantity || 1),
-          unit_price: Number(a.price || 0),
-          total_amount: Number(a.price || 0) * Number(a.quantity || 1),
-        }))
-      ),
-
-      stays: guests
-        .filter((g: any) => g.addOns?.extraStay?.enabled)
-        .map((g: any) => ({
-          guest_ref_id: g.id,
-          plan_id: Number(g.addOns.extraStay.planId),
-          plan_name: g.addOns.extraStay.type,
-          room_type: g.addOns.extraStay.type,
-          start_date: g.addOns.extraStay.startDate,
-          end_date: g.addOns.extraStay.endDate || null,
-          days: Number(g.addOns.extraStay.days),
-          price_per_night: Number(g.addOns.extraStay.price),
-          total_amount:
-            Number(g.addOns.extraStay.price) *
-            Number(g.addOns.extraStay.days),
-        })),
+      isAtgRequested: is80GRequired ? 1 : 0,
+      panNumber: atgData.pan || '',
+      aadharNumber: atgData.aadhar || '',
+      guests: guestsPayload,
+      bookingAddons: bookingAddonsPayload,
+      stays: staysPayload,
     };
+
+    console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
 
     const formData = new FormData();
     formData.append('data', JSON.stringify(payload));
@@ -4875,16 +5390,21 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
     }
 
-    const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
+    const responseRaw = await fetch('http://localhost:8081/bookings', {
       method: 'POST',
       body: formData,
     });
 
+    const responseText = await responseRaw.text();
+
     if (!responseRaw.ok) {
-      throw new Error('Server responded with an error');
+      console.error('❌ Booking API error response:', responseText);
+      throw new Error(
+        getActionableBookingErrorMessage(responseText, responseRaw.status)
+      );
     }
 
-    const response = await responseRaw.json();
+    const response = JSON.parse(responseText);
 
     const bookingId =
       response?.bookingId ||
@@ -4898,7 +5418,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     }
   } catch (err: any) {
     console.error('Payment Error:', err);
-    setCouponError('Submission Error: ' + (err?.message || 'Unknown error'));
+    setCouponError(
+      err?.message || 'We could not submit your booking. Please try again.'
+    );
     setIsProcessing(false);
   }
 };
@@ -4912,14 +5434,19 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       <div className="mb-10 bg-white rounded-[32px] overflow-hidden shadow-sm border border-stone-100">
         <div className="h-48 relative">
           <img
-            src={(event as any).banner}
+            src={eventBanner}
             className="w-full h-full object-cover brightness-75"
             alt=""
           />
           <div className="absolute inset-0 bg-gradient-to-t from-stone-900/60 to-transparent flex items-end p-8 text-white">
-            <h2 className="text-3xl font-black">
-              {(event as any).title || (event as any).EventName}
-            </h2>
+            <div>
+              <h2 className="text-3xl font-black">
+                {(event as any).title || (event as any).EventName}
+              </h2>
+              <p className="mt-2 max-w-2xl text-sm font-medium text-stone-100/90 line-clamp-2">
+                {eventDescription}
+              </p>
+            </div>
           </div>
         </div>
       </div>
@@ -5229,8 +5756,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             <label className="flex cursor-pointer items-center gap-4 p-6 hover:bg-stone-100/50">
               <input
                 type="checkbox"
-                checked={atgRequested}
-                onChange={(e) => setAtgRequested(e.target.checked)}
+                checked={is80GRequired}
+                onChange={(e) => setIs80GRequired(e.target.checked)}
                 className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-[var(--theme)] cursor-pointer"
               />
               <div className="flex-1 text-left">
@@ -5243,7 +5770,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               </div>
             </label>
 
-            {atgRequested && (
+            {is80GRequired && (
               <div className="border-t border-stone-200 bg-white p-6 animate-slideUp">
                 <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                   <div className="flex flex-col gap-3 text-left">
@@ -5646,6 +6173,22 @@ import BookingSummary from './components/BookingSummary';
 import PaymentStatus from './components/PaymentStatus';
 import DownloadsDashboard from './components/DownloadsDashboard';
 
+const STEP_LOADING_COPY: Record<number, string> = {
+  2: 'Loading plans...',
+  3: 'Loading plan details...',
+  4: 'Preparing guest form...',
+  5: 'Preparing booking summary...',
+  6: 'Fetching payment status...',
+  7: 'Loading downloads dashboard...',
+};
+
+const waitForTransitionFrame = () =>
+  new Promise<void>((resolve) => {
+    window.requestAnimationFrame(() => {
+      window.setTimeout(resolve, 120);
+    });
+  });
+
 const App: React.FC = () => {
   const [data, setData] = useState<{
     eventData: EventResponse;
@@ -5656,6 +6199,7 @@ const App: React.FC = () => {
   } | null>(null);
 
   const [loading, setLoading] = useState(true);
+  const [stepLoadingMessage, setStepLoadingMessage] = useState('');
   const [error, setError] = useState<string | null>(null);
 
   const [bookingState, setBookingState] = useState<BookingState>({
@@ -5747,25 +6291,31 @@ if (slug) {
     loadData();
   }, []);
 
-  const nextStep = () =>
-    setBookingState((prev) => ({ ...prev, currentStep: prev.currentStep + 1 }));
+  const moveToStep = async (nextStepValue: number) => {
+    setStepLoadingMessage(STEP_LOADING_COPY[nextStepValue] || 'Loading...');
+    await waitForTransitionFrame();
+    setBookingState((prev) => ({ ...prev, currentStep: nextStepValue }));
+    window.setTimeout(() => setStepLoadingMessage(''), 220);
+  };
 
-  const prevStep = () =>
+  const nextStep = () => moveToStep(bookingState.currentStep + 1);
+
+  const prevStep = () => moveToStep(Math.max(2, bookingState.currentStep - 1));
+
+  const selectPlan = async (plan: Plan) => {
+    setStepLoadingMessage(STEP_LOADING_COPY[3]);
+    await waitForTransitionFrame();
     setBookingState((prev) => ({
       ...prev,
-      currentStep: Math.max(2, prev.currentStep - 1),
+      selectedPlan: plan,
+      currentStep: 3,
     }));
-
-  const selectPlan = (plan: Plan) => {
-  setBookingState(prev => ({
-    ...prev,
-    selectedPlan: plan,
-    currentStep: 3,
-  }));
-};
+    window.setTimeout(() => setStepLoadingMessage(''), 220);
+  };
 
  const handlePayment = async (success: boolean, bookingId?: string | number) => {
   if (success) {
+    setStepLoadingMessage(STEP_LOADING_COPY[6]);
     setPaymentResult('SUCCESS');
 
     // ✅ FETCH BOOKING DATA AGAIN
@@ -5799,9 +6349,11 @@ if (slug) {
 
       currentStep: 6,
     }));
+    window.setTimeout(() => setStepLoadingMessage(''), 220);
   } else {
     setPaymentResult('FAILED');
     setBookingState((prev) => ({ ...prev, currentStep: 5 }));
+    setStepLoadingMessage('');
   }
 };
 
@@ -5847,6 +6399,10 @@ const selectedPlanId = Number(
   0
 );
 
+const isPlanSelectionLoading =
+  stepLoadingMessage === STEP_LOADING_COPY[2] ||
+  (bookingState.currentStep === 2 && !(data?.plans || []).length);
+
   const renderStep = () => {
     switch (bookingState.currentStep) {
       case 1:
@@ -5878,6 +6434,7 @@ const selectedPlanId = Number(
       ui={data.uiContent.planSelection}
       onSelect={selectPlan}
       onBack={() => {}}
+      isLoading={isPlanSelectionLoading}
     />
   );
 })();
@@ -5923,9 +6480,8 @@ const selectedPlanId = Number(
         return (
           <BookingSummary
             bookingState={{ ...bookingState, plan: bookingState.selectedPlan }}
-              setBookingState={setBookingState}
+            setBookingState={setBookingState}
             ui={data.uiContent.bookingSummary}
-            config={data.config}
             event={data.eventData.event}
             onConfirm={handlePayment}
             onBack={prevStep}
@@ -5963,13 +6519,25 @@ const selectedPlanId = Number(
             ui={data.uiContent.planSelection}
             onSelect={selectPlan}
             onBack={() => {}}
+            isLoading={isPlanSelectionLoading}
           />
         );
     }
   };
 
+  const renderedStep = renderStep();
+
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen bg-stone-50">
+      {stepLoadingMessage ? (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-stone-900/35 backdrop-blur-[2px]">
+          <div className="rounded-[28px] border border-stone-100 bg-white px-8 py-6 text-center shadow-2xl">
+            <Loader2 className="mx-auto mb-3 h-8 w-8 animate-spin text-[var(--theme)]" />
+            <p className="text-sm font-black text-stone-900">{stepLoadingMessage}</p>
+          </div>
+        </div>
+      ) : null}
+
       {bookingState.currentStep >= 2 && bookingState.currentStep < 6 && (
         <header className="bg-white border-b sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
@@ -5994,7 +6562,7 @@ const selectedPlanId = Number(
         </header>
       )}
 
-      <main className="flex-1 w-full overflow-x-hidden">{renderStep()}</main>
+      <main className="w-full overflow-x-hidden">{renderedStep}</main>
 
       <footer className="py-6 text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
         © 2026 Shreans Daga Foundation. Built for {data.eventData.event?.EventName || 'this event'}
@@ -6008,14 +6576,14 @@ const selectedPlanId = Number(
         href="https://wa.me/91987666444?text=I%20need%20help%20with%20my%20booking"
         target="_blank"
         rel="noopener noreferrer"
-        className="fixed bottom-8 right-8 z-[999] bg-[#25D366] text-white shadow-2xl hover:scale-110 transition-all duration-300 active:scale-95 group flex items-center rounded-full"
+        className="group fixed bottom-4 right-4 z-[999] flex items-center rounded-full bg-[#25D366] text-white shadow-2xl transition-all duration-300 active:scale-95 hover:scale-110 sm:bottom-8 sm:right-8"
         aria-label="Contact Support on WhatsApp"
       >
-        <span className="max-w-0 overflow-hidden group-hover:max-w-xs group-hover:pl-5 transition-all duration-500 ease-in-out whitespace-nowrap text-sm font-bold">
+        <span className="hidden max-w-0 overflow-hidden whitespace-nowrap text-sm font-bold transition-all duration-500 ease-in-out group-hover:max-w-xs group-hover:pl-5 sm:inline-block">
           Chat with us
         </span>
-        <div className="w-14 h-14 flex items-center justify-center rounded-full bg-[#25D366]">
-          <svg viewBox="0 0 24 24" className="w-8 h-8 fill-current" xmlns="http://www.w3.org/2000/svg">
+        <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[#25D366] sm:h-14 sm:w-14">
+          <svg viewBox="0 0 24 24" className="h-7 w-7 fill-current sm:h-8 sm:w-8" xmlns="http://www.w3.org/2000/svg">
             <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
           </svg>
         </div>
@@ -6059,8 +6627,209 @@ export interface EventResponse {
   addons?: any[]; // ✅ add this
 }
 
+const EVENT_BANNER_FALLBACK =
+  'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
+const EVENT_DESCRIPTION_FALLBACK =
+  'Event details will be updated soon. Please continue to explore plans and booking options for this retreat at Pyramid Valley International.';
+
+const normalizeVenueText = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+
+  return value
+    .replace(/Soul fuel Cafe/gi, 'Pyramid Valley International dining hall')
+    .replace(/Soul Nest In/gi, 'Pyramid Valley International')
+    .replace(/Soul Nest dining/gi, 'Pyramid Valley International dining hall')
+    .replace(/Meals at Soul Nest/gi, 'Meals at Pyramid Valley International')
+    .replace(/Meals at Annadana/gi, 'Meals at Pyramid Valley International')
+    .replace(/Annadana hall/gi, 'Pyramid Valley International dining hall')
+    .replace(/\bAnnadana\b/gi, 'Pyramid Valley International')
+    .replace(/\bSoul Nest\b/gi, 'Pyramid Valley International');
+};
+
+const getNormalizedGstFields = (item: any) => {
+  const rawType = String(item?.gstType || '').trim().toLowerCase();
+  const gstType =
+    rawType === 'inclusive' || rawType === 'exclusive' ? rawType : '';
+  const gstRate = Number(item?.gstRate ?? 0);
+
+  if (!Number.isFinite(gstRate) || gstRate <= 0) {
+    return {
+      gstType,
+      gstRate: 0,
+      gstDetails: '',
+    };
+  }
+
+  if (gstType === 'inclusive') {
+    return {
+      gstType,
+      gstRate,
+      gstDetails: 'Inclusive of GST',
+    };
+  }
+
+  if (gstType === 'exclusive') {
+    return {
+      gstType,
+      gstRate,
+      gstDetails: `+ ${gstRate}% GST`,
+    };
+  }
+
+  return {
+    gstType: '',
+    gstRate,
+    gstDetails: item?.gstDetails || '',
+  };
+};
+
+const PLAN_IMAGE_FALLBACK = 'https://placehold.co/400';
+const DEFAULT_PLAN_COLOR = '#0f766e';
+
+const normalizeOptionalText = (value: unknown): string => {
+  if (typeof value !== 'string') return '';
+  return normalizeVenueText(value).trim();
+};
+
+const getPrimaryPlanImage = (plan: any): string => {
+  return (
+    plan.bannerImage ||
+    plan.banner ||
+    plan.images?.find((img: any) => img.isMain)?.imageUrl ||
+    plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
+    plan.images?.[0]?.imageUrl ||
+    PLAN_IMAGE_FALLBACK
+  );
+};
+
+const getPlanSubtitle = (plan: any): string => {
+  return normalizeOptionalText(
+    plan.PlanSubtitle ||
+      plan.stayRoomType ||
+      plan.subtitle ||
+      plan.roomType ||
+      ''
+  );
+};
+
+const getPlanDescription = (plan: any): string => {
+  return normalizeOptionalText(
+    plan.PlanDescription ||
+      plan.description ||
+      plan.shortDescription ||
+      ''
+  );
+};
+
+const getPlanFullDescription = (plan: any, fallbackDescription: string): string => {
+  return normalizeOptionalText(
+    plan.fullDescription ||
+      plan.longDescription ||
+      plan.PlanDescription ||
+      plan.description ||
+      fallbackDescription
+  );
+};
+
+const getPlanMaxPax = (plan: any): number => {
+  const rawMaxPax =
+    plan.maxPax ??
+    plan.maxOccupancy ??
+    plan.maxGuests ??
+    plan.capacity ??
+    plan.occupancy;
+
+  const maxPax = Number(rawMaxPax ?? 0);
+  return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
+};
+
+const validateAdminPlanData = (plan: any, normalizedPlan: Partial<Plan>) => {
+  const missingFields = [
+    ['PlanName', plan.PlanName],
+    ['PlanSubtitle', plan.PlanSubtitle],
+    ['planColor', plan.planColor],
+    ['banner', plan.banner],
+    ['bannerImage', plan.bannerImage],
+    ['fullDescription', plan.fullDescription],
+    ['maxPax', plan.maxPax],
+  ]
+    .filter(([, value]) => value === null || value === undefined || value === '')
+    .map(([fieldName]) => fieldName);
+
+  if (missingFields.length > 0) {
+    const planLabel =
+      normalizedPlan.PlanTitle ||
+      normalizedPlan.PlanName ||
+      `Plan ${normalizedPlan.planID ?? ''}`.trim();
+
+    console.warn(
+      `[plan-admin-validation] ${planLabel} is missing admin fields: ${missingFields.join(', ')}`
+    );
+  }
+};
+
+const normalizePlan = (plan: any): Plan => {
+  const normalizedTitle = normalizeOptionalText(
+    plan.PlanTitle || plan.PlanName || plan.title || ''
+  );
+  const normalizedSubtitle = getPlanSubtitle(plan);
+  const normalizedDescription = getPlanDescription(plan);
+  const normalizedFullDescription = getPlanFullDescription(plan, normalizedDescription);
+  const primaryImage = getPrimaryPlanImage(plan);
+
+  const normalizedPlan: Plan = {
+    ...plan,
+    ...getNormalizedGstFields(plan),
+    id: String(plan.planID ?? plan.PlanID ?? ''),
+    planID: plan.planID ?? plan.PlanID,
+    PlanID: plan.PlanID ?? plan.planID,
+    PlanName: normalizeOptionalText(plan.PlanName || normalizedTitle),
+    priceType: plan.priceType || '',
+    remainingInventory: Number(plan.remainingInventory ?? 0),
+    title: normalizedTitle,
+    sequence: Number(plan.sequence ?? 0),
+    PlanTitle: normalizedTitle,
+    PlanSubtitle: normalizedSubtitle,
+    thumbnail: primaryImage,
+    banner: primaryImage,
+    bannerImage: normalizeOptionalText(plan.bannerImage || primaryImage),
+    description: normalizedDescription,
+    stayRoomType: normalizeOptionalText(plan.stayRoomType || normalizedSubtitle),
+    PlanDescription: normalizedDescription,
+    fullDescription: normalizedFullDescription,
+    longDescription: normalizeOptionalText(plan.longDescription || normalizedFullDescription),
+    planColor: normalizeOptionalText(plan.planColor || DEFAULT_PLAN_COLOR),
+    maxPax: getPlanMaxPax(plan),
+    PlanPrice: Number(plan.PlanPrice || 0),
+    OfferPrice: Number(plan.OfferPrice || 0),
+    discountedPrice: Number(plan.OfferPrice || 0),
+    finalPrice: Number(plan.PlanPrice || 0),
+    isSoldOut: Boolean(plan.isSoldOut),
+    availableRooms: Number(
+      plan.availableRooms ?? plan.inventory?.availableRooms ?? plan.remainingInventory ?? 0
+    ),
+    inventory: {
+      ...(plan.inventory || {}),
+      availableRooms: Number(
+        plan.inventory?.availableRooms ?? plan.availableRooms ?? plan.remainingInventory ?? 0
+      ),
+    },
+    amenities: (plan.amenities || []).map((icon: any) => ({
+      id: icon.id,
+      title: normalizeOptionalText(icon.title || icon.Title || ''),
+      iconUrl: encodeURI(icon.iconUrl || icon.IconUrl || ''),
+      type: icon.type || '',
+      planID: icon.planID,
+    })),
+    images: Array.isArray(plan.images) ? plan.images : [],
+  };
+
+  validateAdminPlanData(plan, normalizedPlan);
+  return normalizedPlan;
+};
+
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`http://localhost:4000/data/${path}`);
+  const response = await fetch(`http://localhost:3000/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
@@ -6069,7 +6838,7 @@ export const getAllData = async (
   eventId: string | number,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/${eventId}`);
+  const apiResponse = await fetch(`http://localhost:8081/events/${eventId}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -6089,7 +6858,7 @@ console.log(
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`http://localhost:8081/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -6123,46 +6892,16 @@ console.log(
     })),
   };
 
-  const mappedPlans: Plan[] = (apiData.plans || []).map((plan: any) => ({
-    ...plan,
-    id: String(plan.planID ?? plan.PlanID ?? ""),
-    planID: plan.planID ?? plan.PlanID,
-    PlanID: plan.PlanID ?? plan.planID,
-    title: plan.PlanTitle || "",
-    sequence:plan.sequence || "",
-    PlanTitle: plan.PlanTitle || "",
-    thumbnail:
-      plan.bannerImage ||
-      plan.banner ||
-      plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-      plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: plan.PlanDescription || "",
-    PlanDescription: plan.PlanDescription || "",
-    fullDescription: plan.fullDescription || "",
-    discountedPrice: Number(plan.OfferPrice || 0),
-    OfferPrice: Number(plan.OfferPrice || 0),
-    finalPrice: Number(plan.PlanPrice || 0),
-    PlanPrice: Number(plan.PlanPrice || 0),
-    gstDetails: plan.gstDetails || "",
-    amenities: (plan.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: plan.images || [],
-  }));
+  const mappedPlans: Plan[] = (apiData.plans || []).map(normalizePlan);
 
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
     ...addon,
     id: addon.id ?? addon.AddonID,
     AddonID: addon.AddonID ?? addon.id,
-    title: addon.title ?? addon.AddonTitle ?? "",
-    AddonTitle: addon.AddonTitle ?? addon.title ?? "",
-    description: addon.description ?? addon.AddonDescription ?? "",
-    AddonDescription: addon.AddonDescription ?? addon.description ?? "",
+    title: normalizeVenueText(addon.title ?? addon.AddonTitle ?? ""),
+    AddonTitle: normalizeVenueText(addon.AddonTitle ?? addon.title ?? ""),
+    description: normalizeVenueText(addon.description ?? addon.AddonDescription ?? ""),
+    AddonDescription: normalizeVenueText(addon.AddonDescription ?? addon.description ?? ""),
     type: addon.type ?? "",
     adultPrice:
       addon.adultPrice ??
@@ -6195,13 +6934,13 @@ console.log(
       apiData.banner ||
       apiData.images?.find((img: any) => img.isMain)?.url ||
       apiData.images?.find((img: any) => img.isThumbnail)?.url ||
-      "",
+      EVENT_BANNER_FALLBACK,
     date: `${apiData.startDate} to ${apiData.endDate}`,
     startDate: apiData.startDate || '',
     endDate: apiData.endDate || '',
     time: apiData.time || "06:00 AM",
-    venue: apiData.venue || "PVI Bengaluru",
-    description: apiData.description,
+    venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
+    description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
     schedules: apiData.schedules || [],
     plans: mappedPlans || [],
     addons: mappedAddons || [],
@@ -6212,36 +6951,13 @@ console.log(
   addons: mappedAddons || [],
 };
 
-  const plans: Plan[] = (apiData.plans || []).map((p: any) => ({
-    ...p,
-    id: String(p.planID ?? p.PlanID ?? ""),
-    planID: p.planID ?? p.PlanID,
-    sequence: Number(p.sequence ?? 0),
-    PlanID: p.PlanID ?? p.planID,
-    title: p.PlanTitle || "",
-    PlanTitle: p.PlanTitle || "",
-    thumbnail:
-      p.bannerImage ||
-      p.banner ||
-      p.images?.find((img: any) => img.isMain)?.imageUrl ||
-      p.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: p.PlanDescription || "",
-    PlanDescription: p.PlanDescription || "",
-    finalPrice: Number(p.PlanPrice || 0),
-    PlanPrice: Number(p.PlanPrice || 0),
-    discountedPrice: Number(p.OfferPrice || 0),
-    OfferPrice: Number(p.OfferPrice || 0),
-    pricePerNight: Number(p.pricePerNight || 0),
-    amenities: (p.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: p.images || [],
-  }))  .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
+  const plans: Plan[] = (apiData.plans || [])
+    .map(normalizePlan)
+    .map((plan: Plan) => ({
+      ...plan,
+      pricePerNight: Number((plan as any).pricePerNight || 0),
+    }))
+    .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
 
   return {
     eventData,
@@ -6257,7 +6973,7 @@ export const getAllDataBySlug = async (
   slug: string,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/slug/${slug}`);
+  const apiResponse = await fetch(`http://localhost:8081/events/slug/${slug}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -6271,7 +6987,7 @@ export const getAllDataBySlug = async (
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`http://localhost:8081/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -6306,46 +7022,16 @@ export const getAllDataBySlug = async (
   };
 
   const mappedPlans: Plan[] = (apiData.plans || [])
-  .map((plan: any) => ({
-    ...plan,
-    id: String(plan.planID ?? plan.PlanID ?? ""),
-    planID: plan.planID ?? plan.PlanID,
-    PlanID: plan.PlanID ?? plan.planID,
-    sequence: Number(plan.sequence ?? 0),
-    title: plan.PlanTitle || "",
-    PlanTitle: plan.PlanTitle || "",
-    thumbnail:
-      plan.bannerImage ||
-      plan.banner ||
-      plan.images?.find((img: any) => img.isMain)?.imageUrl ||
-      plan.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: plan.PlanDescription || "",
-    PlanDescription: plan.PlanDescription || "",
-    fullDescription: plan.fullDescription || "",
-    discountedPrice: Number(plan.OfferPrice || 0),
-    OfferPrice: Number(plan.OfferPrice || 0),
-    finalPrice: Number(plan.PlanPrice || 0),
-    PlanPrice: Number(plan.PlanPrice || 0),
-    gstDetails: plan.gstDetails || "",
-    amenities: (plan.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: plan.images || [],
-  }))
-  .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
+    .map(normalizePlan)
+    .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
     ...addon,
     id: addon.id ?? addon.AddonID,
     AddonID: addon.AddonID ?? addon.id,
-    title: addon.title ?? addon.AddonTitle ?? "",
-    AddonTitle: addon.AddonTitle ?? addon.title ?? "",
-    description: addon.description ?? addon.AddonDescription ?? "",
-    AddonDescription: addon.AddonDescription ?? addon.description ?? "",
+    title: normalizeVenueText(addon.title ?? addon.AddonTitle ?? ""),
+    AddonTitle: normalizeVenueText(addon.AddonTitle ?? addon.title ?? ""),
+    description: normalizeVenueText(addon.description ?? addon.AddonDescription ?? ""),
+    AddonDescription: normalizeVenueText(addon.AddonDescription ?? addon.description ?? ""),
     type: addon.type ?? "",
     adultPrice:
       addon.adultPrice ??
@@ -6370,18 +7056,18 @@ export const getAllDataBySlug = async (
     event: {
       id: apiData.EventID,
       EventID: apiData.EventID,
-      title: apiData.EventName,
-      EventName: apiData.EventName,
+      title: normalizeVenueText(apiData.EventName),
+      EventName: normalizeVenueText(apiData.EventName),
       slug: apiData.slug || "",
       banner:
         apiData.banner ||
         apiData.images?.find((img: any) => img.isMain)?.url ||
         apiData.images?.find((img: any) => img.isThumbnail)?.url ||
-        "",
+        EVENT_BANNER_FALLBACK,
       date: `${apiData.startDate} to ${apiData.endDate}`,
       time: apiData.time || "06:00 AM",
-      venue: apiData.venue || "PVI Bengaluru",
-      description: apiData.description,
+      venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
+      description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
       schedules: apiData.schedules || [],
       plans: mappedPlans || [],
       addons: mappedAddons || [],
@@ -6392,34 +7078,9 @@ export const getAllDataBySlug = async (
     addons: mappedAddons || [],
   };
 
-  const plans: Plan[] = (apiData.plans || []).map((p: any) => ({
-    ...p,
-    id: String(p.planID ?? p.PlanID ?? ""),
-    planID: p.planID ?? p.PlanID,
-    PlanID: p.PlanID ?? p.planID,
-    title: p.PlanTitle || "",
-    PlanTitle: p.PlanTitle || "",
-    thumbnail:
-      p.bannerImage ||
-      p.banner ||
-      p.images?.find((img: any) => img.isMain)?.imageUrl ||
-      p.images?.find((img: any) => img.isThumbnail)?.imageUrl ||
-      "https://placehold.co/400",
-    description: p.PlanDescription || "",
-    PlanDescription: p.PlanDescription || "",
-    finalPrice: Number(p.PlanPrice || 0),
-    PlanPrice: Number(p.PlanPrice || 0),
-    discountedPrice: Number(p.OfferPrice || 0),
-    OfferPrice: Number(p.OfferPrice || 0),
-    pricePerNight: Number(p.pricePerNight || 0),
-    amenities: (p.amenities || []).map((icon: any) => ({
-      id: icon.id,
-      title: icon.title || "",
-      iconUrl: encodeURI(icon.iconUrl || ""),
-      type: icon.type || "",
-      planID: icon.planID,
-    })),
-    images: p.images || [],
+  const plans: Plan[] = (apiData.plans || []).map(normalizePlan).map((plan: Plan) => ({
+    ...plan,
+    pricePerNight: Number((plan as any).pricePerNight || 0),
   }));
 
   return {
@@ -6432,15 +7093,19 @@ export const getAllDataBySlug = async (
   };
 };
 export const createBooking = async (bookingData: any) => {
-  const response = await fetch('http://localhost:4000/bookings', { 
+  const response = await fetch('http://localhost:8081/bookings', { 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bookingData),
   });
 
   if (!response.ok) {
-    const error = await response.json();
-    throw new Error(error.message || 'Failed to create booking');
+    const error = await response.json().catch(() => null);
+    const message =
+      error?.message ||
+      error?.error ||
+      'We could not create your booking right now. Please try again.';
+    throw new Error(message);
   }
 
   return response.json();
