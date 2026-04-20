@@ -10,9 +10,18 @@ import {
   Sparkles,
   Calendar,
 } from 'lucide-react';
+import { trackCleverTapEvent } from '../src/services/cleverTap';
+import {
+  getEventId,
+  getEventName,
+  getPlanId,
+  getPlanName,
+  getPrimaryGuest,
+} from '../src/services/cleverTapBooking';
 
 interface PaymentStatusProps {
   success: boolean;
+  bookingId?: string | number;
   bookingState: BookingState;
   event: EventData;
   ui: any;
@@ -51,6 +60,25 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
     }
   }, [success]);
 
+  useEffect(() => {
+    trackCleverTapEvent(
+      'payment_status_viewed',
+      {
+        event_id: getEventId(event),
+        event_name: getEventName(event),
+        plan_id: getPlanId(bookingState.selectedPlan),
+        plan_name: getPlanName(bookingState.selectedPlan),
+        booking_id: bookingState.bookingId ? String(bookingState.bookingId) : '',
+        payment_status: success ? 'SUCCESS' : 'FAILED',
+        primary_guest_email: String(getPrimaryGuest(bookingState)?.email || ''),
+      },
+      {
+        dedupeKey: `payment_status_viewed:${bookingState.bookingId || 'na'}:${success ? 'success' : 'failed'}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [bookingState, event, success]);
+
   if (!success) {
     return (
       <div className="max-w-md mx-auto py-24 px-6 text-center animate-fadeIn">
@@ -68,7 +96,14 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
 
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => window.location.reload()}
+            onClick={() => {
+              trackCleverTapEvent('payment_retry_clicked', {
+                event_id: getEventId(event),
+                event_name: getEventName(event),
+                payment_status: 'FAILED',
+              });
+              window.location.reload();
+            }}
             className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all"
           >
             {statusUI.failed.cta}

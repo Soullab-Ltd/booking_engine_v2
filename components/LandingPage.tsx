@@ -1,8 +1,14 @@
 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin, ArrowRight, ShieldCheck, Zap, Heart, Camera, Sun, Wind, Cloud, Info, Star, Users, Sprout, Sparkles, Flower2, Navigation } from 'lucide-react';
 import { EventData } from '../types';
 import { MOCK_SCHEDULE, MOCK_MENTORS, MOCK_INSIGHTS } from '../constants';
+import { trackCleverTapEvent } from '../src/services/cleverTap';
+import {
+  getEventId,
+  getEventName,
+  getEventSlug,
+} from '../src/services/cleverTapBooking';
 
 interface LandingPageProps {
   event: EventData;
@@ -21,6 +27,37 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
   const eventDescription =
     event.description?.trim() ||
     'Event details will be updated soon. Please continue to explore plans and booking options for this retreat at Pyramid Valley International.';
+
+  useEffect(() => {
+    trackCleverTapEvent(
+      'landing_page_viewed',
+      {
+        event_id: getEventId(event),
+        event_name: getEventName(event),
+        event_slug: getEventSlug(event),
+        schedule_days_count: Number(event.schedules?.length || schedules?.length || 0),
+        mentors_count: Number(
+          (mentors?.main ? 1 : 0) + Number(mentors?.others?.length || 0)
+        ),
+        insights_count: Number(insights?.length || 0),
+      },
+      {
+        dedupeKey: `landing_page_viewed:${getEventId(event)}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [event, insights, mentors, schedules]);
+
+  const handleProceed = (ctaLocation: 'hero' | 'sidebar') => {
+    trackCleverTapEvent('landing_cta_clicked', {
+      event_id: getEventId(event),
+      event_name: getEventName(event),
+      cta_location: ctaLocation,
+      next_step: 2,
+    });
+
+    onProceed();
+  };
 
 
   if (!schedules || schedules.length === 0) {
@@ -58,7 +95,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
               </div>
               <div className="shrink-0">
                 <button 
-                  onClick={onProceed}
+                  onClick={() => handleProceed('hero')}
                   className="bg-white text-stone-900 px-10 py-5 rounded-[24px] font-black text-lg flex items-center gap-3 hover:bg-[var(--theme)] hover:text-white transition-all shadow-2xl hover:scale-110 active:scale-95 group"
                 >
                   {ui.hero.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-2 transition-transform" />
@@ -120,7 +157,15 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                   {event.schedules?.map((dayData: any, idx: number)  => (
                     <button
                       key={idx}
-                      onClick={() => setActiveDayIndex(idx)}
+                      onClick={() => {
+                        setActiveDayIndex(idx);
+                        trackCleverTapEvent('landing_schedule_day_selected', {
+                          event_id: getEventId(event),
+                          event_name: getEventName(event),
+                          selected_day_index: idx,
+                          selected_day_label: dayData.day || `Day ${idx + 1}`,
+                        });
+                      }}
                       className={`min-w-[100px] px-6 py-4 rounded-3xl font-black text-xs uppercase tracking-widest transition-all duration-300 border-2 ${
                         activeDayIndex === idx 
                         ? 'bg-stone-900 text-white border-stone-900 shadow-xl shadow-stone-200 scale-105' 
@@ -229,7 +274,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ event, schedules, mentors, in
                     ))}
                   </div>
                   <button 
-                    onClick={onProceed}
+                    onClick={() => handleProceed('sidebar')}
                     className="w-full bg-[var(--theme)] hover:bg-teal-600 text-white py-5 rounded-3xl font-black text-lg transition-all shadow-xl shadow-teal-900/40 flex items-center justify-center gap-3 group"
                   >
                     {ui.sidebar.cta} <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />

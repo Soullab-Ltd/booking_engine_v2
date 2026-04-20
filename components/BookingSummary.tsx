@@ -15,6 +15,21 @@ import {
   X,
   FileText,
 } from 'lucide-react';
+import {
+  identifyCleverTapUser,
+  pushCleverTapChargedEvent,
+  trackCleverTapEvent,
+  updateCleverTapProfile,
+} from '../src/services/cleverTap';
+import {
+  formatPhoneForCleverTap,
+  getEventId,
+  getEventName,
+  getGuestsCount,
+  getPlanId,
+  getPlanName,
+  getPrimaryGuest,
+} from '../src/services/cleverTapBooking';
 
 interface BookingSummaryProps {
   bookingState: BookingState;
@@ -235,6 +250,20 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     [bookingState]
   );
 
+  const selectedEventName = useMemo(() => getEventName(event), [event]);
+  const selectedPlanName = useMemo(
+    () => getPlanName((bookingState as any)?.selectedPlan || (bookingState as any)?.plan),
+    [bookingState]
+  );
+  const primaryGuest = useMemo(() => getPrimaryGuest(bookingState), [bookingState]);
+
+  const baseTrackingProps = () => ({
+    event_id: selectedEventId,
+    event_name: selectedEventName,
+    plan_id: selectedPlanId,
+    plan_name: selectedPlanName,
+  });
+
   useEffect(() => {
     const fetchCoupons = async () => {
       try {
@@ -255,6 +284,17 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         const data = await res.json();
         const couponList = Array.isArray(data) ? data : [];
         setAvailableCoupons(couponList);
+
+        trackCleverTapEvent(
+          'coupon_list_loaded',
+          {
+            ...baseTrackingProps(),
+            coupons_count: couponList.length,
+          },
+          {
+            dedupeKey: `coupon_list_loaded:${selectedEventId}:${selectedPlanId}:${couponList.length}`,
+          }
+        );
 
         const existingCode = String(
           (bookingState as any)?.couponCode || ''
@@ -297,6 +337,25 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
     fetchCoupons();
   }, [selectedEventId, selectedPlanId, (bookingState as any)?.couponCode]);
+
+  useEffect(() => {
+    trackCleverTapEvent(
+      'booking_summary_viewed',
+      {
+        ...baseTrackingProps(),
+        guests_count: guests.length,
+        gross_amount: Number(pricingBreakdown.grossAmount || 0),
+        discount_amount: Number(pricingBreakdown.discountAmount || 0),
+        total_amount: Number(pricingBreakdown.totalAmount || 0),
+        addons_amount: Number(pricingBreakdown.addonsTotal || 0),
+        stay_amount: Number(pricingBreakdown.stayTotal || 0),
+      },
+      {
+        dedupeKey: `booking_summary_viewed:${selectedEventId}:${selectedPlanId}:${guests.length}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [selectedEventId, selectedPlanId]);
 
   const couponRequiresIdUpload = useMemo(() => {
     return normalizeBooleanFlag(
@@ -498,6 +557,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const handleCheckCustomCode = async () => {
     if (!customCodeInput.trim()) return;
 
+    const code = customCodeInput.trim().toUpperCase();
+
+    trackCleverTapEvent('promo_code_validation_requested', {
+      ...baseTrackingProps(),
+      promo_code: code,
+    });
+
     setIsCheckingCode(true);
     setCustomCodeError('');
 
@@ -505,8 +571,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       if (!selectedEventId || !selectedPlanId) {
         throw new Error('Invalid event or plan');
       }
-
-      const code = customCodeInput.trim().toUpperCase();
 
       const res = await fetch(
         `https://bookingapi.thriive.in/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
@@ -531,6 +595,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       setCustomCodeInput('');
     } catch (err: any) {
       setCustomCodeError(err?.message || 'Failed to validate coupon');
+      trackCleverTapEvent('promo_code_validation_failed', {
+        ...baseTrackingProps(),
+        promo_code: code,
+        error_message: err?.message || 'Failed to validate coupon',
+      });
     } finally {
       setIsCheckingCode(false);
     }
@@ -543,6 +612,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       ...prev,
       couponIdProof: file,
     }));
+
+    trackCleverTapEvent('coupon_id_proof_uploaded', {
+      ...baseTrackingProps(),
+      coupon_id: pendingCoupon ? getCouponId(pendingCoupon) : '',
+      coupon_code: pendingCoupon ? getCouponCode(pendingCoupon) : '',
+      file_name: file.name,
+      file_type: file.type || '',
+    });
   };
 
   const handleApplyCouponClick = (coupon: any) => {
@@ -553,6 +630,18 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       currentCouponId !== '' &&
       nextCouponId !== '' &&
       currentCouponId === nextCouponId;
+
+    trackCleverTapEvent('coupon_apply_clicked', {
+      ...baseTrackingProps(),
+      coupon_id: nextCouponId,
+      coupon_code: getCouponCode(coupon),
+      discount_type: coupon?.discountType || coupon?.discount_type || '',
+      discount_value: Number(coupon?.value || 0),
+      requires_id_upload: normalizeBooleanFlag(
+        coupon?.requiresIdUpload ?? coupon?.requires_id_upload
+      ),
+      action: isSameCoupon ? 'remove' : 'apply',
+    });
 
     if (isSameCoupon) {
       setAppliedCoupon(null);
@@ -581,6 +670,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     if (requiresId && !existingProof) {
       setPendingCoupon(coupon);
       setShowCouponIdModal(true);
+
+      trackCleverTapEvent('coupon_id_verification_prompted', {
+        ...baseTrackingProps(),
+        coupon_id: nextCouponId,
+        coupon_code: getCouponCode(coupon),
+      });
+
       return;
     }
 
@@ -591,6 +687,16 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       couponCode: getCouponCode(coupon),
       appliedDiscountId: getCouponId(coupon) || null,
     }));
+
+    trackCleverTapEvent('coupon_applied', {
+      ...baseTrackingProps(),
+      coupon_id: nextCouponId,
+      coupon_code: getCouponCode(coupon),
+      discount_type: coupon?.discountType || coupon?.discount_type || '',
+      discount_value: Number(coupon?.value || 0),
+      requires_id_upload: requiresId,
+      proof_attached: Boolean(existingProof),
+    });
   };
 
   const confirmPendingCoupon = () => {
@@ -607,6 +713,17 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       couponCode: getCouponCode(pendingCoupon),
       appliedDiscountId: getCouponId(pendingCoupon) || null,
     }));
+
+    trackCleverTapEvent('coupon_applied', {
+      ...baseTrackingProps(),
+      coupon_id: getCouponId(pendingCoupon),
+      coupon_code: getCouponCode(pendingCoupon),
+      discount_type:
+        pendingCoupon?.discountType || pendingCoupon?.discount_type || '',
+      discount_value: Number(pendingCoupon?.value || 0),
+      requires_id_upload: true,
+      proof_attached: true,
+    });
 
     setShowCouponIdModal(false);
     setPendingCoupon(null);
@@ -643,6 +760,75 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     couponIdProofUrl,
   ]);
 
+  const identifyPrimaryGuestForCheckout = () => {
+    const email = String(primaryGuest?.email || '').trim();
+    const phone = formatPhoneForCleverTap(
+      String((primaryGuest as any)?.phone || ''),
+      String(primaryGuest?.country || '')
+    );
+
+    if (!email && !phone) return;
+
+    identifyCleverTapUser(
+      {
+        Name: String(primaryGuest?.name || '').trim(),
+        Identity: email || phone || '',
+        Email: email,
+        Phone: phone,
+        Gender:
+          String(primaryGuest?.gender || '').trim().toLowerCase() === 'female'
+            ? 'F'
+            : String(primaryGuest?.gender || '').trim().toLowerCase() === 'male'
+            ? 'M'
+            : '',
+        City: String(primaryGuest?.city || '').trim(),
+        State: String(primaryGuest?.state || '').trim(),
+        Country: String(primaryGuest?.country || '').trim(),
+      },
+      {
+        dedupeKey: `checkout_identity:${selectedEventId}:${email || phone}`,
+        dedupeWindowMs: 5000,
+      }
+    );
+  };
+
+  const buildChargedItems = (
+    bookingAddonsPayload: Array<Record<string, unknown>>,
+    staysPayload: Array<Record<string, unknown>>
+  ) => {
+    const items: Array<Record<string, unknown>> = [
+      {
+        Category: 'Plan',
+        'Plan Name': selectedPlanName,
+        'Plan ID': selectedPlanId,
+        Quantity: guests.length,
+        Price: Math.round(pricingBreakdown.planTotal),
+      },
+    ];
+
+    bookingAddonsPayload.forEach((addon) => {
+      items.push({
+        Category: 'Addon',
+        'Addon Title': addon.title,
+        'Addon ID': addon.addon_id,
+        Quantity: addon.quantity,
+        Price: Math.round(Number(addon.total_amount || 0)),
+      });
+    });
+
+    staysPayload.forEach((stay) => {
+      items.push({
+        Category: 'Stay',
+        'Stay Plan': stay.plan_name,
+        'Stay Plan ID': stay.plan_id,
+        Quantity: stay.days,
+        Price: Math.round(Number(stay.total_amount || 0)),
+      });
+    });
+
+    return items;
+  };
+
 const handlePayment = async () => {
   setIsProcessing(true);
   setCouponError('');
@@ -653,6 +839,8 @@ const handlePayment = async () => {
     if (isPlanSoldOut((bookingState as any)?.selectedPlan || (bookingState as any)?.plan)) {
       throw new Error('This plan is sold out. Please go back and choose another available plan.');
     }
+
+    identifyPrimaryGuestForCheckout();
 
     const guestsPayload = guests.map((g: any) => ({
       id: String(g.id || '').trim(),
@@ -750,6 +938,19 @@ const handlePayment = async () => {
       stays: staysPayload,
     };
 
+    trackCleverTapEvent('payment_submission_started', {
+      ...baseTrackingProps(),
+      booking_id: '',
+      guests_count: guestsPayload.length,
+      gross_amount: Math.round(pricingBreakdown.grossAmount),
+      discount_amount: Math.round(pricingBreakdown.discountAmount),
+      total_amount: Math.round(pricingBreakdown.totalAmount),
+      addons_amount: Math.round(pricingBreakdown.addonsTotal),
+      stay_amount: Math.round(pricingBreakdown.stayTotal),
+      coupon_code: appliedCoupon ? getCouponCode(appliedCoupon) : '',
+      is_80g_required: is80GRequired,
+    });
+
     console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
 
     const formData = new FormData();
@@ -784,12 +985,59 @@ const handlePayment = async () => {
       response?.booking_id;
 
     if (bookingId) {
+      trackCleverTapEvent('booking_confirmed', {
+        ...baseTrackingProps(),
+        booking_id: String(bookingId),
+        guests_count: guestsPayload.length,
+        total_amount: Math.round(pricingBreakdown.totalAmount),
+        coupon_code: appliedCoupon ? getCouponCode(appliedCoupon) : '',
+        addons_amount: Math.round(pricingBreakdown.addonsTotal),
+        stay_amount: Math.round(pricingBreakdown.stayTotal),
+      });
+
+      updateCleverTapProfile({
+        'Last Booking ID': String(bookingId),
+        'Customer Type': 'Booked',
+        'Last Event ID': selectedEventId,
+        'Last Event Name': selectedEventName,
+        'Last Selected Plan ID': selectedPlanId,
+        'Last Selected Plan': selectedPlanName,
+      });
+
+      pushCleverTapChargedEvent(
+        {
+          Amount: Math.round(pricingBreakdown.totalAmount),
+          'Charged ID': String(bookingId),
+          'Payment Mode': 'Online',
+          'Event ID': selectedEventId,
+          'Event Name': selectedEventName,
+          'Plan ID': selectedPlanId,
+          'Plan Name': selectedPlanName,
+          'Guests Count': guestsPayload.length,
+          'Coupon Code': appliedCoupon ? getCouponCode(appliedCoupon) : '',
+        },
+        buildChargedItems(bookingAddonsPayload, staysPayload),
+        {
+          dedupeKey: `charged:${bookingId}`,
+          dedupeWindowMs: 10000,
+        }
+      );
+
       setTimeout(() => onConfirm(true, bookingId), 1500);
     } else {
       onConfirm(false);
     }
   } catch (err: any) {
     console.error('Payment Error:', err);
+    trackCleverTapEvent('booking_submission_failed', {
+      ...baseTrackingProps(),
+      plan_name: selectedPlanName,
+      guests_count: guests.length,
+      total_amount: Math.round(pricingBreakdown.totalAmount),
+      coupon_code: appliedCoupon ? getCouponCode(appliedCoupon) : '',
+      error_message:
+        err?.message || 'We could not submit your booking. Please try again.',
+    });
     setCouponError(
       err?.message || 'We could not submit your booking. Please try again.'
     );
@@ -1129,7 +1377,13 @@ const handlePayment = async () => {
               <input
                 type="checkbox"
                 checked={is80GRequired}
-                onChange={(e) => setIs80GRequired(e.target.checked)}
+                onChange={(e) => {
+                  setIs80GRequired(e.target.checked);
+                  trackCleverTapEvent('tax_exemption_toggled', {
+                    ...baseTrackingProps(),
+                    is_80g_required: e.target.checked,
+                  });
+                }}
                 className="h-6 w-6 rounded-lg border-2 border-stone-300 accent-[var(--theme)] cursor-pointer"
               />
               <div className="flex-1 text-left">
@@ -1327,7 +1581,14 @@ const handlePayment = async () => {
                 <input
                   type="checkbox"
                   checked={agreedToTerms}
-                  onChange={(e) => setAgreedToTerms(e.target.checked)}
+                  onChange={(e) => {
+                    setAgreedToTerms(e.target.checked);
+                    trackCleverTapEvent('policy_checkbox_toggled', {
+                      ...baseTrackingProps(),
+                      policy_type: 'terms',
+                      accepted: e.target.checked,
+                    });
+                  }}
                   className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-[var(--theme)] focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
@@ -1337,6 +1598,14 @@ const handlePayment = async () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[var(--theme)] underline hover:text-teal-900"
+                    onClick={() =>
+                      trackCleverTapEvent('policy_link_clicked', {
+                        ...baseTrackingProps(),
+                        policy_type: 'terms',
+                        policy_url:
+                          'https://shreansdaga.org/terms-and-conditions/',
+                      })
+                    }
                   >
                     terms and conditions
                   </a>.
@@ -1347,7 +1616,14 @@ const handlePayment = async () => {
                 <input
                   type="checkbox"
                   checked={agreedToRefund}
-                  onChange={(e) => setAgreedToRefund(e.target.checked)}
+                  onChange={(e) => {
+                    setAgreedToRefund(e.target.checked);
+                    trackCleverTapEvent('policy_checkbox_toggled', {
+                      ...baseTrackingProps(),
+                      policy_type: 'refund',
+                      accepted: e.target.checked,
+                    });
+                  }}
                   className="mt-1 h-5 w-5 rounded border-2 border-stone-300 text-[var(--theme)] focus:ring-teal-500 cursor-pointer"
                 />
                 <span className="text-xs font-bold text-stone-600 leading-relaxed">
@@ -1357,6 +1633,14 @@ const handlePayment = async () => {
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-[var(--theme)] underline hover:text-teal-900"
+                    onClick={() =>
+                      trackCleverTapEvent('policy_link_clicked', {
+                        ...baseTrackingProps(),
+                        policy_type: 'refund',
+                        policy_url:
+                          'https://shreansdaga.org/refund-cancellation-policy/',
+                      })
+                    }
                   >
                     refund policy
                   </a>.

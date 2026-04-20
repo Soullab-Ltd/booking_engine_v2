@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { BookingState, EventData } from '../types';
 import {
   MapPin,
@@ -14,9 +14,17 @@ import {
   Flower2,
   User,
 } from 'lucide-react';
+import { trackCleverTapEvent } from '../src/services/cleverTap';
+import {
+  getDocumentType,
+  getEventId,
+  getEventName,
+  getPlanName,
+} from '../src/services/cleverTapBooking';
 
 interface DownloadsDashboardProps {
   bookingState: BookingState;
+  bookingId?: string | number;
   event: EventData;
   ui: any;
 }
@@ -202,6 +210,30 @@ const documents = [
       : fallbackLinks;
   }, [bookingState, event]);
 
+  const baseTrackingProps = () => ({
+    event_id: getEventId(event),
+    event_name: getEventName(event),
+    booking_id: bookingState.bookingId ? String(bookingState.bookingId) : '',
+  });
+
+  useEffect(() => {
+    trackCleverTapEvent(
+      'downloads_dashboard_viewed',
+      {
+        ...baseTrackingProps(),
+        plan_name: getPlanName(
+          (bookingState as any)?.selectedPlan || (bookingState as any)?.plan
+        ),
+        guests_count: bookingState.guests?.length || 0,
+        documents_count: documents.length,
+      },
+      {
+        dedupeKey: `downloads_dashboard_viewed:${bookingState.bookingId || 'na'}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [bookingState, documents.length, event]);
+
   return (
     <div className="max-w-6xl mx-auto px-4 py-16 w-full animate-fadeIn pb-32">
       <div className="mb-12">
@@ -356,9 +388,18 @@ const documents = [
               {documents.map((doc, idx) => (
                 <div
                   key={idx}
-                  onClick={() =>
-                    doc.url && doc.url !== '#' && window.open(doc.url, '_blank')
-                  }
+                  onClick={() => {
+                    if (!doc.url || doc.url === '#') return;
+
+                    trackCleverTapEvent('document_opened', {
+                      ...baseTrackingProps(),
+                      document_title: doc.title,
+                      document_type: getDocumentType(doc.title),
+                      document_status: doc.status,
+                    });
+
+                    window.open(doc.url, '_blank');
+                  }}
                   className={`group bg-white p-6 rounded-[32px] border-2 border-stone-50 shadow-sm hover:shadow-xl hover:border-teal-100/50 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
                     doc.status.includes('days') ? 'opacity-70 grayscale' : ''
                   }`}
@@ -425,6 +466,13 @@ const documents = [
                   <a
                     href="tel:+919867666444"
                     className="font-bold text-sm hover:text-teal-300 transition-colors"
+                    onClick={() =>
+                      trackCleverTapEvent('support_phone_clicked', {
+                        ...baseTrackingProps(),
+                        support_phone: '+919867666444',
+                        placement: 'dashboard',
+                      })
+                    }
                   >
                     +91 9867666444
                   </a>
@@ -442,6 +490,13 @@ const documents = [
                   <a
                     href="mailto:info@shreansdaga.org"
                     className="font-bold text-sm break-all hover:text-teal-300 transition-colors"
+                    onClick={() =>
+                      trackCleverTapEvent('support_email_clicked', {
+                        ...baseTrackingProps(),
+                        support_email: 'info@shreansdaga.org',
+                        placement: 'dashboard',
+                      })
+                    }
                   >
                     info@shreansdaga.org
                   </a>
@@ -486,6 +541,13 @@ const documents = [
                     href={item.url}
                     target="_blank"
                     rel="noreferrer"
+                    onClick={() =>
+                      trackCleverTapEvent('other_info_link_clicked', {
+                        ...baseTrackingProps(),
+                        link_title: item.title,
+                        link_url: item.url,
+                      })
+                    }
                     className="flex items-center justify-between rounded-2xl bg-white px-4 py-4 border border-stone-100 hover:border-teal-200 hover:bg-[var(--theme-light)]/40 transition-all"
                   >
                     <span className="text-sm font-bold text-stone-700">

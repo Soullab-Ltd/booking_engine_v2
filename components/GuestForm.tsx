@@ -22,6 +22,17 @@ import {
   Utensils,
   AlertCircle,
 } from 'lucide-react';
+import {
+  identifyCleverTapUser,
+  trackCleverTapEvent,
+  updateCleverTapProfile,
+} from '../src/services/cleverTap';
+import {
+  formatPhoneForCleverTap,
+  getEligibleKidsCount,
+  getExtraStayGuestCount,
+  getSelectedAddonCount,
+} from '../src/services/cleverTapBooking';
 
 const INDIAN_STATES = [
   'Andaman and Nicobar Islands',
@@ -167,6 +178,8 @@ interface GuestFormProps {
   addons?: AddonItem[];
   selectedEventId?: number;
   selectedPlanId?: number;
+  selectedEventName?: string;
+  selectedPlanName?: string;
   eventEndDate?: string; // pass event last day here
   onProceed: () => void;
   onBack: () => void;
@@ -290,6 +303,8 @@ const GuestForm: React.FC<GuestFormProps> = ({
   addons = [],
   selectedEventId = 0,
   selectedPlanId = 0,
+  selectedEventName = '',
+  selectedPlanName = '',
   eventEndDate = '',
   onProceed,
   onBack,
@@ -298,6 +313,13 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
   const [customIndianStateGuests, setCustomIndianStateGuests] = useState<Record<string, boolean>>({});
+
+  const baseTrackingProps = () => ({
+    event_id: Number(selectedEventId || 0),
+    event_name: selectedEventName || '',
+    plan_id: Number(selectedPlanId || 0),
+    plan_name: selectedPlanName || '',
+  });
 
   const parseIds = (value: any): number[] => {
     if (!value) return [];
@@ -653,6 +675,34 @@ const age = Number(guest.age);
     });
   }, [guests]);
 
+  useEffect(() => {
+    trackCleverTapEvent(
+      'guest_form_viewed',
+      {
+        ...baseTrackingProps(),
+        guests_count: guests.length,
+        addons_available_count: eventAddons.length,
+        extra_stay_available: showExtraStaySection,
+      },
+      {
+        dedupeKey: `guest_form_viewed:${selectedEventId}:${selectedPlanId}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [selectedEventId, selectedPlanId]);
+
+  useEffect(() => {
+    if (!showKidsModal) return;
+
+    trackCleverTapEvent('kids_plan_modal_viewed', {
+      ...baseTrackingProps(),
+      eligible_kids_count: getEligibleKidsCount(guests),
+      eligible_guest_ids: eligibleKids
+        .map((guest: any) => String(guest.id))
+        .join(', '),
+    });
+  }, [eligibleKids, guests, showKidsModal]);
+
   const updateGuest = (id: string, updates: any) => {
     const updatedGuests = guests.map((guest: any) => {
       if (String(guest.id) !== String(id)) return guest;
@@ -716,12 +766,28 @@ const age = Number(guest.age);
       },
     };
 
-    setGuests([...guests, normalizedGuest]);
+    const updatedGuests = [...guests, normalizedGuest];
+    setGuests(updatedGuests);
+
+    trackCleverTapEvent('guest_added', {
+      ...baseTrackingProps(),
+      guests_count_after: updatedGuests.length,
+    });
   };
 
   const removeGuest = (id: string) => {
     if (guests.length <= 1) return;
-    setGuests(guests.filter((guest: any) => String(guest.id) !== String(id)));
+
+    const updatedGuests = guests.filter(
+      (guest: any) => String(guest.id) !== String(id)
+    );
+    setGuests(updatedGuests);
+
+    trackCleverTapEvent('guest_removed', {
+      ...baseTrackingProps(),
+      removed_guest_id: String(id),
+      guests_count_after: updatedGuests.length,
+    });
   };
 
   const toggleKidsPlan = (guestId: string, opted: boolean) => {
@@ -732,6 +798,17 @@ const age = Number(guest.age);
           : guest
       )
     );
+
+    const selectedGuest = guests.find(
+      (guest: any) => String(guest.id) === String(guestId)
+    );
+
+    trackCleverTapEvent('kids_plan_choice_updated', {
+      ...baseTrackingProps(),
+      guest_id: String(guestId),
+      guest_age: Number(selectedGuest?.age || 0),
+      is_kids_plan_opted: opted,
+    });
   };
 
   const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
@@ -786,6 +863,17 @@ const age = Number(guest.age);
         selectedAddons: updatedSelections,
       },
     });
+
+    trackCleverTapEvent('guest_addon_toggled', {
+      ...baseTrackingProps(),
+      guest_id: String(guestId),
+      guest_age: Number(guest?.age || 0),
+      addon_id: addonId,
+      addon_title: addon.title ?? addon.AddonTitle ?? '',
+      addon_type: addon.type ?? '',
+      addon_price: getAddonPriceForGuest(addon, guest),
+      action: exists ? 'removed' : 'selected',
+    });
   };
 
   const updateExtraStayPlan = (guestId: string, planId: number | string) => {
@@ -814,6 +902,14 @@ const age = Number(guest.age);
         },
       },
     });
+
+    trackCleverTapEvent('extra_stay_plan_selected', {
+      ...baseTrackingProps(),
+      guest_id: String(guestId),
+      stay_plan_id: Number(selectedStayPlan.id || 0),
+      stay_plan_name: selectedStayPlan.name,
+      price_per_night: Number(selectedStayPlan.pricePerNight || 0),
+    });
   };
 
   const updateExtraStayDays = (guestId: string, days: number) => {
@@ -833,6 +929,14 @@ const age = Number(guest.age);
           endDate: safeStartDate ? getStayEndDate(safeStartDate, safeDays) : '',
         },
       },
+    });
+
+    trackCleverTapEvent('extra_stay_duration_changed', {
+      ...baseTrackingProps(),
+      guest_id: String(guestId),
+      stay_plan_id: String(extraStay.planId || ''),
+      nights: safeDays,
+      total_stay_amount: Number(extraStay.price || 0) * safeDays,
     });
   };
 
@@ -889,6 +993,62 @@ const age = Number(guest.age);
     return null;
   };
 
+  const identifyPrimaryGuest = () => {
+    const primaryGuest = guests[0];
+    if (!primaryGuest) return;
+
+    const email = String(primaryGuest.email || '').trim();
+    const phone = formatPhoneForCleverTap(
+      primaryGuest.phone || '',
+      primaryGuest.country || ''
+    );
+
+    if (!email && !phone) return;
+
+    identifyCleverTapUser(
+      {
+        Name: String(primaryGuest.name || '').trim(),
+        Identity: email || phone || String(primaryGuest.id || ''),
+        Email: email,
+        Phone: phone,
+        Gender:
+          String(primaryGuest.gender || '').trim().toLowerCase() === 'female'
+            ? 'F'
+            : String(primaryGuest.gender || '').trim().toLowerCase() === 'male'
+            ? 'M'
+            : '',
+        City: String(primaryGuest.city || '').trim(),
+        State: String(primaryGuest.state || '').trim(),
+        Country: String(primaryGuest.country || '').trim(),
+      },
+      {
+        dedupeKey: `guest_identity:${selectedEventId}:${email || phone || primaryGuest.id}`,
+        dedupeWindowMs: 5000,
+      }
+    );
+
+    updateCleverTapProfile({
+      'Last Event ID': Number(selectedEventId || 0),
+      'Last Event Name': selectedEventName || '',
+      'Last Selected Plan ID': Number(selectedPlanId || 0),
+      'Last Selected Plan': selectedPlanName || '',
+    });
+  };
+
+  const submitGuestForm = () => {
+    identifyPrimaryGuest();
+
+    trackCleverTapEvent('guest_form_submitted', {
+      ...baseTrackingProps(),
+      guests_count: guests.length,
+      kids_plan_count: guests.filter((guest: any) => guest?.isKidsPlanOpted).length,
+      addon_selections_count: getSelectedAddonCount(guests),
+      extra_stay_guest_count: getExtraStayGuestCount(guests),
+    });
+
+    onProceed();
+  };
+
   const handleProceedClick = () => {
     setTouched(true);
 
@@ -906,12 +1066,27 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
       });
     });
 
+    const invalidFields = Array.from(
+      new Set(
+        guests.flatMap((guest: any) => Object.keys(getGuestErrors(guest)))
+      )
+    );
 
+    if (!allGuestsValid) {
+      const invalidGuestCount = guests.filter(
+        (guest: any) => Object.keys(getGuestErrors(guest)).length > 0
+      ).length;
 
+      trackCleverTapEvent('guest_form_validation_failed', {
+        ...baseTrackingProps(),
+        guests_count: guests.length,
+        invalid_guest_count: invalidGuestCount,
+        invalid_fields: invalidFields.join(', '),
+        extra_stay_error_present: false,
+      });
 
-      if (!allGuestsValid) {
-        return; // ✅ already exists
-      }
+      return;
+    }
 
     if (showExtraStaySection) {
       const invalidExtraStayGuest = guests.find((guest: any) => {
@@ -928,13 +1103,23 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
         return noPlan || noStartDate || beforeMinDate;
       });
 
-      if (invalidExtraStayGuest) return;
+      if (invalidExtraStayGuest) {
+        trackCleverTapEvent('guest_form_validation_failed', {
+          ...baseTrackingProps(),
+          guests_count: guests.length,
+          invalid_guest_count: 1,
+          invalid_fields: 'extra_stay',
+          extra_stay_error_present: true,
+        });
+
+        return;
+      }
     }
 
     if (eligibleKids.length > 0) {
       setShowKidsModal(true);
     } else {
-      onProceed();
+      submitGuestForm();
     }
   };
 
@@ -1305,6 +1490,13 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                                 onClick={(e) => {
                                   e.preventDefault();
                                   e.stopPropagation();
+                                  trackCleverTapEvent('addon_info_opened', {
+                                    ...baseTrackingProps(),
+                                    addon_id: addonId,
+                                    addon_title: addon.title ?? addon.AddonTitle ?? '',
+                                    addon_type: addon.type ?? '',
+                                    guest_id: String(guest.id),
+                                  });
                                   setShowAddOnInfo(addonId);
                                 }}
                               >
@@ -1359,6 +1551,24 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                                 },
                           },
                         });
+
+                        trackCleverTapEvent('extra_stay_toggled', {
+                          ...baseTrackingProps(),
+                          guest_id: String(guest.id),
+                          action: checked ? 'enabled' : 'disabled',
+                          stay_plan_id: String(
+                            guest.addOns?.extraStay?.planId || defaultStay.planId || ''
+                          ),
+                          stay_plan_name:
+                            guest.addOns?.extraStay?.type || defaultStay.type || '',
+                          start_date: checked ? minExtraStayStartDate || '' : '',
+                          nights: checked
+                            ? Number(guest.addOns?.extraStay?.days || 1)
+                            : 0,
+                          price_per_night: Number(
+                            guest.addOns?.extraStay?.price || defaultStay.price || 0
+                          ),
+                        });
                       }}
                       className="h-5 w-5 rounded-md accent-[var(--theme)]"
                     />
@@ -1371,6 +1581,16 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                       type="button"
                       onClick={(e) => {
                         e.preventDefault();
+                        trackCleverTapEvent('addon_info_opened', {
+                          ...baseTrackingProps(),
+                          addon_id: 'extraStay',
+                          addon_title:
+                            stayAddonTitle ||
+                            ui.guestCard.addons?.extraStay ||
+                            'Extra Stay',
+                          addon_type: 'stay',
+                          guest_id: String(guest.id),
+                        });
                         setShowAddOnInfo('extraStay');
                       }}
                       className="rounded-lg p-1 hover:bg-stone-200"
@@ -1654,7 +1874,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                 type="button"
                 onClick={() => {
                   setShowKidsModal(false);
-                  onProceed();
+                  submitGuestForm();
                 }}
                 className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white"
               >

@@ -14,11 +14,20 @@ import {
   Flower2,
   Car,
 } from 'lucide-react';
+import { trackCleverTapEvent } from '../src/services/cleverTap';
+import {
+  getEventId,
+  getEventName,
+  getPlanId,
+  getPlanName,
+  getPlanSubtitle,
+} from '../src/services/cleverTapBooking';
 
 const loadedPlanImageCache = new Set<string>();
 const pendingPlanImageCache = new Map<string, Promise<void>>();
 
 interface PlanSelectionProps {
+  event?: any;
   plans: Plan[];
   ui: any;
   onSelect: (plan: Plan) => void;
@@ -194,6 +203,7 @@ const PlanCardImage = ({
 };
 
 const PlanSelection: React.FC<PlanSelectionProps> = ({
+  event,
   plans,
   ui,
   onSelect,
@@ -205,6 +215,28 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
       void primePlanImage(getThumbnailImage(plan));
     });
   }, [plans]);
+
+  useEffect(() => {
+    if (isLoading || !plans.length) return;
+
+    trackCleverTapEvent(
+      'plan_selection_viewed',
+      {
+        event_id: getEventId(event),
+        event_name: getEventName(event),
+        plans_count: plans.length,
+        visible_plan_ids: plans.map((plan) => String(getPlanId(plan))).join(', '),
+        visible_plan_names: plans
+          .map((plan) => getPlanName(plan))
+          .filter(Boolean)
+          .join(', '),
+      },
+      {
+        dedupeKey: `plan_selection_viewed:${getEventId(event)}:${plans.length}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [event, isLoading, plans]);
 
   if (isLoading) {
     return (
@@ -339,7 +371,27 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
 
                   <button
                     onClick={() => {
-                      if (!soldOut) onSelect(plan);
+                      if (soldOut) return;
+
+                      trackCleverTapEvent('plan_selected', {
+                        event_id: getEventId(event),
+                        event_name: getEventName(event),
+                        plan_id: getPlanId(plan),
+                        plan_name: getPlanName(plan),
+                        plan_subtitle: getPlanSubtitle(plan),
+                        price_type: plan.priceType || '',
+                        offer_price: discountedPrice,
+                        final_price: finalPrice,
+                        available_rooms: Number(
+                          plan.availableRooms ??
+                            plan.inventory?.availableRooms ??
+                            plan.remainingInventory ??
+                            0
+                        ),
+                        sold_out: soldOut,
+                      });
+
+                      onSelect(plan);
                     }}
                     disabled={soldOut}
                     className={`px-8 py-3 rounded-2xl font-black transition-all shadow-lg ${

@@ -9,6 +9,14 @@ import {
   AppConfig,
   getAllDataBySlug,
 } from './src/services/dataService';
+import { trackCleverTapEvent } from './src/services/cleverTap';
+import {
+  getEventId,
+  getEventName,
+  getEventSlug,
+  getPlanId,
+  getPlanName,
+} from './src/services/cleverTapBooking';
 
 import LandingPage from './components/LandingPage';
 import PlanSelection from './components/PlanSelection';
@@ -116,6 +124,30 @@ if (slug) {
             [],
         });
 
+        const eventDetails = allData?.eventData?.event;
+
+        trackCleverTapEvent(
+          'booking_flow_loaded',
+          {
+            event_id: getEventId(eventDetails),
+            event_name: getEventName(eventDetails),
+            event_slug: getEventSlug(eventDetails),
+            entry_path: window.location.pathname,
+            query_id: eventId || '',
+            booking_id_present: Boolean(bookingIdFromUrl),
+            view_param: view || '',
+            plans_count: filteredPlans.length,
+            addons_count: Number(
+              allData?.addons?.length ||
+                allData?.eventData?.addons?.length ||
+                0
+            ),
+          },
+          {
+            dedupeKey: `booking_flow_loaded:${window.location.pathname}:${eventId || slug || ''}:${bookingIdFromUrl || ''}:${view || ''}`,
+          }
+        );
+
         if (bookingIdFromUrl) {
           setBookingState((prev) => ({
             ...prev,
@@ -128,6 +160,31 @@ if (slug) {
           }));
 
           setPaymentResult('SUCCESS');
+
+          trackCleverTapEvent(
+            'booking_flow_resumed',
+            {
+              event_id: getEventId(eventDetails),
+              event_name: getEventName(eventDetails),
+              booking_id: String(bookingIdFromUrl),
+              entry_path: window.location.pathname,
+              view_param: view || '',
+              resumed_to_step: view === 'dashboard' ? 7 : 6,
+              ticket_available: Boolean(
+                allData?.bookingData?.ticketUrl || allData?.bookingData?.ticket_url
+              ),
+              invoice_available: Boolean(
+                allData?.bookingData?.invoiceUrl || allData?.bookingData?.invoice_url
+              ),
+              certificate_available: Boolean(
+                allData?.bookingData?.completionCertificateUrl ||
+                  allData?.bookingData?.completion_certificate_url
+              ),
+            },
+            {
+              dedupeKey: `booking_flow_resumed:${bookingIdFromUrl}:${view || ''}`,
+            }
+          );
         }
 
         if (bookingIdFromUrl && view === 'dashboard') {
@@ -139,6 +196,24 @@ if (slug) {
       } catch (err) {
         console.error('❌ Error fetching data:', err);
         setError('Failed to load event data. Please ensure the URL is correct.');
+
+        const urlParams = new URLSearchParams(window.location.search);
+        const eventId = urlParams.get('id');
+        const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');
+
+        trackCleverTapEvent(
+          'booking_flow_load_failed',
+          {
+            entry_path: window.location.pathname,
+            query_id: eventId || '',
+            event_slug: slug,
+            error_message:
+              err instanceof Error ? err.message : 'Failed to load booking flow',
+          },
+          {
+            dedupeKey: `booking_flow_load_failed:${window.location.pathname}:${eventId || slug}`,
+          }
+        );
       } finally {
         console.log('🏁 Data fetch completed');
         setLoading(false);
@@ -157,7 +232,19 @@ if (slug) {
 
   const nextStep = () => moveToStep(bookingState.currentStep + 1);
 
-  const prevStep = () => moveToStep(Math.max(2, bookingState.currentStep - 1));
+  const prevStep = () => {
+    const nextStepValue = Math.max(2, bookingState.currentStep - 1);
+
+    trackCleverTapEvent('booking_step_back_clicked', {
+      step_from: bookingState.currentStep,
+      step_to: nextStepValue,
+      current_step: bookingState.currentStep,
+      selected_plan_id: getPlanId(bookingState.selectedPlan),
+      selected_plan_name: getPlanName(bookingState.selectedPlan),
+    });
+
+    return moveToStep(nextStepValue);
+  };
 
   const selectPlan = async (plan: Plan) => {
     setStepLoadingMessage(STEP_LOADING_COPY[3]);
@@ -242,12 +329,17 @@ if (slug) {
     );
   }
 
- const selectedEventId = Number(
+const selectedEventId = Number(
   data?.eventData?.event?.EventID ||
   data?.eventData?.event?.id ||
   new URLSearchParams(window.location.search).get('id') ||
   0
 );
+
+const selectedEventName =
+  data?.eventData?.event?.EventName ||
+  data?.eventData?.event?.title ||
+  '';
 
 const selectedPlanId = Number(
   (bookingState.selectedPlan as any)?.planID ||
@@ -255,6 +347,8 @@ const selectedPlanId = Number(
   (bookingState.selectedPlan as any)?.id ||
   0
 );
+
+const selectedPlanName = getPlanName(bookingState.selectedPlan);
 
 const isPlanSelectionLoading =
   stepLoadingMessage === STEP_LOADING_COPY[2] ||
@@ -288,6 +382,7 @@ const isPlanSelectionLoading =
   return (
     <PlanSelection
       plans={data.plans}
+      event={data.eventData.event}
       ui={data.uiContent.planSelection}
       onSelect={selectPlan}
       onBack={() => {}}
@@ -299,6 +394,7 @@ const isPlanSelectionLoading =
       case 3:
         return (
           <PlanDetail
+            event={data.eventData.event}
             plan={bookingState.selectedPlan!}
             onProceed={(apiGuests) => {
               setBookingState((p) => ({
@@ -321,6 +417,8 @@ const isPlanSelectionLoading =
   addons={data.addons || []}
   selectedEventId={selectedEventId}
   selectedPlanId={selectedPlanId}
+  selectedEventName={selectedEventName}
+  selectedPlanName={selectedPlanName}
   eventEndDate={
     data?.eventData?.event?.endDate ||
     data?.eventData?.event?.EndDate ||
@@ -382,6 +480,7 @@ case 6:
         return (
           <PlanSelection
             plans={data.plans}
+            event={data.eventData.event}
             ui={data.uiContent.planSelection}
             onSelect={selectPlan}
             onBack={() => {}}
@@ -433,7 +532,22 @@ case 6:
       <footer className="py-6 text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
         © 2026 Shreans Daga Foundation. Built for {data.eventData.event?.EventName || 'this event'}
         <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest">
-          Support: <a href="tel:987666444" className="text-[var(--theme)] hover:underline">987666444</a>
+          Support:{' '}
+          <a
+            href="tel:987666444"
+            className="text-[var(--theme)] hover:underline"
+            onClick={() =>
+              trackCleverTapEvent('support_phone_clicked', {
+                event_id: selectedEventId,
+                event_name: selectedEventName,
+                booking_id: bookingState.bookingId ? String(bookingState.bookingId) : '',
+                support_phone: '987666444',
+                placement: 'footer',
+              })
+            }
+          >
+            987666444
+          </a>
         </p>
       </footer>
 
@@ -444,6 +558,15 @@ case 6:
         rel="noopener noreferrer"
         className="group fixed bottom-4 right-4 z-[999] flex items-center rounded-full bg-[#25D366] text-white shadow-2xl transition-all duration-300 active:scale-95 hover:scale-110 sm:bottom-8 sm:right-8"
         aria-label="Contact Support on WhatsApp"
+        onClick={() =>
+          trackCleverTapEvent('whatsapp_support_clicked', {
+            event_id: selectedEventId,
+            event_name: selectedEventName,
+            booking_id: bookingState.bookingId ? String(bookingState.bookingId) : '',
+            whatsapp_number: '91987666444',
+            current_step: bookingState.currentStep,
+          })
+        }
       >
         <span className="hidden max-w-0 overflow-hidden whitespace-nowrap text-sm font-bold transition-all duration-500 ease-in-out group-hover:max-w-xs group-hover:pl-5 sm:inline-block">
           Chat with us

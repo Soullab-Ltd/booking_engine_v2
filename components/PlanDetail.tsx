@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Plan } from '../types';
 import {
   CheckCircle,
@@ -16,8 +16,16 @@ import {
   Flower2,
   ChevronRight,
 } from 'lucide-react';
+import { trackCleverTapEvent } from '../src/services/cleverTap';
+import {
+  getEventId,
+  getEventName,
+  getPlanId,
+  getPlanName,
+} from '../src/services/cleverTapBooking';
 
 interface PlanDetailProps {
+  event?: any;
   plan: Plan;
   onProceed: () => void;
   onBack: () => void;
@@ -65,7 +73,12 @@ const isPlanSoldOut = (plan: any) => {
   return Number(plan?.remainingInventory ?? 0) <= 0;
 };
 
-const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
+const PlanDetail: React.FC<PlanDetailProps> = ({
+  event,
+  plan,
+  onProceed,
+  onBack,
+}) => {
   const sortedImages = useMemo(() => {
     const imgs = Array.isArray((plan as any)?.images) ? [...(plan as any).images] : [];
 
@@ -115,6 +128,29 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
       ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
       : plan.gstDetails || '';
+
+  useEffect(() => {
+    trackCleverTapEvent(
+      'plan_detail_viewed',
+      {
+        event_id: getEventId(event),
+        event_name: getEventName(event),
+        plan_id: getPlanId(plan),
+        plan_name: getPlanName(plan),
+        price_type: (plan as any).priceType || '',
+        offer_price: Number(plan.discountedPrice || plan.OfferPrice || 0),
+        final_price: Number(plan.finalPrice || plan.PlanPrice || 0),
+        gst_type: (plan as any).gstType || '',
+        gst_rate: Number((plan as any).gstRate || 0),
+        amenities_count: Number((plan.amenities || plan.icons || []).length),
+        image_count: carouselImages.length,
+      },
+      {
+        dedupeKey: `plan_detail_viewed:${getEventId(event)}:${getPlanId(plan)}`,
+        dedupeWindowMs: 60000,
+      }
+    );
+  }, [carouselImages.length, event, plan]);
 
   return (
     <div className="animate-fadeIn pb-32 bg-white">
@@ -239,7 +275,20 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               <h3 className="text-xl font-black mb-2">Customer Support</h3>
               <p className="text-teal-200 leading-relaxed font-medium">
                 Please contact our customer support @{' '}
-                <a href="tel:987666444" className="underline underline-offset-4">
+                <a
+                  href="tel:987666444"
+                  className="underline underline-offset-4"
+                  onClick={() =>
+                    trackCleverTapEvent('plan_detail_support_call_clicked', {
+                      event_id: getEventId(event),
+                      event_name: getEventName(event),
+                      plan_id: getPlanId(plan),
+                      plan_name: getPlanName(plan),
+                      support_phone: '987666444',
+                      placement: 'plan_detail',
+                    })
+                  }
+                >
                   987666444
                 </a>{' '}
                 for any queries.
@@ -302,7 +351,19 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
             <button
               onClick={() => {
-                if (!soldOut) onProceed();
+                if (soldOut) return;
+
+                trackCleverTapEvent('plan_detail_book_now_clicked', {
+                  event_id: getEventId(event),
+                  event_name: getEventName(event),
+                  plan_id: getPlanId(plan),
+                  plan_name: getPlanName(plan),
+                  offer_price: Number(plan.discountedPrice || plan.OfferPrice || 0),
+                  final_price: Number(plan.finalPrice || plan.PlanPrice || 0),
+                  next_step: 4,
+                });
+
+                onProceed();
               }}
               disabled={soldOut}
               className={`w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 ${
