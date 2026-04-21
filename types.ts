@@ -49,6 +49,13 @@ export interface PlanIcon {
   planID: number;
 }
 
+export interface PlanFeature {
+  id: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
 
 export interface ScheduleSlot {
   time: string;
@@ -89,6 +96,7 @@ export interface Plan {
   finalPrice?: number;
   gstDetails?: string;
   amenities?: PlanIcon[];
+  planFeatures?: PlanFeature[];
   isSpecialPlan?: boolean | number; 
   tag?: string;
   images: {

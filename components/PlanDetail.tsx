@@ -15,6 +15,10 @@ import {
   Heart,
   Flower2,
   ChevronRight,
+  Users,
+  Bath,
+  Ruler,
+  Home,
 } from 'lucide-react';
 
 interface PlanDetailProps {
@@ -48,6 +52,26 @@ const AmenityIcon = ({ name }: { name: string }) => {
   if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="w-6 h-6" />;
   if (n.includes('private entry') || n.includes('deck')) return <DoorOpen className="w-6 h-6" />;
   return <CheckCircle className="w-6 h-6" />;
+};
+
+const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
+  const normalizedIcon = String(iconName || '').trim().toLowerCase();
+
+  if (normalizedIcon.includes('bed')) return <Bed className="w-8 h-8 text-[var(--theme)]" />;
+  if (normalizedIcon.includes('bath') || normalizedIcon.includes('toilet') || normalizedIcon.includes('wash')) {
+    return <Bath className="w-8 h-8 text-[var(--theme)]" />;
+  }
+  if (normalizedIcon.includes('guest') || normalizedIcon.includes('people') || normalizedIcon.includes('user')) {
+    return <Users className="w-8 h-8 text-[var(--theme)]" />;
+  }
+  if (normalizedIcon.includes('sq') || normalizedIcon.includes('area') || normalizedIcon.includes('size')) {
+    return <Ruler className="w-8 h-8 text-[var(--theme)]" />;
+  }
+  if (normalizedIcon.includes('room') || normalizedIcon.includes('home') || normalizedIcon.includes('house')) {
+    return <Home className="w-8 h-8 text-[var(--theme)]" />;
+  }
+
+  return <CheckCircle className="w-8 h-8 text-[var(--theme)]" />;
 };
 
 const isPlanSoldOut = (plan: any) => {
@@ -111,6 +135,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
   const activeImage = carouselImages[activeIndex] || fallbackImage;
   const priceTypeLabel = getPriceTypeLabel((plan as any).priceType);
   const soldOut = isPlanSoldOut(plan);
+  const planFeatures = Array.isArray((plan as any).planFeatures) ? (plan as any).planFeatures : [];
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
       ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
@@ -211,6 +236,31 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           </section>
 
           <section>
+            {planFeatures.length > 0 ? (
+              <>
+                <div className="flex items-center gap-3 mb-10">
+                  <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
+                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
+                    Features
+                  </h2>
+                </div>
+
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+                  {planFeatures.map((feature: any, index: number) => (
+                    <div
+                      key={feature?.id || `${feature?.label || 'feature'}-${index}`}
+                      className="rounded-2xl border border-stone-200 bg-stone-50 p-5 flex flex-col items-center text-center gap-3"
+                    >
+                      <PlanFeatureIcon iconName={feature?.icon} />
+                      <p className="text-sm md:text-base font-semibold text-stone-800">
+                        {feature?.value || '-'} {feature?.label || ''}
+                      </p>
+                    </div>
+                  ))}
+                </div>
+              </>
+            ) : null}
+
             <div className="flex items-center gap-3 mb-10">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">

@@ -270,6 +270,14 @@ const normalizePlan = (plan: any): Plan => {
       type: icon.type || '',
       planID: icon.planID,
     })),
+    planFeatures: Array.isArray(plan.planFeatures)
+      ? plan.planFeatures.map((feature: any, index: number) => ({
+          id: String(feature?.id || `feature-${plan.planID || plan.PlanID || 'plan'}-${index}`),
+          label: normalizeOptionalText(feature?.label || feature?.title || ''),
+          value: normalizeOptionalText(feature?.value || feature?.description || ''),
+          icon: normalizeOptionalText(feature?.icon || 'check'),
+        }))
+      : [],
     images: Array.isArray(plan.images) ? plan.images : [],
   };
 
