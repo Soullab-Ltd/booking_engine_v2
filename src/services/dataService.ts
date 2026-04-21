@@ -160,6 +160,34 @@ const getPlanMaxPax = (plan: any): number => {
   return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
 };
 
+const getRawPlanFeatures = (plan: any): any[] => {
+  const rawFeatures =
+    plan?.planFeatures ??
+    plan?.plan_features ??
+    plan?.features ??
+    [];
+
+  if (Array.isArray(rawFeatures)) {
+    return rawFeatures;
+  }
+
+  if (typeof rawFeatures === 'string') {
+    try {
+      const parsed = JSON.parse(rawFeatures);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return Object.values(parsed);
+    } catch {
+      return [];
+    }
+  }
+
+  if (rawFeatures && typeof rawFeatures === 'object') {
+    return Object.values(rawFeatures);
+  }
+
+  return [];
+};
+
 const getPlanLabel = (normalizedPlan: Partial<Plan>) =>
   normalizedPlan.PlanTitle ||
   normalizedPlan.PlanName ||
@@ -270,14 +298,14 @@ const normalizePlan = (plan: any): Plan => {
       type: icon.type || '',
       planID: icon.planID,
     })),
-    planFeatures: Array.isArray(plan.planFeatures)
-      ? plan.planFeatures.map((feature: any, index: number) => ({
+    planFeatures: getRawPlanFeatures(plan)
+      .map((feature: any, index: number) => ({
           id: String(feature?.id || `feature-${plan.planID || plan.PlanID || 'plan'}-${index}`),
-          label: normalizeOptionalText(feature?.label || feature?.title || ''),
-          value: normalizeOptionalText(feature?.value || feature?.description || ''),
-          icon: normalizeOptionalText(feature?.icon || 'check'),
+          label: normalizeOptionalText(feature?.label || feature?.Label || feature?.title || feature?.Title || ''),
+          value: normalizeOptionalText(feature?.value || feature?.Value || feature?.description || ''),
+          icon: normalizeOptionalText(feature?.icon || feature?.Icon || feature?.iconName || 'check'),
         }))
-      : [],
+      .filter((feature: any) => feature?.label || feature?.value),
     images: Array.isArray(plan.images) ? plan.images : [],
   };
 
@@ -286,7 +314,7 @@ const normalizePlan = (plan: any): Plan => {
 };
 
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`http://localhost:3000/data/${path}`);
+  const response = await fetch(`https://booking-engine.thriive.in/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
@@ -295,7 +323,7 @@ export const getAllData = async (
   eventId: string | number,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/${eventId}`);
+  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/${eventId}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -315,7 +343,7 @@ console.log(
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`https://bookingapi.thriive.in/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -432,7 +460,7 @@ export const getAllDataBySlug = async (
   slug: string,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/slug/${slug}`);
+  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/slug/${slug}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -446,7 +474,7 @@ export const getAllDataBySlug = async (
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`https://bookingapi.thriive.in/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -554,7 +582,7 @@ export const getAllDataBySlug = async (
   };
 };
 export const createBooking = async (bookingData: any) => {
-  const response = await fetch('http://localhost:4000/bookings', { 
+  const response = await fetch('https://bookingapi.thriive.in/bookings', { 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bookingData),

@@ -23,7 +23,7 @@ import {
 
 interface PlanDetailProps {
   plan: Plan;
-  onProceed: (apiGuests?: any) => void;
+  onProceed: () => void;
   onBack: () => void;
 }
 
@@ -90,6 +90,35 @@ const isPlanSoldOut = (plan: any) => {
 };
 
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
+  const rawPlanFeatures =
+    (plan as any).planFeatures ??
+    (plan as any).plan_features ??
+    (plan as any).features ??
+    [];
+
+  const planFeatures = useMemo(() => {
+    let featureList: any[] = [];
+
+    if (Array.isArray(rawPlanFeatures)) {
+      featureList = rawPlanFeatures;
+    } else if (typeof rawPlanFeatures === 'string') {
+      try {
+        const parsed = JSON.parse(rawPlanFeatures);
+        featureList = Array.isArray(parsed)
+          ? parsed
+          : parsed && typeof parsed === 'object'
+            ? Object.values(parsed)
+            : [];
+      } catch {
+        featureList = [];
+      }
+    } else if (rawPlanFeatures && typeof rawPlanFeatures === 'object') {
+      featureList = Object.values(rawPlanFeatures);
+    }
+
+    return featureList.filter((feature: any) => feature?.label || feature?.Label || feature?.value || feature?.Value);
+  }, [rawPlanFeatures]);
+
   const sortedImages = useMemo(() => {
     const imgs = Array.isArray((plan as any)?.images) ? [...(plan as any).images] : [];
 
@@ -135,7 +164,6 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
   const activeImage = carouselImages[activeIndex] || fallbackImage;
   const priceTypeLabel = getPriceTypeLabel((plan as any).priceType);
   const soldOut = isPlanSoldOut(plan);
-  const planFeatures = Array.isArray((plan as any).planFeatures) ? (plan as any).planFeatures : [];
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
       ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
@@ -251,9 +279,9 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                       key={feature?.id || `${feature?.label || 'feature'}-${index}`}
                       className="rounded-2xl border border-stone-200 bg-stone-50 p-5 flex flex-col items-center text-center gap-3"
                     >
-                      <PlanFeatureIcon iconName={feature?.icon} />
+                      <PlanFeatureIcon iconName={feature?.icon || feature?.Icon || feature?.iconName} />
                       <p className="text-sm md:text-base font-semibold text-stone-800">
-                        {feature?.value || '-'} {feature?.label || ''}
+                        {feature?.value || feature?.Value || '-'} {feature?.label || feature?.Label || ''}
                       </p>
                     </div>
                   ))}
@@ -306,31 +334,40 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               Selected Plan
             </h3>
 
-            <div className="space-y-6 mb-12">
-              <div className="flex justify-between items-baseline">
-                <span className="text-sm font-bold text-stone-400">Price</span>
-                <span className="text-lg font-bold text-stone-400 line-through">
-                  ₹ {Number(plan.finalPrice || plan.PlanPrice || 0).toLocaleString()}
-                </span>
-              </div>
+            <div className="mb-12 rounded-3xl border border-stone-100 bg-stone-50/70 p-6">
+              <p className="text-sm font-semibold text-stone-500 mb-1">Retreat Offering</p>
+              <h4 className="text-2xl font-black text-stone-900 tracking-tight">
+                {plan.PlanTitle || plan.PlanName}
+              </h4>
 
-              <div className="flex justify-between items-end">
-                <span className="text-sm font-black text-[var(--theme)] uppercase tracking-tighter">
-                  Retreat Offering
-                </span>
-                <span className="text-[9px] font-black text-stone-400 uppercase tracking-widest mt-1">
-                  {priceTypeLabel}
-                </span>
-                <div className="text-right">
-                  <span className="text-5xl font-black text-stone-900">
-                    ₹ {Number(plan.discountedPrice || plan.OfferPrice || 0).toLocaleString()}
+              <div className="mt-5 border-t border-stone-200 pt-5 space-y-3">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Price</span>
+                  <span className="text-base font-bold text-stone-400 line-through">
+                    ₹ {Number(plan.finalPrice || plan.PlanPrice || 0).toLocaleString()}
                   </span>
-                  {gstLabel ? (
-                    <p className="text-[10px] font-black text-[var(--theme)] mt-1 uppercase tracking-widest">
-                      {gstLabel}
-                    </p>
-                  ) : null}
                 </div>
+
+                <div className="flex items-end justify-between gap-4">
+                  <div>
+                    <p className="text-xs font-black text-[var(--theme)] uppercase tracking-[0.2em]">
+                      Now
+                    </p>
+                    <p className="text-4xl font-black text-stone-900 leading-none mt-1">
+                      ₹ {Number(plan.discountedPrice || plan.OfferPrice || 0).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest text-right">
+                    {priceTypeLabel}
+                  </p>
+                </div>
+
+                {gstLabel ? (
+                  <p className="text-[10px] font-black text-[var(--theme)] uppercase tracking-widest">
+                    {gstLabel}
+                  </p>
+                ) : null}
               </div>
             </div>
 
