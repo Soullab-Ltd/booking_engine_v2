@@ -119,48 +119,6 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
     return featureList.filter((feature: any) => feature?.label || feature?.Label || feature?.value || feature?.Value);
   }, [rawPlanFeatures]);
 
-  const effectivePlanFeatures = useMemo(() => {
-    if (planFeatures.length > 0) {
-      return planFeatures;
-    }
-
-    const descriptionText = String(
-      plan.PlanDescription || plan.description || ''
-    ).toLowerCase();
-
-    const derivedFeatures: Array<{ id: string; label: string; value: string; icon: string }> = [];
-    const guestsMatch = descriptionText.match(/upto\s*(\d+)\s*guests?/i);
-
-    if (guestsMatch?.[1]) {
-      derivedFeatures.push({
-        id: `derived-guests-${guestsMatch[1]}`,
-        label: 'Guests',
-        value: guestsMatch[1],
-        icon: 'guests',
-      });
-    }
-
-    if (descriptionText.includes('bed')) {
-      derivedFeatures.push({
-        id: 'derived-bed',
-        label: 'Bed',
-        value: '1',
-        icon: 'bed',
-      });
-    }
-
-    if (descriptionText.includes('bath')) {
-      derivedFeatures.push({
-        id: 'derived-bath',
-        label: 'bathroom',
-        value: '1',
-        icon: 'bath',
-      });
-    }
-
-    return derivedFeatures.slice(0, 4);
-  }, [plan, planFeatures]);
-
   const sortedImages = useMemo(() => {
     const imgs = Array.isArray((plan as any)?.images) ? [...(plan as any).images] : [];
 
@@ -306,7 +264,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           </section>
 
           <section>
-            {effectivePlanFeatures.length > 0 ? (
+            {planFeatures.length > 0 ? (
               <>
                 <div className="flex items-center gap-3 mb-10">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
@@ -316,7 +274,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-                  {effectivePlanFeatures.map((feature: any, index: number) => (
+                  {planFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
                       className="rounded-2xl border border-stone-200 bg-stone-50 p-5 flex flex-col items-center text-center gap-3"
