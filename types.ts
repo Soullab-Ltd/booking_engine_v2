@@ -11,32 +11,19 @@ export interface AddOn {
   description: string;
 }
 
-export interface SelectedAddon {
-  addonId: string;
-  title: string;
-  description?: string;
-  type?: string;
-  price?: number;
-  quantity?: number;
-  isPricePerNight?: boolean;
-  bannerImage?: string;
-}
-
 export interface Guest {
   id: string;
   name: string;
   phone: string;
-  phoneNumber?: string;
   email: string;
-  age?: number;
+  age: number;
   isKidsPlanOpted: boolean;
   foodPreference: FoodPreference;
   travelAssistance: boolean;
-
+  
   addOns: {
     foodPass: boolean;
     adventurePass: boolean;
-    selectedAddons?: SelectedAddon[];
     extraStay: {
       enabled: boolean;
       days: number;
@@ -55,15 +42,20 @@ export interface Guest {
 
 
 export interface PlanIcon {
-  id?: number | string;
-  title?: string;
-  Title?: string;
-  iconUrl?: string;
-  type?: string;
-  planID?: number | string;
+  id: number;
+  title: string;
+  iconUrl: string;
+  type: string;
+  planID: number;
 }
 
-export type PlanAmenity = PlanIcon | string;
+export interface PlanFeature {
+  id: string;
+  label: string;
+  value: string;
+  icon: string;
+}
+
 
 export interface ScheduleSlot {
   time: string;
@@ -79,17 +71,17 @@ export interface ScheduleDay {
 
 export interface Plan {
   id?: string;
-  planID?: number;
+  planID: number;
   PlanID?: number;
   PlanName?: string;
   priceType?: string;
   remainingInventory?: number;
   title?: string;
-  sequence?: number;
+  sequence:number;
   PlanTitle?: string;
   PlanSubtitle?: string;
   thumbnail?: string;
-  banner?: string | null;
+  banner: string | null;
   bannerImage?: string;
   description?: string;
   stayRoomType?: string;
@@ -98,21 +90,16 @@ export interface Plan {
   longDescription?: string;
   planColor?: string;
   maxPax?: number;
-  PlanPrice?: number;
-  OfferPrice?: number;
+  PlanPrice: number;
+  OfferPrice: number;
   discountedPrice?: number;
   finalPrice?: number;
   gstDetails?: string;
-  amenities?: PlanAmenity[];
-  icons?: PlanAmenity[];
-  isSpecialPlan?: boolean | number;
-  isSoldOut?: boolean;
-  availableRooms?: number;
-  inventory?: {
-    availableRooms?: number;
-  };
+  amenities?: PlanIcon[];
+  planFeatures?: PlanFeature[];
+  isSpecialPlan?: boolean | number; 
   tag?: string;
-  images?: {
+  images: {
     id: number;
     imageUrl: string;
     isMain: boolean;
@@ -121,46 +108,27 @@ export interface Plan {
 }
 
 export interface EventData {
-  id?: number | string;
+  id: number | string;
   EventID?: number | string;
   title: string;
-  slug?: string;
+
+  slug: string;
   EventName?: string;
-  banner?: string;
-  date?: string;
+  banner: string;
+
+  date: string;
+
+  // ✅ ADD TYPES
   startDate?: string;
   endDate?: string;
-  EndDate?: string;
-  eventEndDate?: string;
-  EventEndDate?: string;
-  EventStartDate?: string;
-  displayDate?: string;
-  time?: string;
-  venue?: string;
-  Venue?: string;
-  location?: string;
-  description?: string;
+
+  time: string;
+  venue: string;
+  description: string;
+
   schedules?: any[];
   plans?: any[];
   addons?: any[];
-  mentors?: any;
-  insights?: any[];
-  otherInfoLinks?: Array<{
-    title?: string;
-    label?: string;
-    url?: string;
-    link?: string;
-  }>;
-  additionalLinks?: Array<{
-    title?: string;
-    label?: string;
-    url?: string;
-    link?: string;
-  }>;
-  termsUrl?: string;
-  refundPolicyUrl?: string;
-  faqsUrl?: string;
-  codeOfConductUrl?: string;
 }
 
 export interface DiscountInfo {
@@ -173,11 +141,9 @@ export interface DiscountInfo {
 export interface BookingState {
   currentStep: number;
   selectedPlan: Plan | null;
-  plan?: Plan | null;
   guests: Guest[];
   discounts: DiscountInfo;
   is80GRequired: boolean;
-  guestsPayload?: any;
   taxInfo: {
     panNumber: string;
     fullName: string;
@@ -186,23 +152,4 @@ export interface BookingState {
     aadharFile?: string;
   };
   bookingId?: string | number;
-  ticketUrl?: string;
-  ticket_url?: string;
-  invoiceUrl?: string;
-  invoice_url?: string;
-  completionCertificateUrl?: string;
-  completion_certificate_url?: string;
-  additionalAssets?: Array<{
-    title?: string;
-    status?: string;
-    size?: string;
-    description?: string;
-    url?: string;
-  }>;
-  otherInfoLinks?: Array<{
-    title?: string;
-    label?: string;
-    url?: string;
-    link?: string;
-  }>;
 }
