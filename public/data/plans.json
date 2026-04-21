@@ -8,6 +8,12 @@
     "discountedPrice": 9000,
     "finalPrice": 7000,
     "gstDetails": "Inclusive of GST",
+    "planFeatures": [
+      { "id": "feature-pa-bath", "label": "bathroom", "value": "1", "icon": "bath" },
+      { "id": "feature-pa-bed", "label": "Bed", "value": "1", "icon": "bed" },
+      { "id": "feature-pa-space", "label": "sq. ft.", "value": "192", "icon": "sqft" },
+      { "id": "feature-pa-guests", "label": "Guests", "value": "1", "icon": "guests" }
+    ],
     "amenities": ["1 Bunk bed (1 Guest)", "192 sqft Space", "Common Bathroom", "Hot water (Fixed time)", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
   },
   {
@@ -19,6 +25,12 @@
     "discountedPrice": 22000,
     "finalPrice": 19000,
     "gstDetails": "Inclusive of GST",
+    "planFeatures": [
+      { "id": "feature-pb-bath", "label": "bathroom", "value": "1", "icon": "bath" },
+      { "id": "feature-pb-bed", "label": "Bed", "value": "1", "icon": "bed" },
+      { "id": "feature-pb-space", "label": "sq. ft.", "value": "192", "icon": "sqft" },
+      { "id": "feature-pb-guests", "label": "Guests", "value": "2", "icon": "guests" }
+    ],
     "amenities": ["1 Bed (2 Guests)", "Attached Bathroom", "192 sqft Space", "Daily Housekeeping", "Morning Hot Water", "Meals at Pyramid Valley International", "Free WiFi in Public Area", "Parking Available"]
   },
   {
