@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { BookingState, Guest, EventData } from '../types';
 import {
   CreditCard,
@@ -55,6 +55,147 @@ const getCouponId = (coupon: any): string => {
 
 const getCouponCode = (coupon: any): string => {
   return String(coupon?.code ?? coupon?.couponCode ?? '');
+};
+
+const getCouponKey = (coupon: any): string => {
+  return getCouponId(coupon) || getCouponCode(coupon).toUpperCase();
+};
+
+const parseCouponNumber = (value: any): number | null => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getCouponGuestRange = (
+  coupon: any
+): { minGuests: number; maxGuests: number } | null => {
+  const minGuests = parseCouponNumber(
+    coupon?.minGuestCount ?? coupon?.min_guest_count
+  );
+  const maxGuests = parseCouponNumber(
+    coupon?.maxGuestCount ?? coupon?.max_guest_count
+  );
+
+  if (minGuests === null || maxGuests === null) {
+    return null;
+  }
+
+  return {
+    minGuests: Math.min(minGuests, maxGuests),
+    maxGuests: Math.max(minGuests, maxGuests),
+  };
+};
+
+const getCouponGuestThreshold = (coupon: any): number => {
+  const guestRange = getCouponGuestRange(coupon);
+
+  if (guestRange) {
+    return guestRange.minGuests;
+  }
+
+  const candidateKeys = [
+    'minimumGuests',
+    'minGuests',
+    'minGroupSize',
+    'groupSize',
+    'eligibleGuestCount',
+    'requiredGuestCount',
+    'minimumGuestCount',
+    'groupGuestCount',
+  ];
+
+  for (const key of candidateKeys) {
+    const parsed = Number(coupon?.[key]);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return 0;
+};
+
+const isCouponEligibleForGuestCount = (
+  coupon: any,
+  guestCount: number
+): boolean => {
+  const guestRange = getCouponGuestRange(coupon);
+
+  if (guestRange) {
+    return (
+      guestCount >= guestRange.minGuests && guestCount <= guestRange.maxGuests
+    );
+  }
+
+  const minGuests = getCouponGuestThreshold(coupon);
+  return minGuests <= 0 || guestCount >= minGuests;
+};
+
+const isCouponEligibleForGuests = (
+  coupon: any,
+  guests: Array<Guest | any>
+): boolean => {
+  return isCouponEligibleForGuestCount(coupon, guests.length);
+};
+
+const getCouponGuestRequirementMessage = (
+  coupon: any,
+  guestCount: number
+): string => {
+  const guestRange = getCouponGuestRange(coupon);
+
+  if (guestRange) {
+    if (guestCount >= guestRange.minGuests && guestCount <= guestRange.maxGuests) {
+      return '';
+    }
+
+    return `This coupon is available for ${guestRange.minGuests} to ${guestRange.maxGuests} guests.`;
+  }
+
+  const minGuests = getCouponGuestThreshold(coupon);
+
+  if (minGuests <= 0 || guestCount >= minGuests) {
+    return '';
+  }
+
+  return `This coupon becomes available from ${minGuests} guests onwards.`;
+};
+
+const getCouponEligibilityMessage = (
+  coupon: any,
+  guests: Array<Guest | any>
+): string => {
+  return getCouponGuestRequirementMessage(coupon, guests.length);
+};
+
+const getCouponSortValue = (coupon: any): number => {
+  const parsed = Number(coupon?.value ?? coupon?.discountValue ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const areCouponListsEquivalent = (prev: any[], next: any[]): boolean => {
+  if (prev === next) return true;
+  if (prev.length !== next.length) return false;
+
+  return prev.every((coupon, index) => {
+    const nextCoupon = next[index];
+    const prevRange = getCouponGuestRange(coupon);
+    const nextRange = getCouponGuestRange(nextCoupon);
+
+    return (
+      getCouponKey(coupon) === getCouponKey(nextCoupon) &&
+      getCouponCode(coupon) === getCouponCode(nextCoupon) &&
+      getCouponGuestThreshold(coupon) === getCouponGuestThreshold(nextCoupon) &&
+      getCouponSortValue(coupon) === getCouponSortValue(nextCoupon) &&
+      normalizeBooleanFlag(
+        coupon?.requiresIdUpload ?? coupon?.requires_id_upload
+      ) ===
+        normalizeBooleanFlag(
+          nextCoupon?.requiresIdUpload ?? nextCoupon?.requires_id_upload
+        ) &&
+      (prevRange?.minGuests ?? null) === (nextRange?.minGuests ?? null) &&
+      (prevRange?.maxGuests ?? null) === (nextRange?.maxGuests ?? null)
+    );
+  });
 };
 
 const isPlanSoldOut = (plan: any): boolean => {
@@ -213,11 +354,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [dismissedAutoCouponKey, setDismissedAutoCouponKey] = useState('');
 
   const [showCouponIdModal, setShowCouponIdModal] = useState(false);
   const [pendingCoupon, setPendingCoupon] = useState<any | null>(null);
 
   const guests = bookingState?.guests || [];
+  const guestCount = guests.length;
   const couponIdProof = (bookingState as any)?.couponIdProof || null;
   const couponIdProofUrl = (bookingState as any)?.couponIdProofUrl || '';
 
@@ -235,68 +378,172 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     [bookingState]
   );
 
-  useEffect(() => {
-    const fetchCoupons = async () => {
-      try {
-        if (!selectedEventId || !selectedPlanId) {
-          setAvailableCoupons([]);
-          return;
-        }
+  const selectedPlan = useMemo(
+    () => (bookingState as any)?.selectedPlan || (bookingState as any)?.plan || {},
+    [bookingState]
+  );
 
-        const res = await fetch(
-          `https://bookingapi.thriive.in/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
+  const applyCoupon = useCallback((coupon: any) => {
+    const nextCouponCode = getCouponCode(coupon);
+    const nextDiscountId = getCouponId(coupon) || null;
+
+    setAppliedCoupon((prev: any) => {
+      if (prev && getCouponKey(prev) === getCouponKey(coupon)) {
+        return prev;
+      }
+
+      return coupon;
+    });
+
+    setBookingState((prev: any) => {
+      if (
+        prev?.couponCode === nextCouponCode &&
+        prev?.appliedDiscountId === nextDiscountId
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        couponCode: nextCouponCode,
+        appliedDiscountId: nextDiscountId,
+      };
+    });
+  }, [setBookingState]);
+
+  const clearAppliedCoupon = useCallback(() => {
+    setAppliedCoupon(null);
+    setPendingCoupon(null);
+    setShowCouponIdModal(false);
+
+    setBookingState((prev: any) => {
+      if (
+        prev?.couponCode === '' &&
+        prev?.appliedDiscountId == null &&
+        prev?.couponIdProof == null &&
+        prev?.couponIdProofUrl === ''
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        couponCode: '',
+        appliedDiscountId: null,
+        couponIdProof: null,
+        couponIdProofUrl: '',
+      };
+    });
+  }, [setBookingState]);
+
+ useEffect(() => {
+  const fetchCoupons = async () => {
+    try {
+      if (!selectedEventId || !selectedPlanId) {
+        setAvailableCoupons([]);
+        return;
+      }
+
+      const query = new URLSearchParams({
+        eventId: String(selectedEventId),
+        planId: String(selectedPlanId),
+      });
+
+      const res = await fetch(
+        `http://localhost:4000/coupons/applicable?${query.toString()}`
+      );
+
+      if (!res.ok) {
+        setAvailableCoupons([]);
+        return;
+      }
+
+      const data = await res.json();
+      const couponList = Array.isArray(data) ? data : [];
+
+      setAvailableCoupons((prev) =>
+        areCouponListsEquivalent(prev, couponList) ? prev : couponList
+      );
+    } catch (err) {
+      console.error('Coupon fetch error:', err);
+      setAvailableCoupons((prev) => (prev.length > 0 ? [] : prev));
+    }
+  };
+
+  fetchCoupons();
+}, [selectedEventId, selectedPlanId]);
+
+  const bestEligibleAutoCoupon = useMemo(() => {
+    return [...availableCoupons]
+      .filter((coupon) => {
+        const guestRange = getCouponGuestRange(coupon);
+        const minGuests = getCouponGuestThreshold(coupon);
+        const requiresId = normalizeBooleanFlag(
+          coupon?.requiresIdUpload ?? coupon?.requires_id_upload
         );
 
-        if (!res.ok) {
-          setAvailableCoupons([]);
-          return;
+        if (!guestRange && minGuests <= 0) return false;
+        if (!isCouponEligibleForGuests(coupon, guests)) return false;
+        if (requiresId && !couponIdProof && !couponIdProofUrl) return false;
+
+        return true;
+      })
+      .sort((a, b) => {
+        const thresholdDiff =
+          getCouponGuestThreshold(b) - getCouponGuestThreshold(a);
+
+        if (thresholdDiff !== 0) {
+          return thresholdDiff;
         }
 
-        const data = await res.json();
-        const couponList = Array.isArray(data) ? data : [];
-        setAvailableCoupons(couponList);
+        return getCouponSortValue(b) - getCouponSortValue(a);
+      })[0] || null;
+  }, [availableCoupons, guests, guestCount, couponIdProof, couponIdProofUrl]);
 
-        const existingCode = String(
-          (bookingState as any)?.couponCode || ''
-        ).trim();
+  useEffect(() => {
+  if (availableCoupons.length === 0) return;
 
-        if (existingCode) {
-          const matched = couponList.find(
-            (coupon: any) =>
-              getCouponCode(coupon).toUpperCase() === existingCode.toUpperCase()
-          );
+  const currentCoupon = appliedCoupon
+    ? availableCoupons.find(
+        (coupon) => getCouponKey(coupon) === getCouponKey(appliedCoupon)
+      ) || appliedCoupon
+    : null;
 
-          if (matched) {
-            setAppliedCoupon((prev: any) => {
-              if (
-                prev &&
-                getCouponCode(prev).toUpperCase() === existingCode.toUpperCase()
-              ) {
-                return prev;
-              }
-              return matched;
-            });
-          } else {
-            setAppliedCoupon(null);
-            setBookingState((prev: any) => ({
-              ...prev,
-              couponCode: '',
-              appliedDiscountId: null,
-              couponIdProof: null,
-              couponIdProofUrl: '',
-            }));
-          }
-        } else {
-          setAppliedCoupon(null);
-        }
-      } catch (err) {
-        console.error('Coupon fetch error:', err);
-        setAvailableCoupons([]);
+  if (currentCoupon && !isCouponEligibleForGuests(currentCoupon, guests)) {
+    const nextAutoCoupon =
+      bestEligibleAutoCoupon &&
+      getCouponKey(bestEligibleAutoCoupon) !== dismissedAutoCouponKey
+        ? bestEligibleAutoCoupon
+        : null;
+
+    if (nextAutoCoupon) {
+      if (getCouponKey(currentCoupon) !== getCouponKey(nextAutoCoupon)) {
+        applyCoupon(nextAutoCoupon);
       }
-    };
+      setCustomCodeError('');
+    } else {
+      clearAppliedCoupon();
+      setCustomCodeError(getCouponEligibilityMessage(currentCoupon, guests));
+    }
 
-    fetchCoupons();
-  }, [selectedEventId, selectedPlanId, (bookingState as any)?.couponCode]);
+    return;
+  }
+
+  if (!currentCoupon && bestEligibleAutoCoupon) {
+    if (getCouponKey(bestEligibleAutoCoupon) !== dismissedAutoCouponKey) {
+      applyCoupon(bestEligibleAutoCoupon);
+      setCustomCodeError('');
+    }
+  }
+}, [
+  availableCoupons,
+  appliedCoupon,
+  guests,
+  bestEligibleAutoCoupon,
+  dismissedAutoCouponKey,
+  applyCoupon,
+  clearAppliedCoupon,
+]);
 
   const couponRequiresIdUpload = useMemo(() => {
     return normalizeBooleanFlag(
@@ -310,20 +557,25 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         appliedCoupon?.only_student_or_service
     );
   }, [appliedCoupon]);
-  const getCanonicalPlanPrice = (bookingState: any) => {
-  const selectedPlan = bookingState?.selectedPlan || bookingState?.plan || {};
+  const getCanonicalPlanPrice = (plan: any) => {
+    return Math.max(0, Number(plan?.OfferPrice || 0));
+  };
 
-  return Math.max(0, Number(selectedPlan?.OfferPrice || 0));
-};
- const defaultPlanPrice = useMemo(() => {
-  return getCanonicalPlanPrice(bookingState);
-}, [bookingState]);
+  const defaultPlanPrice = useMemo(() => {
+    return getCanonicalPlanPrice(selectedPlan);
+  }, [selectedPlan]);
+
   const selectedPlanTitle =
-    (bookingState as any)?.plan?.PlanTitle ||
-    (bookingState as any)?.plan?.PlanName ||
-    (bookingState as any)?.selectedPlan?.PlanTitle ||
-    (bookingState as any)?.selectedPlan?.PlanName ||
-    'Standard Plan';
+    selectedPlan?.PlanTitle || selectedPlan?.PlanName || 'Standard Plan';
+  const selectedPlanSubtitle = String(
+    selectedPlan?.PlanSubtitle || selectedPlan?.stayRoomType || ''
+  ).trim();
+  const selectedPlanSupportText =
+    selectedPlanSubtitle && selectedPlanSubtitle !== selectedPlanTitle
+      ? selectedPlanSubtitle
+      : '';
+  const selectedPlanGuestLabel =
+    guestCount === 1 ? '1 Guest Selected' : `${guestCount} Guests Selected`;
 
   const getGuestBasePrice = (guest: Guest | any, planPrice: number) => {
     const age = Number(guest?.age || 0);
@@ -472,18 +724,37 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   ]);
 
   useEffect(() => {
-    setBookingState((prev: any) => ({
-      ...prev,
-      guestsCount: guests.length,
-      grossAmount: pricingBreakdown.grossAmount,
-      discountAmount: pricingBreakdown.discountAmount,
-      totalAmount: pricingBreakdown.totalAmount,
-      addOnsAmount: pricingBreakdown.addonsTotal,
-      stayAmount: pricingBreakdown.stayTotal,
-      finalAmount: pricingBreakdown.totalAmount,
-      couponCode: appliedCoupon ? getCouponCode(appliedCoupon) : '',
-      appliedDiscountId: appliedCoupon ? getCouponId(appliedCoupon) : null,
-    }));
+    setBookingState((prev: any) => {
+      const nextCouponCode = appliedCoupon ? getCouponCode(appliedCoupon) : '';
+      const nextDiscountId = appliedCoupon ? getCouponId(appliedCoupon) : null;
+
+      if (
+        prev?.guestsCount === guests.length &&
+        prev?.grossAmount === pricingBreakdown.grossAmount &&
+        prev?.discountAmount === pricingBreakdown.discountAmount &&
+        prev?.totalAmount === pricingBreakdown.totalAmount &&
+        prev?.addOnsAmount === pricingBreakdown.addonsTotal &&
+        prev?.stayAmount === pricingBreakdown.stayTotal &&
+        prev?.finalAmount === pricingBreakdown.totalAmount &&
+        prev?.couponCode === nextCouponCode &&
+        prev?.appliedDiscountId === nextDiscountId
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        guestsCount: guests.length,
+        grossAmount: pricingBreakdown.grossAmount,
+        discountAmount: pricingBreakdown.discountAmount,
+        totalAmount: pricingBreakdown.totalAmount,
+        addOnsAmount: pricingBreakdown.addonsTotal,
+        stayAmount: pricingBreakdown.stayTotal,
+        finalAmount: pricingBreakdown.totalAmount,
+        couponCode: nextCouponCode,
+        appliedDiscountId: nextDiscountId,
+      };
+    });
   }, [
     guests.length,
     pricingBreakdown.grossAmount,
@@ -493,7 +764,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     pricingBreakdown.stayTotal,
     appliedCoupon,
     setBookingState,
-  ], [is80GRequired, setBookingState]);
+  ]);
 
   const handleCheckCustomCode = async () => {
     if (!customCodeInput.trim()) return;
@@ -507,9 +778,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       }
 
       const code = customCodeInput.trim().toUpperCase();
+      const query = new URLSearchParams({
+        code,
+        eventId: String(selectedEventId),
+        planId: String(selectedPlanId),
+      });
 
       const res = await fetch(
-        `https://bookingapi.thriive.in/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
+        `http://localhost:4000/coupons/validate?${query.toString()}`
       );
 
       const data = await res.json().catch(() => null);
@@ -520,9 +796,16 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
       const validatedCoupon = data;
 
+      if (!isCouponEligibleForGuests(validatedCoupon, guests)) {
+        throw new Error(
+          getCouponEligibilityMessage(validatedCoupon, guests) ||
+            'This coupon is not applicable for the current guests.'
+        );
+      }
+
       setAvailableCoupons((prev) => {
         const exists = prev.find(
-          (coupon: any) => getCouponId(coupon) === getCouponId(validatedCoupon)
+          (coupon: any) => getCouponKey(coupon) === getCouponKey(validatedCoupon)
         );
         return exists ? prev : [validatedCoupon, ...prev];
       });
@@ -548,6 +831,12 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const handleApplyCouponClick = (coupon: any) => {
     const currentCouponId = getCouponId(appliedCoupon);
     const nextCouponId = getCouponId(coupon);
+    const guestEligibilityMessage = getCouponEligibilityMessage(coupon, guests);
+
+    if (guestEligibilityMessage) {
+      setCustomCodeError(guestEligibilityMessage);
+      return;
+    }
 
     const isSameCoupon =
       currentCouponId !== '' &&
@@ -555,20 +844,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       currentCouponId === nextCouponId;
 
     if (isSameCoupon) {
-      setAppliedCoupon(null);
-      setPendingCoupon(null);
-      setShowCouponIdModal(false);
-
-      setBookingState((prev: any) => ({
-        ...prev,
-        couponCode: '',
-        appliedDiscountId: null,
-        couponIdProof: null,
-        couponIdProofUrl: '',
-      }));
+      setDismissedAutoCouponKey(getCouponKey(coupon));
+      clearAppliedCoupon();
 
       return;
     }
+
+    setDismissedAutoCouponKey('');
+    setCustomCodeError('');
 
     const requiresId = normalizeBooleanFlag(
       coupon?.requiresIdUpload ?? coupon?.requires_id_upload
@@ -584,13 +867,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       return;
     }
 
-    setAppliedCoupon(coupon);
-
-    setBookingState((prev: any) => ({
-      ...prev,
-      couponCode: getCouponCode(coupon),
-      appliedDiscountId: getCouponId(coupon) || null,
-    }));
+    applyCoupon(coupon);
   };
 
   const confirmPendingCoupon = () => {
@@ -600,13 +877,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     if (!uploadedFile && !uploadedUrl) return;
     if (!pendingCoupon) return;
 
-    setAppliedCoupon(pendingCoupon);
-
-    setBookingState((prev: any) => ({
-      ...prev,
-      couponCode: getCouponCode(pendingCoupon),
-      appliedDiscountId: getCouponId(pendingCoupon) || null,
-    }));
+    setDismissedAutoCouponKey('');
+    applyCoupon(pendingCoupon);
 
     setShowCouponIdModal(false);
     setPendingCoupon(null);
@@ -762,7 +1034,7 @@ const handlePayment = async () => {
       formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
     }
 
-    const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
+    const responseRaw = await fetch('http://localhost:4000/bookings', {
       method: 'POST',
       body: formData,
     });
@@ -802,7 +1074,25 @@ const handlePayment = async () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 w-full animate-fadeIn pb-32 text-left">
+    <div
+      className="max-w-5xl mx-auto px-4 py-12 w-full animate-fadeIn pb-32 text-left"
+      aria-busy={isProcessing}
+    >
+      {isProcessing && (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-stone-900/45 px-6 backdrop-blur-sm">
+          <div className="w-full max-w-sm rounded-[32px] border border-white/10 bg-stone-900 px-8 py-7 text-center text-white shadow-2xl">
+            <div className="mx-auto mb-4 h-10 w-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
+            <p className="text-sm font-black uppercase tracking-[0.3em]">
+              Confirming Booking
+            </p>
+            <p className="mt-3 text-sm font-medium leading-relaxed text-stone-300">
+              Please wait while we submit your booking details. The page is
+              temporarily locked to avoid duplicate submissions.
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="mb-10 bg-white rounded-[32px] overflow-hidden shadow-sm border border-stone-100">
         <div className="h-48 relative">
           <img
@@ -875,7 +1165,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Plan Amount
+                      Guest Plan Subtotal
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900">
                       ₹{pricingBreakdown.planTotal.toLocaleString()}
@@ -884,7 +1174,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Add-ons Amount
+                      Add-ons Total
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900">
                       ₹{pricingBreakdown.addonsTotal.toLocaleString()}
@@ -893,7 +1183,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Stay Amount
+                      Extra Stay Total
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900">
                       ₹{pricingBreakdown.stayTotal.toLocaleString()}
@@ -902,7 +1192,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Gross Amount
+                      Pre-discount Total
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900 text-lg">
                       ₹{pricingBreakdown.grossAmount.toLocaleString()}
@@ -913,7 +1203,7 @@ const handlePayment = async () => {
                     <tr className="bg-emerald-50/50">
                       <td className="px-6 py-4 font-black text-emerald-700 uppercase italic text-xs flex items-center gap-2">
                         <Tag className="w-3 h-3" />
-                        Discount Applied ({getCouponCode(appliedCoupon)})
+                        Coupon Savings ({getCouponCode(appliedCoupon)})
                       </td>
                       <td className="px-6 py-4 text-right font-black text-emerald-700 text-lg">
                         - ₹{pricingBreakdown.discountAmount.toLocaleString()}
@@ -964,6 +1254,10 @@ const handlePayment = async () => {
             </div>
 
             <div className="space-y-3">
+              <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                Eligible group offers switch on automatically once the guest-count rule is met.
+              </p>
+
               <div
                 className={`flex items-center gap-2 p-1.5 rounded-2xl border-2 transition-all ${
                   customCodeError
@@ -1045,13 +1339,19 @@ const handlePayment = async () => {
             <div className="grid grid-cols-1 gap-4">
               {availableCoupons.length > 0 ? (
                 availableCoupons.map((coupon: any) => {
+                  const guestRange = getCouponGuestRange(coupon);
                   const requiresId = normalizeBooleanFlag(
                     coupon?.requiresIdUpload ?? coupon?.requires_id_upload
                   );
+                  const minGuests = getCouponGuestThreshold(coupon);
+                  const isEligibleForGuests = isCouponEligibleForGuests(
+                    coupon,
+                    guests
+                  );
 
                   const isCouponApplied =
-                    getCouponId(appliedCoupon) !== '' &&
-                    getCouponId(appliedCoupon) === getCouponId(coupon);
+                    getCouponKey(appliedCoupon) !== '' &&
+                    getCouponKey(appliedCoupon) === getCouponKey(coupon);
 
                   return (
                     <div
@@ -1093,6 +1393,30 @@ const handlePayment = async () => {
                             </p>
                           )}
 
+                          {guestRange ? (
+                            <p
+                              className={`text-[9px] font-black uppercase flex items-center gap-1 mt-1 ${
+                                isEligibleForGuests
+                                  ? 'text-emerald-600'
+                                  : 'text-stone-400'
+                              }`}
+                            >
+                              <Users className="w-3 h-3" />
+                              Valid for {guestRange.minGuests}-{guestRange.maxGuests} guests
+                            </p>
+                          ) : minGuests > 0 ? (
+                            <p
+                              className={`text-[9px] font-black uppercase flex items-center gap-1 mt-1 ${
+                                isEligibleForGuests
+                                  ? 'text-emerald-600'
+                                  : 'text-stone-400'
+                              }`}
+                            >
+                              <Users className="w-3 h-3" />
+                              Valid for {minGuests}+ guests
+                            </p>
+                          ) : null}
+
                           <p className="text-stone-500 text-[11px] font-medium truncate mt-0.5">
                             {coupon.description || coupon.title}
                           </p>
@@ -1102,13 +1426,22 @@ const handlePayment = async () => {
                       <button
                         type="button"
                         onClick={() => handleApplyCouponClick(coupon)}
+                        disabled={!isEligibleForGuests}
                         className={`w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${
                           isCouponApplied
                             ? 'bg-stone-900 text-white shadow-lg'
+                            : !isEligibleForGuests
+                            ? 'bg-stone-100 border-2 border-stone-200 text-stone-400 cursor-not-allowed'
                             : 'bg-white border-2 border-stone-200 text-stone-600 hover:border-[var(--theme)] hover:text-[var(--theme)]'
                         }`}
-                      >
-                        {isCouponApplied ? 'Remove' : 'Apply'}
+                        >
+                        {isCouponApplied
+                          ? 'Remove'
+                          : !isEligibleForGuests && guestRange
+                          ? `Need ${guestRange.minGuests}-${guestRange.maxGuests}`
+                          : !isEligibleForGuests && minGuests > 0
+                          ? `Need ${minGuests}`
+                          : 'Apply'}
                       </button>
                     </div>
                   );
@@ -1233,88 +1566,107 @@ const handlePayment = async () => {
               </p>
             </div>
 
-            <div className="bg-stone-50 rounded-3xl p-5 space-y-4 border border-stone-100">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5" /> Guests
-                </span>
-                <span className="text-xs font-black text-stone-900 uppercase tracking-tighter">
-                  {guests.length}
-                </span>
+            <div className="rounded-3xl border border-stone-100 bg-stone-50 p-4 space-y-4">
+              <div className="rounded-[28px] bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 p-5 text-white shadow-xl shadow-stone-200">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-teal-200">
+                      Selected Plan
+                    </p>
+                    <h4 className="mt-2 text-xl font-black tracking-tight text-white">
+                      {selectedPlanTitle}
+                    </h4>
+                    {selectedPlanSupportText && (
+                      <p className="mt-1 text-xs font-medium text-stone-300">
+                        {selectedPlanSupportText}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-teal-200">
+                    <Heart className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-300">
+                      Guests
+                    </p>
+                    <p className="mt-1 text-sm font-black text-white">
+                      {selectedPlanGuestLabel}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-right">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-300">
+                      Base Rate
+                    </p>
+                    <p className="mt-1 text-sm font-black text-white">
+                      ₹{defaultPlanPrice.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                  <Heart className="w-3.5 h-3.5" /> Plan
-                </span>
-                <span className="text-xs font-black text-stone-900 uppercase tracking-tighter truncate max-w-[140px] text-right">
-                  {selectedPlanTitle}
-                </span>
-              </div>
+              <div className="rounded-[28px] border border-stone-100 bg-white p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Guest Plan Subtotal
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.planTotal.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Plan Price
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{defaultPlanPrice.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Add-ons Total
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.addonsTotal.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Plan Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.planTotal.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Extra Stay Total
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.stayTotal.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Add-ons Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.addonsTotal.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Pre-discount Total
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.grossAmount.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Stay Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.stayTotal.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    {appliedCoupon
+                      ? `Coupon Savings (${getCouponCode(appliedCoupon)})`
+                      : 'Coupon Savings'}
+                  </span>
+                  <span className="text-sm font-black text-emerald-700">
+                    - ₹{pricingBreakdown.discountAmount.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Gross Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.grossAmount.toLocaleString()}
-                </span>
-              </div>
+                <hr className="border-dashed border-stone-200" />
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Discount Applied
-                </span>
-                <span className="text-xs font-black text-emerald-700">
-                  - ₹{pricingBreakdown.discountAmount.toLocaleString()}
-                </span>
-              </div>
-
-              <hr className="border-stone-200 border-dashed" />
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] font-black text-stone-900 uppercase tracking-tight">
-                  Total Payable
-                </span>
-                <span className="text-xl font-black text-[var(--theme)]">
-                  ₹{pricingBreakdown.totalAmount.toLocaleString()}
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-stone-900 uppercase tracking-tight">
+                    Amount Due
+                  </span>
+                  <span className="text-2xl font-black text-[var(--theme)]">
+                    ₹{pricingBreakdown.totalAmount.toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
 

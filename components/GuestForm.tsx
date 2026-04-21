@@ -940,7 +940,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
   return (
     <div className="mx-auto w-full max-w-4xl animate-fadeIn px-4 py-8 pb-52 sm:pb-16">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-stone-200 pb-6 sm:flex-row sm:items-center">
+      <div className="mb-8 border-b border-stone-200 pb-6">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-stone-900">
             {ui.header.title}
@@ -949,13 +949,6 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
             <Sparkles className="h-4 w-4 text-[var(--theme)]" /> {ui.header.subtitle}
           </p>
         </div>
-
-        <button
-          onClick={addGuest}
-          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
-        >
-          <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
-        </button>
       </div>
 
       <div className="space-y-6">
@@ -1540,6 +1533,30 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
             </div>
           );
         })}
+      </div>
+
+      <div className="mt-8 rounded-3xl border border-dashed border-teal-200 bg-teal-50/60 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme)]">
+              Guest List
+            </p>
+            <h3 className="mt-1 text-lg font-black text-stone-900">
+              Add another guest when you're done with this section
+            </h3>
+            <p className="mt-1 text-sm font-medium text-stone-600">
+              {guests.length} guest{guests.length === 1 ? '' : 's'} added so far.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={addGuest}
+            className="flex items-center justify-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
+          >
+            <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
+          </button>
+        </div>
       </div>
 
       <div className="sticky bottom-0 mt-8 flex items-center justify-between gap-3 border-t border-stone-200 bg-white/95 px-2 py-4 backdrop-blur">

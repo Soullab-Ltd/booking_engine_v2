@@ -349,7 +349,6 @@ case 6:
         return paymentResult === 'SUCCESS' ? (
           <PaymentStatus
             success={true}
-            bookingId={bookingState.bookingId}
             bookingState={bookingState}
             // Inject the formatted date here
             event={{ 
@@ -367,7 +366,6 @@ case 6:
         return (
           <DownloadsDashboard
             bookingState={bookingState}
-            bookingId={bookingState.bookingId}
             // Inject the formatted date here as well
             event={{ 
               ...data.eventData.event, 

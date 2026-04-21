@@ -13,6 +13,7 @@ import {
   Wind,
   Flower2,
   User,
+  type LucideIcon,
 } from 'lucide-react';
 
 interface DownloadsDashboardProps {
@@ -21,195 +22,329 @@ interface DownloadsDashboardProps {
   ui: any;
 }
 
+interface DashboardUi {
+  dashboard?: {
+    title?: string;
+    desc?: string;
+    downloads?: {
+      title?: string;
+    };
+  };
+}
+
+interface DashboardLinkSource {
+  title?: string;
+  label?: string;
+  url?: string;
+  link?: string;
+}
+
+interface DashboardLink {
+  title: string;
+  url: string;
+}
+
+interface DashboardAsset {
+  title?: string;
+  status?: string;
+  size?: string;
+  description?: string;
+  url?: string;
+}
+
+interface DashboardDocument {
+  title: string;
+  icon: LucideIcon;
+  status: string;
+  size: string;
+  desc: string;
+  url: string;
+}
+
+interface DashboardBookingState extends BookingState {
+  event?: {
+    title?: string;
+    EventName?: string;
+  } | null;
+  plan?: {
+    title?: string;
+    PlanTitle?: string;
+    PlanName?: string;
+  } | null;
+  ticketUrl?: string;
+  ticket_url?: string;
+  invoiceUrl?: string;
+  invoice_url?: string;
+  completionCertificateUrl?: string;
+  completion_certificate_url?: string;
+  additionalAssets?: DashboardAsset[];
+  otherInfoLinks?: DashboardLinkSource[];
+  termsUrl?: string;
+  refundPolicyUrl?: string;
+  faqsUrl?: string;
+  codeOfConductUrl?: string;
+}
+
+interface DashboardEventData extends EventData {
+  eventDate?: string;
+  location?: string;
+  Venue?: string;
+  otherInfoLinks?: DashboardLinkSource[];
+  additionalLinks?: DashboardLinkSource[];
+  termsUrl?: string;
+  refundPolicyUrl?: string;
+  faqsUrl?: string;
+  codeOfConductUrl?: string;
+}
+
+const getOrdinal = (day: number) => {
+  if (day > 3 && day < 21) return 'th';
+
+  switch (day % 10) {
+    case 1:
+      return 'st';
+    case 2:
+      return 'nd';
+    case 3:
+      return 'rd';
+    default:
+      return 'th';
+  }
+};
+
+const getValidDate = (value: string | Date | undefined | null) => {
+  if (!value) return null;
+
+  const parsedDate = new Date(value);
+  return Number.isNaN(parsedDate.getTime()) ? null : parsedDate;
+};
+
+const formatFullDate = (date: string | Date | undefined | null) => {
+  const validDate = getValidDate(date);
+  if (!validDate) return '';
+
+  const day = validDate.getDate();
+  const suffix = getOrdinal(day);
+  const month = validDate.toLocaleString('en-IN', { month: 'long' });
+  const year = validDate.getFullYear();
+
+  return `${day}${suffix} ${month} ${year}`;
+};
+
+const formatFullDateRange = (range: string) => {
+  if (!range) return '';
+
+  const [start, end] = range.split(' to ');
+  if (!start || !end) return formatFullDate(range) || range;
+
+  const formattedStart = formatFullDate(start);
+  const formattedEnd = formatFullDate(end);
+
+  if (!formattedStart || !formattedEnd) return range;
+
+  return `${formattedStart} to ${formattedEnd}`;
+};
+
+const normalizeLink = (
+  item?: DashboardLinkSource | null
+): DashboardLink | null => {
+  const title = item?.title || item?.label || '';
+  const url = item?.url || item?.link || '';
+
+  if (!title || !url || url === '#') return null;
+
+  return { title, url };
+};
+
 const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
   bookingState,
   event,
   ui,
 }) => {
-const bookingDate = new Date().toLocaleDateString('en-IN', {
-  day: '2-digit',
-  month: 'short',
-  year: 'numeric',
-});
+  const booking = bookingState as DashboardBookingState;
+  const eventData = event as DashboardEventData;
+  const dashboardUi = ui as DashboardUi | undefined;
+
+  const bookingDate = useMemo(
+    () =>
+      new Date().toLocaleDateString('en-IN', {
+        day: '2-digit',
+        month: 'short',
+        year: 'numeric',
+      }),
+    []
+  );
 
   const primaryGuest = useMemo(() => {
-    return bookingState?.guests?.[0] || null;
-  }, [bookingState]);
+    return booking.guests?.[0] || null;
+  }, [booking.guests]);
 
   const eventName =
-    (event as any)?.title ||
-    (event as any)?.EventName ||
-    (bookingState as any)?.event?.title ||
-    (bookingState as any)?.event?.EventName ||
+    eventData.title ||
+    eventData.EventName ||
+    booking.event?.title ||
+    booking.event?.EventName ||
     'Event Name';
 
- const getOrdinal = (day: number) => {
-  if (day > 3 && day < 21) return 'th';
-  switch (day % 10) {
-    case 1: return 'st';
-    case 2: return 'nd';
-    case 3: return 'rd';
-    default: return 'th';
-  }
-};
+  const eventDate = useMemo(() => {
+    const rawRange =
+      eventData.date || eventData.eventDate || eventData.startDate || '';
 
-const formatFullDate = (date: string | Date) => {
-  const d = new Date(date);
-  const day = d.getDate();
-  const suffix = getOrdinal(day);
+    if (!rawRange) return '';
 
-  const month = d.toLocaleString('en-IN', { month: 'long' });
-  const year = d.getFullYear();
-
-  return `${day}${suffix} ${month} ${year}`;
-};  
-const formatFullDateRange = (range: string) => {
-  if (!range) return '';
-
-  const [start, end] = range.split(' to ');
-  if (!start || !end) return range;
-
-  return `${formatFullDate(start)} to ${formatFullDate(end)}`;
-}; 
- const formatDateRangeFromString = (range: string) => {
-  if (!range) return '';
-
-  const [start, end] = range.split(' to ');
-  if (!start || !end) return range;
-
-  const s = new Date(start);
-  const e = new Date(end);
-
-  return `${s.getDate()}–${e.getDate()} ${s.toLocaleDateString('en-IN', {
-    month: 'short',
-    year: 'numeric',
-  })}`;
-};
- const rawRange =
-  (event as any)?.date ||
-  (event as any)?.eventDate ||
-  (event as any)?.startDate ||
-  '';
-
-const eventDate = rawRange.includes(' to ')
-  ? formatFullDateRange(rawRange)
-  : formatFullDate(rawRange);
+    return rawRange.includes(' to ')
+      ? formatFullDateRange(rawRange)
+      : formatFullDate(rawRange);
+  }, [eventData.date, eventData.eventDate, eventData.startDate]);
 
   const venue =
-    (event as any)?.venue ||
-    (event as any)?.location ||
-    (event as any)?.Venue ||
+    eventData.venue ||
+    eventData.location ||
+    eventData.Venue ||
     '';
 
   const planName =
-    (bookingState as any)?.plan?.title ||
-    (bookingState as any)?.plan?.PlanTitle ||
-    (bookingState as any)?.plan?.PlanName ||
-    (bookingState as any)?.selectedPlan?.title ||
-    (bookingState as any)?.selectedPlan?.PlanTitle ||
-    (bookingState as any)?.selectedPlan?.PlanName ||
+    booking.plan?.title ||
+    booking.plan?.PlanTitle ||
+    booking.plan?.PlanName ||
+    booking.selectedPlan?.title ||
+    booking.selectedPlan?.PlanTitle ||
+    booking.selectedPlan?.PlanName ||
     'Plan Name';
-console.log('bookingState:', bookingState);
-const documents = [
-  (bookingState?.ticketUrl || bookingState?.ticket_url) && {
-    title: 'Confirmed Ticket PDF',
-    icon: Ticket,
-    status: 'Ready',
-    size: '1.4 MB',
-    desc: 'Your entry pass',
-    url: bookingState.ticketUrl || bookingState.ticket_url,
-  },
 
-  (bookingState?.invoiceUrl || bookingState?.invoice_url) && {
-    title: 'Invoice PDF',
-    icon: FileText,
-    status: 'Ready',
-    size: '920 KB',
-    desc: 'Detailed payment breakdown',
-    url: bookingState.invoiceUrl || bookingState.invoice_url,
-  },
+  const documents = useMemo<DashboardDocument[]>(() => {
+    const items: DashboardDocument[] = [];
+    const ticketUrl = booking.ticketUrl || booking.ticket_url;
+    const invoiceUrl = booking.invoiceUrl || booking.invoice_url;
+    const certificateUrl =
+      booking.completionCertificateUrl ||
+      booking.completion_certificate_url;
 
-  (bookingState?.completionCertificateUrl || bookingState?.completion_certificate_url) && {
-    title: 'Completion Certificate',
-    icon: FileText,
-    status: 'Ready',
-    size: '--',
-    desc: 'Participation certificate',
-    url:
-      bookingState.completionCertificateUrl ||
-      bookingState.completion_certificate_url,
-  },
+    if (ticketUrl) {
+      items.push({
+        title: 'Confirmed Ticket PDF',
+        icon: Ticket,
+        status: 'Ready',
+        size: '1.4 MB',
+        desc: 'Your entry pass',
+        url: ticketUrl,
+      });
+    }
 
-  ...((bookingState?.additionalAssets || []).map((asset: any) => ({
-    title: asset.title || 'Untitled Document',
-    icon: FileText,
-    status: asset.status || 'Ready',
-    size: asset.size || '--',
-    desc: asset.description || '',
-    url: asset.url || '#',
-  })) || []),
-].filter(Boolean);
+    if (invoiceUrl) {
+      items.push({
+        title: 'Invoice PDF',
+        icon: FileText,
+        status: 'Ready',
+        size: '920 KB',
+        desc: 'Detailed payment breakdown',
+        url: invoiceUrl,
+      });
+    }
+
+    if (certificateUrl) {
+      items.push({
+        title: 'Completion Certificate',
+        icon: FileText,
+        status: 'Ready',
+        size: '--',
+        desc: 'Participation certificate',
+        url: certificateUrl,
+      });
+    }
+
+    (booking.additionalAssets || []).forEach((asset) => {
+      items.push({
+        title: asset.title || 'Untitled Document',
+        icon: FileText,
+        status: asset.status || 'Ready',
+        size: asset.size || '--',
+        desc: asset.description || '',
+        url: asset.url || '#',
+      });
+    });
+
+    return items;
+  }, [
+    booking.additionalAssets,
+    booking.completionCertificateUrl,
+    booking.completion_certificate_url,
+    booking.invoiceUrl,
+    booking.invoice_url,
+    booking.ticketUrl,
+    booking.ticket_url,
+  ]);
 
   const otherInfoLinks = useMemo(() => {
-    const adminLinks = Array.isArray((bookingState as any)?.otherInfoLinks)
-      ? (bookingState as any).otherInfoLinks
-      : Array.isArray((event as any)?.otherInfoLinks)
-      ? (event as any).otherInfoLinks
-      : Array.isArray((event as any)?.additionalLinks)
-      ? (event as any).additionalLinks
+    const adminLinks = Array.isArray(booking.otherInfoLinks)
+      ? booking.otherInfoLinks
+      : Array.isArray(eventData.otherInfoLinks)
+      ? eventData.otherInfoLinks
+      : Array.isArray(eventData.additionalLinks)
+      ? eventData.additionalLinks
       : [];
 
     const normalizedAdminLinks = adminLinks
-      .map((item: any) => ({
-        title: item?.title || item?.label || '',
-        url: item?.url || item?.link || '#',
-      }))
-      .filter((item: any) => item.title && item.url);
+      .map((item) => normalizeLink(item))
+      .filter((item): item is DashboardLink => item !== null);
 
     const fallbackLinks = [
       {
         title: 'T&C',
         url:
-          (event as any)?.termsUrl ||
-          (bookingState as any)?.termsUrl ||
+          eventData.termsUrl ||
+          booking.termsUrl ||
           'https://shreansdaga.org/terms-and-conditions/',
       },
       {
         title: 'Refund Policy',
         url:
-          (event as any)?.refundPolicyUrl ||
-          (bookingState as any)?.refundPolicyUrl ||
+          eventData.refundPolicyUrl ||
+          booking.refundPolicyUrl ||
           'https://shreansdaga.org/refund-cancellation-policy/',
       },
       {
         title: 'FAQs',
         url:
-          (event as any)?.faqsUrl ||
-          (bookingState as any)?.faqsUrl ||
+          eventData.faqsUrl ||
+          booking.faqsUrl ||
           '#',
       },
       {
         title: 'Code of Conduct',
         url:
-          (event as any)?.codeOfConductUrl ||
-          (bookingState as any)?.codeOfConductUrl ||
+          eventData.codeOfConductUrl ||
+          booking.codeOfConductUrl ||
           '#',
       },
-    ].filter((item) => item.url && item.url !== '#');
+    ].filter((item): item is DashboardLink => item.url !== '#');
 
     return normalizedAdminLinks.length > 0
       ? normalizedAdminLinks
       : fallbackLinks;
-  }, [bookingState, event]);
+  }, [
+    booking.codeOfConductUrl,
+    booking.faqsUrl,
+    booking.otherInfoLinks,
+    booking.refundPolicyUrl,
+    booking.termsUrl,
+    eventData.additionalLinks,
+    eventData.codeOfConductUrl,
+    eventData.faqsUrl,
+    eventData.otherInfoLinks,
+    eventData.refundPolicyUrl,
+    eventData.termsUrl,
+  ]);
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-16 w-full animate-fadeIn pb-32">
       <div className="mb-12">
         <h2 className="text-5xl font-black text-stone-900 mb-3 tracking-tighter">
-          {ui?.dashboard?.title}
+          {dashboardUi?.dashboard?.title || 'Your Booking Dashboard'}
         </h2>
         <p className="text-stone-500 font-medium text-lg max-w-2xl leading-relaxed">
-          {ui?.dashboard?.desc}
+          {dashboardUi?.dashboard?.desc ||
+            'Everything you need for your booking is here.'}
         </p>
       </div>
 
@@ -248,7 +383,7 @@ const documents = [
                     Booking ID
                   </p>
                   <p className="text-xl font-mono font-black text-stone-900">
-                    #{bookingState.bookingId}
+                    #{booking.bookingId || '-'}
                   </p>
                 </div>
               </div>
@@ -306,7 +441,7 @@ const documents = [
                       No. of Guests
                     </span>
                     <span className="text-xl font-black text-stone-900">
-                      {bookingState.guests?.length || 0}
+                      {booking.guests?.length || 0}
                     </span>
                   </div>
 
@@ -348,59 +483,64 @@ const documents = [
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
               <h3 className="text-2xl font-black text-stone-900 flex items-center gap-3">
                 <FileText className="w-7 h-7 text-[var(--theme)]" />{' '}
-                {ui?.dashboard?.downloads?.title || 'Documents'}
+                {dashboardUi?.dashboard?.downloads?.title || 'Documents'}
               </h3>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-              {documents.map((doc, idx) => (
-                <div
-                  key={idx}
-                  onClick={() =>
-                    doc.url && doc.url !== '#' && window.open(doc.url, '_blank')
-                  }
-                  className={`group bg-white p-6 rounded-[32px] border-2 border-stone-50 shadow-sm hover:shadow-xl hover:border-teal-100/50 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
-                    doc.status.includes('days') ? 'opacity-70 grayscale' : ''
-                  }`}
-                >
-                  <div className="flex items-center gap-5 relative z-10">
-                    <div className="w-16 h-16 rounded-[24px] bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-[var(--theme-light)] group-hover:text-[var(--theme)] transition-all shadow-inner">
-                      <doc.icon className="w-8 h-8" />
-                    </div>
+              {documents.map((doc, idx) => {
+                const Icon = doc.icon;
+                const isPending = doc.status.includes('days');
 
-                    <div className="min-w-0">
-                      <h4 className="text-sm font-black text-stone-900 truncate pr-4">
-                        {doc.title}
-                      </h4>
-                      <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight mt-0.5 line-clamp-1">
-                        {doc.desc}
-                      </p>
-                      <div className="flex items-center gap-2 mt-2">
-                        <span
-                          className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
-                            doc.status === 'Ready'
-                              ? 'bg-teal-50 text-[var(--theme)]'
-                              : 'bg-amber-50 text-amber-700'
-                          }`}
-                        >
-                          {doc.status}
-                        </span>
-                        {doc.size !== '--' && (
-                          <span className="text-[9px] font-bold text-stone-300">
-                            {doc.size}
+                return (
+                  <div
+                    key={`${doc.title}-${doc.url}-${idx}`}
+                    onClick={() =>
+                      doc.url && doc.url !== '#' && window.open(doc.url, '_blank')
+                    }
+                    className={`group bg-white p-6 rounded-[32px] border-2 border-stone-50 shadow-sm hover:shadow-xl hover:border-teal-100/50 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
+                      isPending ? 'opacity-70 grayscale' : ''
+                    }`}
+                  >
+                    <div className="flex items-center gap-5 relative z-10">
+                      <div className="w-16 h-16 rounded-[24px] bg-stone-50 flex items-center justify-center text-stone-300 group-hover:bg-[var(--theme-light)] group-hover:text-[var(--theme)] transition-all shadow-inner">
+                        <Icon className="w-8 h-8" />
+                      </div>
+
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-black text-stone-900 truncate pr-4">
+                          {doc.title}
+                        </h4>
+                        <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight mt-0.5 line-clamp-1">
+                          {doc.desc}
+                        </p>
+                        <div className="flex items-center gap-2 mt-2">
+                          <span
+                            className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
+                              doc.status === 'Ready'
+                                ? 'bg-teal-50 text-[var(--theme)]'
+                                : 'bg-amber-50 text-amber-700'
+                            }`}
+                          >
+                            {doc.status}
                           </span>
-                        )}
+                          {doc.size !== '--' && (
+                            <span className="text-[9px] font-bold text-stone-300">
+                              {doc.size}
+                            </span>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
 
-                  {doc.status.includes('days') && (
-                    <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center">
-                      <Clock className="w-5 h-5 text-stone-300" />
-                    </div>
-                  )}
-                </div>
-              ))}
+                    {isPending && (
+                      <div className="w-10 h-10 rounded-full bg-stone-50 flex items-center justify-center">
+                        <Clock className="w-5 h-5 text-stone-300" />
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </section>
         </div>
