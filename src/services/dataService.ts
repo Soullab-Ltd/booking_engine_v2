@@ -160,6 +160,34 @@ const getPlanMaxPax = (plan: any): number => {
   return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
 };
 
+const getRawPlanFeatures = (plan: any): any[] => {
+  const rawFeatures =
+    plan?.planFeatures ??
+    plan?.plan_features ??
+    plan?.features ??
+    [];
+
+  if (Array.isArray(rawFeatures)) {
+    return rawFeatures;
+  }
+
+  if (typeof rawFeatures === 'string') {
+    try {
+      const parsed = JSON.parse(rawFeatures);
+      if (Array.isArray(parsed)) return parsed;
+      if (parsed && typeof parsed === 'object') return Object.values(parsed);
+    } catch {
+      return [];
+    }
+  }
+
+  if (rawFeatures && typeof rawFeatures === 'object') {
+    return Object.values(rawFeatures);
+  }
+
+  return [];
+};
+
 const getPlanLabel = (normalizedPlan: Partial<Plan>) =>
   normalizedPlan.PlanTitle ||
   normalizedPlan.PlanName ||
@@ -270,6 +298,14 @@ const normalizePlan = (plan: any): Plan => {
       type: icon.type || '',
       planID: icon.planID,
     })),
+    planFeatures: getRawPlanFeatures(plan)
+      .map((feature: any, index: number) => ({
+          id: String(feature?.id || `feature-${plan.planID || plan.PlanID || 'plan'}-${index}`),
+          label: normalizeOptionalText(feature?.label || feature?.Label || feature?.title || feature?.Title || ''),
+          value: normalizeOptionalText(feature?.value || feature?.Value || feature?.description || ''),
+          icon: normalizeOptionalText(feature?.icon || feature?.Icon || feature?.iconName || 'check'),
+        }))
+      .filter((feature: any) => feature?.label || feature?.value),
     images: Array.isArray(plan.images) ? plan.images : [],
   };
 
