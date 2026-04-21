@@ -350,7 +350,7 @@ const normalizePlan = (plan: any): Plan => {
 };
 
 export const fetchData = async <T>(path: string): Promise<T> => {
-  const response = await fetch(`http://localhost:3000/data/${path}`);
+  const response = await fetch(`https://booking-engine.thriive.in/data/${path}`);
   if (!response.ok) throw new Error(`Failed to fetch ${path}`);
   return response.json();
 };
@@ -359,7 +359,7 @@ export const getAllData = async (
   eventId: string | number,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/${eventId}`);
+  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/${eventId}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -379,7 +379,7 @@ console.log(
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`https://bookingapi.thriive.in/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -496,7 +496,7 @@ export const getAllDataBySlug = async (
   slug: string,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`http://localhost:4000/events/slug/${slug}`);
+  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/slug/${slug}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -510,7 +510,7 @@ export const getAllDataBySlug = async (
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`https://bookingapi.thriive.in/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -618,7 +618,7 @@ export const getAllDataBySlug = async (
   };
 };
 export const createBooking = async (bookingData: any) => {
-  const response = await fetch('http://localhost:4000/bookings', { 
+  const response = await fetch('https://bookingapi.thriive.in/bookings', { 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bookingData),

@@ -46,6 +46,37 @@ const waitForTransitionFrame = () =>
     });
   });
 
+const getBookingAtgDetails = (bookingData: any) => {
+  const atgDetails = bookingData?.atgDetails || bookingData?.atg_details || null;
+
+  if (!atgDetails) {
+    return {
+      isAtgRequested: false,
+      panNumber: '',
+      aadharNumber: '',
+      panFileUrl: '',
+      aadharFileUrl: '',
+      atgDetails: null,
+    };
+  }
+
+  return {
+    isAtgRequested: Boolean(
+      bookingData?.isAtgRequested ??
+        bookingData?.is_atg_requested ??
+        atgDetails?.panNumber ??
+        atgDetails?.aadharNumber
+    ),
+    panNumber: String(atgDetails?.panNumber || '').trim(),
+    aadharNumber: String(atgDetails?.aadharNumber || '').trim(),
+    panFileUrl: String(atgDetails?.panFileUrl || atgDetails?.pan_file_url || '').trim(),
+    aadharFileUrl: String(
+      atgDetails?.aadharFileUrl || atgDetails?.aadhar_file_url || ''
+    ).trim(),
+    atgDetails,
+  };
+};
+
 const App: React.FC = () => {
   const [data, setData] = useState<{
     eventData: EventResponse;
@@ -116,13 +147,28 @@ if (slug) {
             [],
         });
 
-        if (bookingIdFromUrl) {
-          setBookingState((prev) => ({
-            ...prev,
-            bookingId: bookingIdFromUrl,
-            ticketUrl: allData?.bookingData?.ticketUrl || '',
-            invoiceUrl: allData?.bookingData?.invoiceUrl || '',
-            completionCertificateUrl:
+          const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
+
+	        if (bookingIdFromUrl) {
+	          setBookingState((prev) => ({
+	            ...prev,
+	            bookingId: bookingIdFromUrl,
+              is80GRequired: bookingAtgDetails.isAtgRequested,
+              taxInfo: {
+                ...prev.taxInfo,
+                panNumber: bookingAtgDetails.panNumber,
+                aadharNumber: bookingAtgDetails.aadharNumber,
+                panFile: bookingAtgDetails.panFileUrl,
+                aadharFile: bookingAtgDetails.aadharFileUrl,
+              },
+              atgDetails: bookingAtgDetails.atgDetails || undefined,
+              panNumber: bookingAtgDetails.panNumber,
+              aadharNumber: bookingAtgDetails.aadharNumber,
+              panFileUrl: bookingAtgDetails.panFileUrl,
+              aadharFileUrl: bookingAtgDetails.aadharFileUrl,
+	            ticketUrl: allData?.bookingData?.ticketUrl || '',
+	            invoiceUrl: allData?.bookingData?.invoiceUrl || '',
+	            completionCertificateUrl:
               allData?.bookingData?.completionCertificateUrl || '',
             additionalAssets: allData?.bookingData?.additionalAssets || [],
           }));
@@ -181,12 +227,29 @@ if (slug) {
       String(bookingId)
     );
 
-    setBookingState((prev) => ({
-      ...prev,
-      bookingId: bookingId ?? prev.bookingId,
+      const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
 
-      // ✅ IMPORTANT: map both cases
-      ticketUrl:
+	    setBookingState((prev) => ({
+	      ...prev,
+	      bookingId: bookingId ?? prev.bookingId,
+        is80GRequired: bookingAtgDetails.isAtgRequested || prev.is80GRequired,
+        taxInfo: {
+          ...prev.taxInfo,
+          panNumber: bookingAtgDetails.panNumber || prev.taxInfo.panNumber,
+          aadharNumber:
+            bookingAtgDetails.aadharNumber || prev.taxInfo.aadharNumber || '',
+          panFile: bookingAtgDetails.panFileUrl || prev.taxInfo.panFile || '',
+          aadharFile:
+            bookingAtgDetails.aadharFileUrl || prev.taxInfo.aadharFile || '',
+        },
+        atgDetails: bookingAtgDetails.atgDetails || prev.atgDetails,
+        panNumber: bookingAtgDetails.panNumber || prev.panNumber || '',
+        aadharNumber: bookingAtgDetails.aadharNumber || prev.aadharNumber || '',
+        panFileUrl: bookingAtgDetails.panFileUrl || prev.panFileUrl || '',
+        aadharFileUrl: bookingAtgDetails.aadharFileUrl || prev.aadharFileUrl || '',
+
+	      // ✅ IMPORTANT: map both cases
+	      ticketUrl:
         allData?.bookingData?.ticketUrl ||
         allData?.bookingData?.ticket_url ||
         '',

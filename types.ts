@@ -167,10 +167,29 @@ export interface BookingState {
   is80GRequired: boolean;
   taxInfo: {
     panNumber: string;
+    aadharNumber?: string;
     fullName: string;
     address: string;
     panFile?: string;
     aadharFile?: string;
   };
+  atgDetails?: {
+    id?: number;
+    bookingId?: string;
+    panNumber?: string;
+    aadharNumber?: string;
+    panFileUrl?: string;
+    aadharFileUrl?: string;
+  };
+  panNumber?: string;
+  aadharNumber?: string;
+  panFileUrl?: string;
+  aadharFileUrl?: string;
   bookingId?: string | number;
+  paymentId?: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  paymentSyncStatus?: 'synced' | 'pending' | 'failed';
+  paymentSyncMessage?: string;
 }

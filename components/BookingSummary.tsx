@@ -36,8 +36,10 @@ interface BookingSummaryProps {
 
 const KIDS_PLAN_PRICE = 10000;
 const MAX_GUEST_AGE = 99;
+const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const FRONTEND_RAZORPAY_TEST_KEY = 'rzp_test_dAUJkW0WtsN6N7';
+const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -434,6 +436,13 @@ const getIsoDateString = (value: any, label: string): string => {
   return parsed.toISOString();
 };
 
+const getPaymentReferenceValue = (
+  paymentResult: any,
+  keys: string[]
+): string => {
+  return getStringSourceValue([paymentResult], keys);
+};
+
 const BookingSummary: React.FC<BookingSummaryProps> = ({
   bookingState,
   setBookingState,
@@ -499,6 +508,63 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     () => (bookingState as any)?.selectedPlan || (bookingState as any)?.plan || {},
     [bookingState]
   );
+
+  const existingAtgPanFileUrl =
+    String(
+      (bookingState as any)?.atgDetails?.panFileUrl ||
+        (bookingState as any)?.atgDetails?.pan_file_url ||
+        (bookingState as any)?.panFileUrl ||
+        (bookingState as any)?.taxInfo?.panFile ||
+        ''
+    ).trim();
+  const existingAtgAadharFileUrl =
+    String(
+      (bookingState as any)?.atgDetails?.aadharFileUrl ||
+        (bookingState as any)?.atgDetails?.aadhar_file_url ||
+        (bookingState as any)?.aadharFileUrl ||
+        (bookingState as any)?.taxInfo?.aadharFile ||
+        ''
+    ).trim();
+
+  useEffect(() => {
+    const existingPan =
+      String(
+        (bookingState as any)?.atgDetails?.panNumber ||
+          (bookingState as any)?.panNumber ||
+          (bookingState as any)?.taxInfo?.panNumber ||
+          ''
+      ).trim();
+    const existingAadhar =
+      String(
+        (bookingState as any)?.atgDetails?.aadharNumber ||
+          (bookingState as any)?.aadharNumber ||
+          (bookingState as any)?.taxInfo?.aadharNumber ||
+          ''
+      ).trim();
+    const hasAtgRequest =
+      Boolean((bookingState as any)?.atgDetails) ||
+      normalizeBooleanFlag((bookingState as any)?.is80GRequired) ||
+      Boolean(existingPan) ||
+      Boolean(existingAadhar) ||
+      Boolean(existingAtgPanFileUrl) ||
+      Boolean(existingAtgAadharFileUrl);
+
+    setIs80GRequired(hasAtgRequest);
+    setAtgData((prev) => {
+      if (prev.pan === existingPan && prev.aadhar === existingAadhar) {
+        return prev;
+      }
+
+      return {
+        pan: existingPan,
+        aadhar: existingAadhar,
+      };
+    });
+  }, [
+    bookingState,
+    existingAtgPanFileUrl,
+    existingAtgAadharFileUrl,
+  ]);
 
   const applyCoupon = useCallback((coupon: any) => {
     const nextCouponCode = getCouponCode(coupon);
@@ -567,7 +633,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `http://localhost:4000/coupons/applicable?${query.toString()}`
+        `https://bookingapi.thriive.in/coupons/applicable?${query.toString()}`
       );
 
       if (!res.ok) {
@@ -902,7 +968,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `http://localhost:4000/coupons/validate?${query.toString()}`
+        `https://bookingapi.thriive.in/coupons/validate?${query.toString()}`
       );
 
       const data = await res.json().catch(() => null);
@@ -1045,6 +1111,128 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     );
   }, []);
 
+  const syncSuccessfulPayment = useCallback(
+    async (
+      response: any,
+      bookingId: string | number,
+      paymentResult: any
+    ): Promise<{ synced: boolean; message: string }> => {
+      const paymentSources = getPaymentResponseSources(response);
+      const verifyUrl = getStringSourceValue(paymentSources, [
+        'verifyUrl',
+        'verify_url',
+        'verificationUrl',
+        'verification_url',
+      ]);
+
+      const resolvedPaymentId = getPaymentReferenceValue(paymentResult, [
+        'razorpay_payment_id',
+        'payment_id',
+        'paymentId',
+      ]);
+      const resolvedOrderId = getPaymentReferenceValue(paymentResult, [
+        'razorpay_order_id',
+        'order_id',
+        'orderId',
+      ]);
+      const resolvedSignature = getPaymentReferenceValue(paymentResult, [
+        'razorpay_signature',
+        'signature',
+      ]);
+
+      const verificationPayload = {
+        razorpay_order_id: resolvedOrderId,
+        razorpay_payment_id: resolvedPaymentId,
+        razorpay_signature: resolvedSignature,
+        razorpayOrderId: resolvedOrderId,
+        razorpayPaymentId: resolvedPaymentId,
+        razorpaySignature: resolvedSignature,
+      };
+
+      const confirmationPayload = {
+        bookingId: String(bookingId),
+        paymentId: resolvedPaymentId,
+        razorpayPaymentId: resolvedPaymentId,
+        razorpayOrderId: resolvedOrderId,
+        razorpaySignature: resolvedSignature,
+        paymentStatus: 'paid',
+        status: 'Confirmed',
+        bookingConfirmationStatus: 'Confirmed',
+      };
+
+      const requestCandidates = [
+        verifyUrl
+          ? {
+              url: verifyUrl,
+              method: 'POST',
+              body: verificationPayload,
+            }
+          : null,
+        {
+          url: `${BOOKING_API_BASE_URL}/${bookingId}/payment`,
+          method: 'POST',
+          body: confirmationPayload,
+        },
+        {
+          url: `${BOOKING_API_BASE_URL}/${bookingId}/verify-payment`,
+          method: 'POST',
+          body: verificationPayload,
+        },
+      ].filter(Boolean) as Array<{ url: string; method: string; body: any }>;
+
+      let lastSyncMessage = '';
+
+      for (const candidate of requestCandidates) {
+        try {
+          const syncResponse = await fetch(candidate.url, {
+            method: candidate.method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(candidate.body),
+          });
+
+          if (syncResponse.ok) {
+            return {
+              synced: true,
+              message: '',
+            };
+          }
+
+          const responseText = await syncResponse.text();
+          const normalizedText = String(responseText || '').toLowerCase();
+
+          if (
+            syncResponse.status === 404 ||
+            syncResponse.status === 405 ||
+            normalizedText.includes('cannot post') ||
+            normalizedText.includes('cannot patch') ||
+            normalizedText.includes('cannot put')
+          ) {
+            continue;
+          }
+
+          lastSyncMessage = getActionableBookingErrorMessage(
+            responseText,
+            syncResponse.status
+          );
+        } catch (error: any) {
+          lastSyncMessage =
+            error?.message ||
+            'We could not sync the Razorpay payment reference back to the booking.';
+        }
+      }
+
+      return {
+        synced: false,
+        message:
+          lastSyncMessage ||
+          'Payment succeeded, but the backend did not save the payment reference automatically.',
+      };
+    },
+    []
+  );
+
   const launchRazorpayCheckout = useCallback(
     async (
       response: any,
@@ -1165,13 +1353,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         ...(fallbackConfig?.notes || {}),
       };
 
-      const verifyUrl = getStringSourceValue(paymentSources, [
-        'verifyUrl',
-        'verify_url',
-        'verificationUrl',
-        'verification_url',
-      ]);
-
       const paymentResult = await new Promise<any>((resolve, reject) => {
         const razorpayOptions: Record<string, any> = {
           key: razorpayKey,
@@ -1229,32 +1410,18 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         razorpay.open();
       });
 
-      if (verifyUrl) {
-        const verificationResponse = await fetch(verifyUrl, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            bookingId,
-            ...paymentResult,
-          }),
-        });
-
-        if (!verificationResponse.ok) {
-          const verificationText = await verificationResponse.text();
-          throw new Error(
-            getActionableBookingErrorMessage(
-              verificationText,
-              verificationResponse.status
-            )
-          );
-        }
-      }
+      const paymentSyncResult = bookingId
+        ? await syncSuccessfulPayment(response, bookingId, paymentResult)
+        : {
+            synced: false,
+            message:
+              'Payment succeeded, but the booking reference was missing while saving the payment details.',
+          };
 
       return {
         redirected: false,
         paymentResult,
+        paymentSyncResult,
       };
     },
     [
@@ -1265,6 +1432,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       selectedEventId,
       selectedPlan,
       selectedPlanId,
+      syncSuccessfulPayment,
     ]
   );
 
@@ -1299,8 +1467,16 @@ const handlePayment = async () => {
 
     for (const [index, g] of guestsPayload.entries()) {
       const isPrimaryGuest = index === 0;
+      const trimmedName = String(g.name || '').trim();
+      const nameLetterCount = trimmedName.replace(/[^A-Za-z]/g, '').length;
 
-      if (!g.name) throw new Error(`Guest ${index + 1}: name is required`);
+      if (!trimmedName) throw new Error(`Guest ${index + 1}: name is required`);
+      if (
+        !NAME_ALLOWED_CHARACTERS_REGEX.test(trimmedName) ||
+        nameLetterCount < 2
+      ) {
+        throw new Error(`Guest ${index + 1}: name is invalid`);
+      }
       if (!g.gender) throw new Error(`Guest ${index + 1}: gender is required`);
       if (!Number.isFinite(g.age) || g.age < 1 || g.age > MAX_GUEST_AGE) {
         throw new Error(`Guest ${index + 1}: invalid age`);
@@ -1396,7 +1572,7 @@ const handlePayment = async () => {
         formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
       }
 
-      const responseRaw = await fetch('http://localhost:4000/bookings', {
+      const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
         method: 'POST',
         body: formData,
       });
@@ -1423,7 +1599,8 @@ const handlePayment = async () => {
         );
       }
 
-      setTimeout(() => onConfirm(true, zeroAmountBookingId), 600);
+      setIsProcessing(false);
+      onConfirm(true, zeroAmountBookingId);
       return;
     }
 
@@ -1445,8 +1622,37 @@ const handlePayment = async () => {
       return;
     }
 
-    setIsProcessing(true);
-    setTimeout(() => onConfirm(true, bookingId), 600);
+    const resolvedPaymentId = getPaymentReferenceValue(
+      paymentOutcome?.paymentResult,
+      ['razorpay_payment_id', 'payment_id', 'paymentId']
+    );
+    const resolvedOrderId = getPaymentReferenceValue(
+      paymentOutcome?.paymentResult,
+      ['razorpay_order_id', 'order_id', 'orderId']
+    );
+    const resolvedSignature = getPaymentReferenceValue(
+      paymentOutcome?.paymentResult,
+      ['razorpay_signature', 'signature']
+    );
+    const paymentSyncResult = paymentOutcome?.paymentSyncResult || {
+      synced: false,
+      message: '',
+    };
+
+    setBookingState((prev: any) => ({
+      ...prev,
+      bookingId,
+      paymentId: resolvedPaymentId || prev?.paymentId || '',
+      razorpayPaymentId:
+        resolvedPaymentId || prev?.razorpayPaymentId || '',
+      razorpayOrderId: resolvedOrderId || prev?.razorpayOrderId || '',
+      razorpaySignature: resolvedSignature || prev?.razorpaySignature || '',
+      paymentSyncStatus: paymentSyncResult.synced ? 'synced' : 'pending',
+      paymentSyncMessage: paymentSyncResult.message || '',
+    }));
+
+    setIsProcessing(false);
+    onConfirm(true, bookingId);
   } catch (err: any) {
     console.error('Payment Error:', err);
     setCouponError(
@@ -1467,15 +1673,44 @@ const handlePayment = async () => {
     >
       {isProcessing && (
         <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-stone-900/45 px-6 backdrop-blur-sm">
-          <div className="w-full max-w-sm rounded-[32px] border border-white/10 bg-stone-900 px-8 py-7 text-center text-white shadow-2xl">
-            <div className="mx-auto mb-4 h-10 w-10 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-            <p className="text-sm font-black uppercase tracking-[0.3em]">
-              Confirming Booking
-            </p>
-            <p className="mt-3 text-sm font-medium leading-relaxed text-stone-300">
-              Please wait while we submit your booking details. The page is
-              temporarily locked to avoid duplicate submissions.
-            </p>
+          <div className="relative w-full max-w-md overflow-hidden rounded-[36px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(45,212,191,0.2),_rgba(28,25,23,0.98)_38%)] px-8 py-8 text-center text-white shadow-[0_32px_80px_rgba(0,0,0,0.45)]">
+            <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-teal-300/70 to-transparent" />
+            <div className="absolute -top-16 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full bg-teal-400/10 blur-3xl" />
+
+            <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />
+              <div className="absolute inset-2 rounded-full border border-teal-300/20" />
+              <div className="h-11 w-11 rounded-full border-2 border-white/15 border-t-teal-300 animate-spin" />
+              <div className="absolute h-2.5 w-2.5 rounded-full bg-teal-300 shadow-[0_0_18px_rgba(94,234,212,0.9)]" />
+            </div>
+
+            <div className="relative">
+              <span className="inline-flex items-center rounded-full border border-teal-300/20 bg-teal-300/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.35em] text-teal-100">
+                Secure Checkout
+              </span>
+              <p className="mt-5 text-lg font-black uppercase tracking-[0.32em] text-white">
+                Confirming Booking
+              </p>
+              <p className="mt-4 text-sm font-medium leading-relaxed text-stone-300">
+                We&apos;re reserving your plan, validating payment details, and
+                securing your booking reference.
+              </p>
+            </div>
+
+            <div className="relative mt-6 space-y-3 rounded-[28px] border border-white/8 bg-white/5 px-5 py-4 text-left">
+              <div className="flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-200">
+                  Preparing your booking details
+                </span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-teal-300 via-cyan-200 to-teal-300" />
+              </div>
+              <p className="text-xs font-medium leading-relaxed text-stone-400">
+                Please keep this page open. This helps us avoid duplicate submissions.
+              </p>
+            </div>
           </div>
         </div>
       )}
@@ -1899,6 +2134,16 @@ const handlePayment = async () => {
                     >
                       {atgFiles.pan ? '✅ Attached' : '📎 Attach PAN Copy'}
                     </label>
+                    {!atgFiles.pan && existingAtgPanFileUrl && (
+                      <a
+                        href={existingAtgPanFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-black uppercase tracking-widest text-[var(--theme)] underline"
+                      >
+                        View Existing PAN Copy
+                      </a>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-3 text-left">
@@ -1935,6 +2180,16 @@ const handlePayment = async () => {
                     >
                       {atgFiles.aadhar ? '✅ Attached' : '📎 Attach Aadhar Copy'}
                     </label>
+                    {!atgFiles.aadhar && existingAtgAadharFileUrl && (
+                      <a
+                        href={existingAtgAadharFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-black uppercase tracking-widest text-[var(--theme)] underline"
+                      >
+                        View Existing Aadhar Copy
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>

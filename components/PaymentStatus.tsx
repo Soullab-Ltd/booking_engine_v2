@@ -158,6 +158,29 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
         </div>
 
         <div className="p-10">
+          {bookingState.paymentId ? (
+            <div className="mb-6 rounded-3xl border border-stone-100 bg-stone-50 p-6">
+              <h4 className="text-sm font-black uppercase tracking-widest text-stone-500">
+                Payment Reference
+              </h4>
+              <p className="mt-2 break-all font-mono text-base font-black text-stone-900">
+                {bookingState.paymentId}
+              </p>
+            </div>
+          ) : null}
+
+          {bookingState.paymentSyncStatus === 'pending' &&
+          bookingState.paymentSyncMessage ? (
+            <div className="mb-6 rounded-3xl border border-amber-200 bg-amber-50 p-6">
+              <h4 className="text-sm font-black uppercase tracking-widest text-amber-700">
+                Payment Sync Pending
+              </h4>
+              <p className="mt-2 text-sm font-medium leading-relaxed text-amber-900">
+                {bookingState.paymentSyncMessage}
+              </p>
+            </div>
+          ) : null}
+
           <div className="rounded-3xl bg-teal-50 border border-teal-100 p-6">
             <h4 className="text-lg font-black text-stone-900 mb-2">
               Thank you for registering

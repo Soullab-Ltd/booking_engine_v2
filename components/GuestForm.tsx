@@ -97,6 +97,33 @@ const normalizePhoneInput = (value: string) => {
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
 const MAX_GUEST_AGE = 99;
+const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
+const NAME_LETTERS_ONLY_REGEX = /[^A-Za-z]/g;
+
+const normalizeGuestNameInput = (value: string) => {
+  return String(value || '')
+    .replace(/[^A-Za-z\s'.-]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\s+/g, '');
+};
+
+const normalizeGuestAgeInput = (value: unknown): number | null => {
+  const digitsOnly = String(value ?? '')
+    .replace(/\D/g, '')
+    .slice(0, String(MAX_GUEST_AGE).length);
+
+  if (!digitsOnly) {
+    return null;
+  }
+
+  const parsedAge = Number(digitsOnly);
+
+  if (!Number.isFinite(parsedAge)) {
+    return null;
+  }
+
+  return Math.min(parsedAge, MAX_GUEST_AGE);
+};
 
 interface StayAddonMapping {
   planId?: number | string;
@@ -592,11 +619,14 @@ const getStayEndDate = (startDate: string, days: number) => {
     const isPrimaryGuest = guestIndex === 0;
 
     const trimmedName = String(guest.name || '').trim();
+    const nameLetterCount = trimmedName.replace(NAME_LETTERS_ONLY_REGEX, '').length;
 
     if (!trimmedName) {
       errors.name = 'Name is required';
-    } else if (trimmedName.length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+    } else if (!NAME_ALLOWED_CHARACTERS_REGEX.test(trimmedName)) {
+      errors.name = 'Name can only contain letters, spaces, apostrophes, periods, and hyphens';
+    } else if (nameLetterCount < 2) {
+      errors.name = 'Name must be at least 2 letters';
     }
 
     const trimmedEmail = String(guest.email || '').trim();
@@ -621,17 +651,17 @@ const getStayEndDate = (startDate: string, days: number) => {
         errors.phone = 'Enter a valid international phone number';
       }
     }
-const age = Number(guest.age);
+    const age = Number(guest.age);
 
-  if (!guest.age && guest.age !== 0) {
-    errors.age = 'Age is required';
-  } else if (isNaN(age)) {
-    errors.age = 'Please enter a valid number';
-  } else if (age < 1) {
-    errors.age = 'Age must be at least 1';
-  } else if (age > MAX_GUEST_AGE) {
-    errors.age = `Age cannot exceed ${MAX_GUEST_AGE} years`;
-  }
+    if (!guest.age && guest.age !== 0) {
+      errors.age = 'Age is required';
+    } else if (isNaN(age)) {
+      errors.age = 'Please enter a valid number';
+    } else if (age < 1) {
+      errors.age = 'Age must be at least 1';
+    } else if (age > MAX_GUEST_AGE) {
+      errors.age = `Age cannot exceed ${MAX_GUEST_AGE} years`;
+    }
 
 
     if (!guest.gender) {
@@ -661,28 +691,38 @@ const age = Number(guest.age);
   }, [guests]);
 
   const updateGuest = (id: string, updates: any) => {
+    const normalizedUpdates = { ...updates };
+
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'name')) {
+      normalizedUpdates.name = normalizeGuestNameInput(normalizedUpdates.name);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'age')) {
+      normalizedUpdates.age = normalizeGuestAgeInput(normalizedUpdates.age);
+    }
+
     const updatedGuests = guests.map((guest: any) => {
       if (String(guest.id) !== String(id)) return guest;
 
-      if (updates.addOns) {
+      if (normalizedUpdates.addOns) {
         return {
           ...guest,
           addOns: {
             ...(guest.addOns || {}),
-            ...updates.addOns,
+            ...normalizedUpdates.addOns,
             selectedAddons:
-              updates.addOns.selectedAddons ??
+              normalizedUpdates.addOns.selectedAddons ??
               guest.addOns?.selectedAddons ??
               [],
             extraStay: {
               ...(guest.addOns?.extraStay || getDefaultExtraStay()),
-              ...(updates.addOns.extraStay || {}),
+              ...(normalizedUpdates.addOns.extraStay || {}),
             },
           },
         };
       }
 
-      return { ...guest, ...updates };
+      return { ...guest, ...normalizedUpdates };
     });
 
     setGuests(updatedGuests);
@@ -1012,6 +1052,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                     onChange={(e) => updateGuest(guest.id, { name: e.target.value })}
                     minLength={2}
                     placeholder={ui.guestCard.fields.namePlaceholder}
+                    autoCapitalize="words"
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.name
                         ? 'border-red-200 bg-white'
@@ -1090,15 +1131,13 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                   </label>
                   <input
                     type="text"
-                    value={guest.age || ''}
+                    value={guest.age ?? ''}
                     onChange={(e) => {
-                      const val = e.target.value.replace(/\D/g, '').slice(0, 2);
-                      const ageValue = val === '' ? null : parseInt(val, 10);
-
-                      updateGuest(guest.id, { age: ageValue });
+                      updateGuest(guest.id, { age: e.target.value });
                     }}
                     inputMode="numeric"
-                    maxLength={2}
+                    pattern="[0-9]*"
+                    maxLength={String(MAX_GUEST_AGE).length}
                     placeholder={ui.guestCard.fields.agePlaceholder}
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age
