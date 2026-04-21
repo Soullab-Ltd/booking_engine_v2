@@ -11,6 +11,35 @@ export interface AddOn {
   description: string;
 }
 
+export interface GuestSelectedAddon {
+  addonId: string;
+  title: string;
+  description: string;
+  type: string;
+  price: number;
+  quantity: number;
+  isPricePerNight: boolean;
+  bannerImage: string;
+}
+
+export interface GuestExtraStay {
+  enabled: boolean;
+  days: number;
+  type: string;
+  startDate: string;
+  endDate: string;
+  planId: string | number;
+  price: number;
+  pricePerNight?: number;
+}
+
+export interface GuestAddOns {
+  foodPass: boolean;
+  adventurePass: boolean;
+  selectedAddons: GuestSelectedAddon[];
+  extraStay: GuestExtraStay;
+}
+
 export interface Guest {
   id: string;
   name: string;
@@ -20,17 +49,8 @@ export interface Guest {
   isKidsPlanOpted: boolean;
   foodPreference: FoodPreference;
   travelAssistance: boolean;
-  
-  addOns: {
-    foodPass: boolean;
-    adventurePass: boolean;
-    extraStay: {
-      enabled: boolean;
-      days: number;
-      type: string;
-      startDate: string;
-    };
-  };
+
+  addOns: GuestAddOns;
   remark: string;
 
   gender: string | null;
@@ -96,6 +116,7 @@ export interface Plan {
   finalPrice?: number;
   gstDetails?: string;
   amenities?: PlanIcon[];
+  icons?: PlanIcon[];
   planFeatures?: PlanFeature[];
   isSpecialPlan?: boolean | number; 
   tag?: string;

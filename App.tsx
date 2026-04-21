@@ -431,13 +431,13 @@ case 6:
       <footer className="py-6 text-center text-gray-400 text-[10px] uppercase tracking-widest border-t bg-white">
         © 2026 Shreans Daga Foundation. Built for {data.eventData.event?.EventName || 'this event'}
         <p className="text-stone-500 text-[10px] font-bold uppercase tracking-widest">
-          Support: <a href="tel:987666444" className="text-[var(--theme)] hover:underline">987666444</a>
+          Support: <a href="tel:9867666444" className="text-[var(--theme)] hover:underline">9867666444</a>
         </p>
       </footer>
 
       {/* Global WhatsApp Floating Button */}
       <a
-        href="https://wa.me/91987666444?text=I%20need%20help%20with%20my%20booking"
+        href="https://wa.me/919867666444?text=I%20need%20help%20with%20my%20booking"
         target="_blank"
         rel="noopener noreferrer"
         className="group fixed bottom-4 right-4 z-[999] flex items-center rounded-full bg-[#25D366] text-white shadow-2xl transition-all duration-300 active:scale-95 hover:scale-110 sm:bottom-8 sm:right-8"

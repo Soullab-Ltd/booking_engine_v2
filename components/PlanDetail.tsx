@@ -27,6 +27,16 @@ interface PlanDetailProps {
   onBack: () => void;
 }
 
+const PLAN_FEATURE_KEYS = [
+  'planFeatures',
+  'plan_features',
+  'PlanFeatures',
+  'PlanFeature',
+  'featureList',
+  'feature_list',
+  'features',
+] as const;
+
 const getPriceTypeLabel = (priceType?: string) => {
   const normalized = String(priceType || '').trim().toLowerCase();
   const raw = String(priceType || '').trim();
@@ -74,6 +84,79 @@ const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
   return <CheckCircle className="w-8 h-8 text-[var(--theme)]" />;
 };
 
+const getPlanGuestCapacity = (plan: any): string => {
+  const description = String(
+    plan?.PlanDescription || plan?.description || ''
+  ).trim();
+
+  const guestMatch =
+    description.match(/(?:upto|up to)\s+(\d+)\s+guests?/i) ||
+    description.match(/\b(\d+)\s+guests?\b/i);
+
+  if (guestMatch?.[1]) {
+    return guestMatch[1];
+  }
+
+  const capacityCandidates = [
+    plan?.maxPax,
+    plan?.maxGuests,
+    plan?.maxOccupancy,
+    plan?.capacity,
+  ];
+
+  for (const candidate of capacityCandidates) {
+    const parsed = Number(candidate);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return String(parsed);
+    }
+  }
+
+  return '';
+};
+
+const parseFeatureCollection = (rawValue: any): any[] => {
+  let parsedValue = rawValue;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (Array.isArray(parsedValue)) {
+      return parsedValue;
+    }
+
+    if (typeof parsedValue === 'string') {
+      const trimmedValue = parsedValue.trim();
+      if (!trimmedValue) return [];
+
+      try {
+        parsedValue = JSON.parse(trimmedValue);
+        continue;
+      } catch {
+        return [];
+      }
+    }
+
+    if (parsedValue && typeof parsedValue === 'object') {
+      if (Array.isArray(parsedValue.items)) {
+        parsedValue = parsedValue.items;
+        continue;
+      }
+
+      return Object.values(parsedValue);
+    }
+
+    return [];
+  }
+
+  if (Array.isArray(parsedValue)) {
+    return parsedValue;
+  }
+
+  if (parsedValue && typeof parsedValue === 'object') {
+    return Object.values(parsedValue);
+  }
+
+  return [];
+};
+
 const isPlanSoldOut = (plan: any) => {
   if (plan?.isSoldOut === true) return true;
   if (plan?.isSoldOut === false) return false;
@@ -90,34 +173,28 @@ const isPlanSoldOut = (plan: any) => {
 };
 
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
-  const rawPlanFeatures =
-    (plan as any).planFeatures ??
-    (plan as any).plan_features ??
-    (plan as any).features ??
-    [];
-
   const planFeatures = useMemo(() => {
     let featureList: any[] = [];
 
-    if (Array.isArray(rawPlanFeatures)) {
-      featureList = rawPlanFeatures;
-    } else if (typeof rawPlanFeatures === 'string') {
-      try {
-        const parsed = JSON.parse(rawPlanFeatures);
-        featureList = Array.isArray(parsed)
-          ? parsed
-          : parsed && typeof parsed === 'object'
-            ? Object.values(parsed)
-            : [];
-      } catch {
-        featureList = [];
+    for (const key of PLAN_FEATURE_KEYS) {
+      const parsedFeatures = parseFeatureCollection((plan as any)?.[key]);
+      if (parsedFeatures.length > 0) {
+        featureList = parsedFeatures;
+        break;
       }
-    } else if (rawPlanFeatures && typeof rawPlanFeatures === 'object') {
-      featureList = Object.values(rawPlanFeatures);
     }
 
-    return featureList.filter((feature: any) => feature?.label || feature?.Label || feature?.value || feature?.Value);
-  }, [rawPlanFeatures]);
+    return featureList.filter(
+      (feature: any) =>
+        feature?.label ||
+        feature?.Label ||
+        feature?.title ||
+        feature?.Title ||
+        feature?.value ||
+        feature?.Value ||
+        feature?.description
+    );
+  }, [plan]);
 
   const sortedImages = useMemo(() => {
     const imgs = Array.isArray((plan as any)?.images) ? [...(plan as any).images] : [];
@@ -163,6 +240,65 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
   const activeImage = carouselImages[activeIndex] || fallbackImage;
   const priceTypeLabel = getPriceTypeLabel((plan as any).priceType);
+  const displayFeatures = useMemo(() => {
+    if (planFeatures.length > 0) {
+      return planFeatures;
+    }
+
+    const fallbackFeatures: Array<{
+      id: string;
+      label: string;
+      value: string;
+      icon: string;
+    }> = [];
+
+    const roomType = String(
+      (plan as any).PlanSubtitle ||
+        (plan as any).stayRoomType ||
+        (plan as any).stayType ||
+        ''
+    ).trim();
+
+    if (roomType) {
+      fallbackFeatures.push({
+        id: 'room-type',
+        label: 'Room Type',
+        value: roomType,
+        icon: 'room',
+      });
+    }
+
+    const guestCapacity = getPlanGuestCapacity(plan);
+    if (guestCapacity) {
+      fallbackFeatures.push({
+        id: 'guest-capacity',
+        label: 'Guests',
+        value: guestCapacity,
+        icon: 'guest',
+      });
+    }
+
+    const nightlyRate = Number((plan as any).pricePerNight || 0);
+    if (Number.isFinite(nightlyRate) && nightlyRate > 0) {
+      fallbackFeatures.push({
+        id: 'nightly-rate',
+        label: 'Nightly Rate',
+        value: `Rs ${nightlyRate.toLocaleString()}`,
+        icon: 'rate',
+      });
+    }
+
+    if (priceTypeLabel) {
+      fallbackFeatures.push({
+        id: 'billing-type',
+        label: 'Billing',
+        value: priceTypeLabel,
+        icon: 'billing',
+      });
+    }
+
+    return fallbackFeatures.slice(0, 4);
+  }, [plan, planFeatures, priceTypeLabel]);
   const soldOut = isPlanSoldOut(plan);
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
@@ -264,25 +400,30 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           </section>
 
           <section>
-            {planFeatures.length > 0 ? (
+            {displayFeatures.length > 0 ? (
               <>
                 <div className="flex items-center gap-3 mb-10">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
-                    Features
+                    {planFeatures.length > 0 ? 'Features' : 'Plan Highlights'}
                   </h2>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
-                  {planFeatures.map((feature: any, index: number) => (
+                  {displayFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
                       className="rounded-2xl border border-stone-200 bg-stone-50 p-5 flex flex-col items-center text-center gap-3"
                     >
                       <PlanFeatureIcon iconName={feature?.icon || feature?.Icon || feature?.iconName} />
-                      <p className="text-sm md:text-base font-semibold text-stone-800">
-                        {feature?.value || feature?.Value || '-'} {feature?.label || feature?.Label || ''}
-                      </p>
+                      <div className="space-y-1">
+                        <p className="text-sm font-black uppercase tracking-[0.16em] text-stone-400">
+                          {feature?.label || feature?.Label || feature?.title || feature?.Title || 'Feature'}
+                        </p>
+                        <p className="text-base md:text-lg font-semibold text-stone-800">
+                          {feature?.value || feature?.Value || feature?.description || '-'}
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -317,8 +458,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               <h3 className="text-xl font-black mb-2">Customer Support</h3>
               <p className="text-teal-200 leading-relaxed font-medium">
                 Please contact our customer support @{' '}
-                <a href="tel:987666444" className="underline underline-offset-4">
-                  987666444
+                <a href="tel:9867666444" className="underline underline-offset-4">
+                  9867666444
                 </a>{' '}
                 for any queries.
               </p>

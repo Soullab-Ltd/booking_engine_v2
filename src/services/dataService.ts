@@ -160,29 +160,65 @@ const getPlanMaxPax = (plan: any): number => {
   return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
 };
 
-const getRawPlanFeatures = (plan: any): any[] => {
-  const rawFeatures =
-    plan?.planFeatures ??
-    plan?.plan_features ??
-    plan?.features ??
-    [];
+const PLAN_FEATURE_KEYS = [
+  'planFeatures',
+  'plan_features',
+  'PlanFeatures',
+  'PlanFeature',
+  'featureList',
+  'feature_list',
+  'features',
+] as const;
 
-  if (Array.isArray(rawFeatures)) {
-    return rawFeatures;
-  }
+const parseFeatureCollection = (rawValue: any): any[] => {
+  let parsedValue = rawValue;
 
-  if (typeof rawFeatures === 'string') {
-    try {
-      const parsed = JSON.parse(rawFeatures);
-      if (Array.isArray(parsed)) return parsed;
-      if (parsed && typeof parsed === 'object') return Object.values(parsed);
-    } catch {
-      return [];
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (Array.isArray(parsedValue)) {
+      return parsedValue;
     }
+
+    if (typeof parsedValue === 'string') {
+      const trimmedValue = parsedValue.trim();
+      if (!trimmedValue) return [];
+
+      try {
+        parsedValue = JSON.parse(trimmedValue);
+        continue;
+      } catch {
+        return [];
+      }
+    }
+
+    if (parsedValue && typeof parsedValue === 'object') {
+      if (Array.isArray(parsedValue.items)) {
+        parsedValue = parsedValue.items;
+        continue;
+      }
+
+      return Object.values(parsedValue);
+    }
+
+    return [];
   }
 
-  if (rawFeatures && typeof rawFeatures === 'object') {
-    return Object.values(rawFeatures);
+  if (Array.isArray(parsedValue)) {
+    return parsedValue;
+  }
+
+  if (parsedValue && typeof parsedValue === 'object') {
+    return Object.values(parsedValue);
+  }
+
+  return [];
+};
+
+const getRawPlanFeatures = (plan: any): any[] => {
+  for (const key of PLAN_FEATURE_KEYS) {
+    const parsedFeatures = parseFeatureCollection(plan?.[key]);
+    if (parsedFeatures.length > 0) {
+      return parsedFeatures;
+    }
   }
 
   return [];
@@ -323,7 +359,7 @@ export const getAllData = async (
   eventId: string | number,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/${eventId}`);
+  const apiResponse = await fetch(`http://localhost:4000/events/${eventId}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -343,7 +379,7 @@ console.log(
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`https://bookingapi.thriive.in/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -460,7 +496,7 @@ export const getAllDataBySlug = async (
   slug: string,
   bookingId?: string | null
 ) => {
-  const apiResponse = await fetch(`https://bookingapi.thriive.in/events/slug/${slug}`);
+  const apiResponse = await fetch(`http://localhost:4000/events/slug/${slug}`);
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -474,7 +510,7 @@ export const getAllDataBySlug = async (
 
   if (bookingId) {
     try {
-      const bookingResponse = await fetch(`https://bookingapi.thriive.in/bookings/${bookingId}`);
+      const bookingResponse = await fetch(`http://localhost:4000/bookings/${bookingId}`);
       if (bookingResponse.ok) {
         bookingData = await bookingResponse.json();
       } else {
@@ -582,7 +618,7 @@ export const getAllDataBySlug = async (
   };
 };
 export const createBooking = async (bookingData: any) => {
-  const response = await fetch('https://bookingapi.thriive.in/bookings', { 
+  const response = await fetch('http://localhost:4000/bookings', { 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(bookingData),

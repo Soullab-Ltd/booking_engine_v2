@@ -16,6 +16,15 @@ import {
   FileText,
 } from 'lucide-react';
 
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, any>) => {
+      open: () => void;
+      on: (event: string, handler: (response: any) => void) => void;
+    };
+  }
+}
+
 interface BookingSummaryProps {
   bookingState: BookingState;
   setBookingState: React.Dispatch<React.SetStateAction<BookingState>>;
@@ -26,6 +35,104 @@ interface BookingSummaryProps {
 }
 
 const KIDS_PLAN_PRICE = 10000;
+const MAX_GUEST_AGE = 99;
+const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+const FRONTEND_RAZORPAY_TEST_KEY = 'rzp_test_dAUJkW0WtsN6N7';
+
+const loadRazorpayCheckoutScript = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') {
+      reject(new Error('Payment checkout is only available in the browser.'));
+      return;
+    }
+
+    if (window.Razorpay) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_CHECKOUT_SCRIPT}"]`
+    ) as HTMLScriptElement | null;
+
+    const handleScriptLoad = () => {
+      if (window.Razorpay) {
+        resolve();
+        return;
+      }
+
+      reject(new Error('Razorpay checkout did not load correctly.'));
+    };
+
+    const handleScriptError = () => {
+      reject(
+        new Error(
+          'We could not load the Razorpay checkout. Please check your internet connection and try again.'
+        )
+      );
+    };
+
+    if (existingScript) {
+      existingScript.addEventListener('load', handleScriptLoad, { once: true });
+      existingScript.addEventListener('error', handleScriptError, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = RAZORPAY_CHECKOUT_SCRIPT;
+    script.async = true;
+    script.onload = handleScriptLoad;
+    script.onerror = handleScriptError;
+    document.body.appendChild(script);
+  });
+};
+
+const getPaymentResponseSources = (response: any): any[] => {
+  return [
+    response,
+    response?.data,
+    response?.payment,
+    response?.data?.payment,
+    response?.razorpay,
+    response?.data?.razorpay,
+    response?.checkout,
+    response?.data?.checkout,
+    response?.order,
+    response?.data?.order,
+    response?.payment?.order,
+    response?.data?.payment?.order,
+    response?.payment?.razorpay,
+    response?.data?.payment?.razorpay,
+  ].filter(Boolean);
+};
+
+const getSourceValue = (sources: any[], keys: string[]) => {
+  for (const source of sources) {
+    for (const key of keys) {
+      const value = source?.[key];
+      if (value !== undefined && value !== null && value !== '') {
+        return value;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const getStringSourceValue = (sources: any[], keys: string[]): string => {
+  const value = getSourceValue(sources, keys);
+  return value === undefined || value === null ? '' : String(value).trim();
+};
+
+const getNumberSourceValue = (
+  sources: any[],
+  keys: string[],
+  fallback = 0
+): number => {
+  const value = getSourceValue(sources, keys);
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
 
 const getSafeId = (obj: any, keys: string[]): number => {
   for (const key of keys) {
@@ -288,6 +395,16 @@ const getActionableBookingErrorMessage = (
 
   if (normalizedMessage.includes('guest')) {
     return rawMessage || 'Please review the guest details and correct any missing or invalid fields.';
+  }
+
+  if (
+    normalizedMessage.includes('razorpay') &&
+    (normalizedMessage.includes('not configured') ||
+      normalizedMessage.includes('key_id') ||
+      normalizedMessage.includes('key secret') ||
+      normalizedMessage.includes('key_secret'))
+  ) {
+    return 'Razorpay is not configured on the backend. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in the backend environment, then restart the backend service.';
   }
 
   if (status >= 500) {
@@ -915,6 +1032,242 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     couponIdProofUrl,
   ]);
 
+  const resolveBookingId = useCallback((response: any): string | number | undefined => {
+    return (
+      response?.bookingId ??
+      response?.data?.bookingId ??
+      response?.id ??
+      response?.data?.id ??
+      response?.booking_id ??
+      response?.data?.booking_id ??
+      response?.booking?.id ??
+      response?.data?.booking?.id
+    );
+  }, []);
+
+  const launchRazorpayCheckout = useCallback(
+    async (
+      response: any,
+      bookingId: string | number | undefined,
+      fallbackConfig?: {
+        key?: string;
+        amount?: number;
+        currency?: string;
+        name?: string;
+        description?: string;
+        prefill?: {
+          name?: string;
+          email?: string;
+          contact?: string;
+        };
+        notes?: Record<string, string>;
+      }
+    ) => {
+      const paymentSources = getPaymentResponseSources(response);
+      const paymentLink = getStringSourceValue(paymentSources, [
+        'short_url',
+        'shortUrl',
+        'paymentLink',
+        'payment_link',
+        'checkoutUrl',
+        'checkout_url',
+        'redirectUrl',
+        'redirect_url',
+      ]);
+
+      if (paymentLink) {
+        window.location.assign(paymentLink);
+        return { redirected: true };
+      }
+
+      const orderSources = [
+        response?.order,
+        response?.data?.order,
+        response?.payment?.order,
+        response?.data?.payment?.order,
+      ].filter(Boolean);
+
+      const razorpayKey =
+        getStringSourceValue(paymentSources, [
+          'key',
+          'keyId',
+          'key_id',
+          'razorpayKey',
+          'razorpay_key',
+          'razorpayKeyId',
+          'razorpay_key_id',
+        ]) ||
+        String(fallbackConfig?.key || '').trim();
+
+      const razorpayOrderId =
+        getStringSourceValue(paymentSources, [
+          'orderId',
+          'order_id',
+          'razorpayOrderId',
+          'razorpay_order_id',
+        ]) || getStringSourceValue(orderSources, ['id']);
+
+      if (!razorpayOrderId) {
+        throw new Error(
+          'The backend did not return a Razorpay order id for this payment. Web checkout needs an order_id or payment link from /bookings before it can open.'
+        );
+      }
+
+      if (!razorpayKey) {
+        throw new Error(
+          'Razorpay checkout details are missing. Please verify the payment configuration.'
+        );
+      }
+
+      await loadRazorpayCheckoutScript();
+
+      const RazorpayCheckout = window.Razorpay;
+
+      if (!RazorpayCheckout) {
+        throw new Error('Razorpay checkout is unavailable right now.');
+      }
+
+      const amount = getNumberSourceValue(
+        [...paymentSources, ...orderSources],
+        ['amount'],
+        Number(fallbackConfig?.amount ?? Math.round(pricingBreakdown.totalAmount * 100))
+      );
+
+      const currency =
+        getStringSourceValue([...paymentSources, ...orderSources], ['currency']) ||
+        String(fallbackConfig?.currency || '').trim() ||
+        'INR';
+
+      const firstGuest = (guests[0] || {}) as any;
+      const eventTitle =
+        String(
+          fallbackConfig?.name ||
+            (event as any)?.title ||
+            (event as any)?.EventName ||
+            'Event'
+        ).trim();
+      const planTitle = String(
+        selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title || 'Selected Plan'
+      ).trim();
+      const paymentDescription = String(
+        fallbackConfig?.description || `${planTitle} booking`
+      ).trim();
+      const checkoutImage =
+        /^https?:\/\//i.test(String(eventBanner || '').trim()) &&
+        !String(eventBanner || '').toLowerCase().includes('localhost')
+          ? String(eventBanner).trim()
+          : undefined;
+
+      const notes = {
+        booking_id: bookingId ? String(bookingId) : '',
+        event_id: selectedEventId ? String(selectedEventId) : '',
+        plan_id: selectedPlanId ? String(selectedPlanId) : '',
+        ...(fallbackConfig?.notes || {}),
+      };
+
+      const verifyUrl = getStringSourceValue(paymentSources, [
+        'verifyUrl',
+        'verify_url',
+        'verificationUrl',
+        'verification_url',
+      ]);
+
+      const paymentResult = await new Promise<any>((resolve, reject) => {
+        const razorpayOptions: Record<string, any> = {
+          key: razorpayKey,
+          amount,
+          currency,
+          name: eventTitle,
+          description: paymentDescription,
+          prefill: {
+            name: String(
+              fallbackConfig?.prefill?.name || firstGuest?.name || ''
+            ).trim(),
+            email: String(
+              fallbackConfig?.prefill?.email || firstGuest?.email || ''
+            ).trim(),
+            contact: String(
+              fallbackConfig?.prefill?.contact ||
+                firstGuest?.phone ||
+                firstGuest?.phoneNumber ||
+                ''
+            ).trim(),
+          },
+          notes,
+          theme: {
+            color: '#0f766e',
+          },
+          modal: {
+            ondismiss: () => {
+              reject(new Error('Payment was cancelled before completion.'));
+            },
+          },
+          handler: (checkoutResponse: any) => {
+            resolve(checkoutResponse);
+          },
+        };
+
+        if (checkoutImage) {
+          razorpayOptions.image = checkoutImage;
+        }
+
+        if (razorpayOrderId) {
+          razorpayOptions.order_id = razorpayOrderId;
+        }
+
+        const razorpay = new RazorpayCheckout(razorpayOptions);
+
+        razorpay.on('payment.failed', (paymentFailure: any) => {
+          const failureReason =
+            paymentFailure?.error?.description ||
+            paymentFailure?.error?.reason ||
+            paymentFailure?.error?.step ||
+            'Payment failed. Please try again.';
+          reject(new Error(String(failureReason)));
+        });
+
+        razorpay.open();
+      });
+
+      if (verifyUrl) {
+        const verificationResponse = await fetch(verifyUrl, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            bookingId,
+            ...paymentResult,
+          }),
+        });
+
+        if (!verificationResponse.ok) {
+          const verificationText = await verificationResponse.text();
+          throw new Error(
+            getActionableBookingErrorMessage(
+              verificationText,
+              verificationResponse.status
+            )
+          );
+        }
+      }
+
+      return {
+        redirected: false,
+        paymentResult,
+      };
+    },
+    [
+      event,
+      eventBanner,
+      guests,
+      pricingBreakdown.totalAmount,
+      selectedEventId,
+      selectedPlan,
+      selectedPlanId,
+    ]
+  );
+
 const handlePayment = async () => {
   setIsProcessing(true);
   setCouponError('');
@@ -945,12 +1298,22 @@ const handlePayment = async () => {
     }));
 
     for (const [index, g] of guestsPayload.entries()) {
+      const isPrimaryGuest = index === 0;
+
       if (!g.name) throw new Error(`Guest ${index + 1}: name is required`);
-      if (!g.email) throw new Error(`Guest ${index + 1}: email is required`);
-      if (!g.phoneNumber) throw new Error(`Guest ${index + 1}: phone number is required`);
       if (!g.gender) throw new Error(`Guest ${index + 1}: gender is required`);
-      if (!Number.isFinite(g.age) || g.age < 1 || g.age > 120) {
+      if (!Number.isFinite(g.age) || g.age < 1 || g.age > MAX_GUEST_AGE) {
         throw new Error(`Guest ${index + 1}: invalid age`);
+      }
+
+      if (isPrimaryGuest) {
+        if (!g.email) throw new Error(`Guest ${index + 1}: email is required`);
+        if (!g.phoneNumber) {
+          throw new Error(`Guest ${index + 1}: phone number is required`);
+        }
+        if (!g.country) throw new Error(`Guest ${index + 1}: country is required`);
+        if (!g.state) throw new Error(`Guest ${index + 1}: state is required`);
+        if (!g.city) throw new Error(`Guest ${index + 1}: city is required`);
       }
 
       if ('EventID' in (g as any) || 'EventName' in (g as any) || 'banner' in (g as any)) {
@@ -1013,7 +1376,6 @@ const handlePayment = async () => {
       stayAmount: Math.round(pricingBreakdown.stayTotal),
       couponCode: appliedCoupon ? getCouponCode(appliedCoupon) : null,
       appliedDiscountId: appliedCoupon ? getCouponId(appliedCoupon) : null,
-      paymentId: 'MOCK_PAY_' + Date.now(),
       isAtgRequested: is80GRequired ? 1 : 0,
       panNumber: atgData.pan || '',
       aadharNumber: atgData.aadhar || '',
@@ -1023,43 +1385,68 @@ const handlePayment = async () => {
     };
 
     console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
+    const submitBooking = async () => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(payload));
 
-    const formData = new FormData();
-    formData.append('data', JSON.stringify(payload));
+      if (atgFiles.pan) formData.append('panFile', atgFiles.pan);
+      if (atgFiles.aadhar) formData.append('aadharFile', atgFiles.aadhar);
 
-    if (atgFiles.pan) formData.append('panFile', atgFiles.pan);
-    if (atgFiles.aadhar) formData.append('aadharFile', atgFiles.aadhar);
+      if ((bookingState as any)?.couponIdProof) {
+        formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
+      }
 
-    if ((bookingState as any)?.couponIdProof) {
-      formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
+      const responseRaw = await fetch('http://localhost:4000/bookings', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const responseText = await responseRaw.text();
+
+      if (!responseRaw.ok) {
+        console.error('❌ Booking API error response:', responseText);
+        throw new Error(
+          getActionableBookingErrorMessage(responseText, responseRaw.status)
+        );
+      }
+
+      return JSON.parse(responseText);
+    };
+
+    if (Math.round(pricingBreakdown.totalAmount) < 1) {
+      const zeroAmountResponse = await submitBooking();
+      const zeroAmountBookingId = resolveBookingId(zeroAmountResponse);
+
+      if (!zeroAmountBookingId) {
+        throw new Error(
+          'The backend did not return a booking reference for this payment attempt.'
+        );
+      }
+
+      setTimeout(() => onConfirm(true, zeroAmountBookingId), 600);
+      return;
     }
 
-    const responseRaw = await fetch('http://localhost:4000/bookings', {
-      method: 'POST',
-      body: formData,
-    });
+    const checkoutResponse = await submitBooking();
+    const bookingId = resolveBookingId(checkoutResponse);
 
-    const responseText = await responseRaw.text();
-
-    if (!responseRaw.ok) {
-      console.error('❌ Booking API error response:', responseText);
+    if (!bookingId) {
       throw new Error(
-        getActionableBookingErrorMessage(responseText, responseRaw.status)
+        'The backend did not return a booking reference for this payment attempt.'
       );
     }
 
-    const response = JSON.parse(responseText);
+    setIsProcessing(false);
+    const paymentOutcome = await launchRazorpayCheckout(checkoutResponse, bookingId, {
+      key: FRONTEND_RAZORPAY_TEST_KEY,
+    });
 
-    const bookingId =
-      response?.bookingId ||
-      response?.data?.bookingId ||
-      response?.booking_id;
-
-    if (bookingId) {
-      setTimeout(() => onConfirm(true, bookingId), 1500);
-    } else {
-      onConfirm(false);
+    if (paymentOutcome?.redirected) {
+      return;
     }
+
+    setIsProcessing(true);
+    setTimeout(() => onConfirm(true, bookingId), 600);
   } catch (err: any) {
     console.error('Payment Error:', err);
     setCouponError(

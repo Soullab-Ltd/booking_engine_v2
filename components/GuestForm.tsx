@@ -96,6 +96,7 @@ const normalizePhoneInput = (value: string) => {
 
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
+const MAX_GUEST_AGE = 99;
 
 interface StayAddonMapping {
   planId?: number | string;
@@ -586,8 +587,9 @@ const getStayEndDate = (startDate: string, days: number) => {
     });
   }, [addons, selectedEventId, selectedPlanId]);
 
-  const getGuestErrors = (guest: Guest | any) => {
+  const getGuestErrors = (guest: Guest | any, guestIndex: number) => {
     const errors: Record<string, string> = {};
+    const isPrimaryGuest = guestIndex === 0;
 
     const trimmedName = String(guest.name || '').trim();
 
@@ -597,15 +599,17 @@ const getStayEndDate = (startDate: string, days: number) => {
       errors.name = 'Name must be at least 2 characters';
     }
 
-    if (!guest.email?.trim()) {
+    const trimmedEmail = String(guest.email || '').trim();
+    if (isPrimaryGuest && !trimmedEmail) {
       errors.email = 'Email is required';
-    } else if (!isValidEmail(guest.email)) {
+    } else if (trimmedEmail && !isValidEmail(guest.email)) {
       errors.email = 'Invalid email format';
     }
 
-    if (!guest.phone?.trim()) {
+    const trimmedPhone = String(guest.phone || '').trim();
+    if (isPrimaryGuest && !trimmedPhone) {
       errors.phone = 'Phone is required';
-    } else {
+    } else if (trimmedPhone) {
       const phoneDigits = getPhoneDigits(guest.phone);
       const isIndianGuest = String(guest.country || '').trim().toLowerCase() === 'india';
 
@@ -625,25 +629,28 @@ const age = Number(guest.age);
     errors.age = 'Please enter a valid number';
   } else if (age < 1) {
     errors.age = 'Age must be at least 1';
-  } else if (age > 120) {
-    errors.age = 'Age cannot exceed 120 years';
+  } else if (age > MAX_GUEST_AGE) {
+    errors.age = `Age cannot exceed ${MAX_GUEST_AGE} years`;
   }
 
 
     if (!guest.gender) {
       errors.gender = 'Gender is required';
-    }  
-    if (!guest.country) errors.country = 'Country is required';
-    if (!guest.state) errors.state = 'State is required';
-    if (!guest.city?.trim()) errors.city = 'City is required';
+    }
+
+    if (isPrimaryGuest) {
+      if (!guest.country) errors.country = 'Country is required';
+      if (!guest.state) errors.state = 'State is required';
+      if (!guest.city?.trim()) errors.city = 'City is required';
+    }
 
     return errors;
   };
 
   const allGuestsValid = useMemo(() => {
-    return guests.every(
-      (guest: any) => Object.keys(getGuestErrors(guest)).length === 0
-    );
+    return guests.every((guest: any, index: number) => {
+      return Object.keys(getGuestErrors(guest, index)).length === 0;
+    });
   }, [guests]);
 
   const eligibleKids = useMemo(() => {
@@ -953,7 +960,8 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
       <div className="space-y-6">
         {guests.map((guest: any, index) => {
-          const errors = getGuestErrors(guest);
+          const errors = getGuestErrors(guest, index);
+          const isPrimaryGuest = index === 0;
           const hasTypedEmail = String(guest.email || '').trim().length > 0;
           const emailLooksValid = isValidEmail(guest.email);
           const showRealtimeEmailError = hasTypedEmail && !emailLooksValid;
@@ -996,7 +1004,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
                   </label>
                   <input
                     type="text"
@@ -1015,7 +1023,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.phone} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.phone}
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <input
                     type="tel"
@@ -1042,7 +1053,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.email} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.email}
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <input
                     type="email"
@@ -1072,17 +1086,19 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
                   </label>
                   <input
                     type="text"
                     value={guest.age || ''}
                     onChange={(e) => {
-  const val = e.target.value.replace(/\D/g, '');
-  const ageValue = val === '' ? null : parseInt(val, 10); 
-  
-  updateGuest(guest.id, { age: ageValue });
-}}
+                      const val = e.target.value.replace(/\D/g, '').slice(0, 2);
+                      const ageValue = val === '' ? null : parseInt(val, 10);
+
+                      updateGuest(guest.id, { age: ageValue });
+                    }}
+                    inputMode="numeric"
+                    maxLength={2}
                     placeholder={ui.guestCard.fields.agePlaceholder}
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age
@@ -1095,7 +1111,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
               <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Gender <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    Gender <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
                   </label>
 
                   <div className="flex gap-2">
@@ -1155,7 +1171,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Country <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    Country
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
@@ -1167,7 +1186,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    State / Province <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    State / Province
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
 
                   {guest.country === 'India' ? (
@@ -1240,7 +1262,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    City <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    City
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <input
                     type="text"
