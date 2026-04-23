@@ -260,7 +260,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
           return (
             <div
               key={plan.planID || plan.id}
-              className="relative bg-white rounded-3xl shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
+              className="relative w-full max-w-3xl mx-auto bg-white rounded-3xl shadow-md border border-stone-100 flex flex-col md:flex-row hover:shadow-2xl transition-all duration-500 group"
             >
               {soldOut ? (
                 <div className="pointer-events-none absolute -left-2 top-4 z-20 rotate-[-16deg]">
