@@ -268,7 +268,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
           return (
             <div
               key={plan.planID || plan.id}
-              className={`relative overflow-hidden rounded-[28px] border flex flex-col md:flex-row transition-all duration-500 group ${
+              className={`relative mx-auto w-full max-w-5xl overflow-hidden rounded-[28px] border flex flex-col md:flex-row transition-all duration-500 group ${
                 isFeatured
                   ? 'border-teal-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f8fcfb_100%)] shadow-[0_32px_100px_rgba(15,118,110,0.10)]'
                   : 'border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fcfcfa_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.06)] hover:shadow-[0_32px_100px_rgba(15,23,42,0.10)]'
