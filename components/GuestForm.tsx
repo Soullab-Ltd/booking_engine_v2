@@ -1676,33 +1676,55 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
       {showKidsModal && (
         <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-black text-stone-900">
-              Kids Plan Confirmation
-            </h3>
-            <p className="mt-2 text-sm text-stone-600">
-              We found guest(s) aged between 4 and 17. Please confirm if they should be considered under the kids plan.
-            </p>
+          <div className="w-full max-w-xl overflow-hidden rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f9f8f5_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.18)]">
+            <div className="border-b border-stone-200 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.14),_transparent_42%),linear-gradient(180deg,_#ffffff_0%,_#f7f7f4_100%)] px-6 py-6 md:px-7">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme)]">
+                Quick Confirmation
+              </p>
+              <h3 className="mt-2 text-2xl font-black tracking-[-0.03em] text-stone-900">
+                Kids Plan Confirmation
+              </h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-600">
+                We found guest(s) aged between 4 and 17. Please confirm whether they should be included under the kids plan before you continue.
+              </p>
+            </div>
 
-            <div className="mt-5 space-y-3">
+            <div className="px-6 py-6 md:px-7">
+              <div className="mb-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-stone-400">
+                  Eligible Guests
+                </p>
+                <p className="mt-2 text-sm font-semibold text-stone-700">
+                  Select <span className="text-stone-900">Yes</span> for guests who should be counted in the kids plan.
+                </p>
+              </div>
+
+              <div className="space-y-3">
               {eligibleKids.map((guest: any) => (
                 <div
                   key={guest.id}
-                  className="flex items-center justify-between rounded-2xl border border-stone-200 p-4"
+                  className="flex flex-col gap-4 rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between"
                 >
-                  <div>
-                    <p className="text-sm font-black text-stone-900">{guest.name || 'Guest'}</p>
-                    <p className="text-xs font-medium text-stone-500">Age: {guest.age}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--theme-light)] text-sm font-black text-[var(--theme)]">
+                      {(guest.name || 'G').trim().charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-stone-900">{guest.name || 'Guest'}</p>
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">
+                        Age {guest.age}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2 md:min-w-[220px]">
                     <button
                       type="button"
                       onClick={() => toggleKidsPlan(String(guest.id), true)}
-                      className={`rounded-xl px-4 py-2 text-xs font-black ${
+                      className={`rounded-2xl px-4 py-3 text-xs font-black transition-all ${
                         guest.isKidsPlanOpted
-                          ? 'bg-stone-900 text-white'
-                          : 'border border-stone-200 text-stone-700'
+                          ? 'bg-[var(--theme)] text-white shadow-[0_12px_28px_rgba(15,118,110,0.22)]'
+                          : 'border border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
                       }`}
                     >
                       Yes
@@ -1710,10 +1732,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                     <button
                       type="button"
                       onClick={() => toggleKidsPlan(String(guest.id), false)}
-                      className={`rounded-xl px-4 py-2 text-xs font-black ${
+                      className={`rounded-2xl px-4 py-3 text-xs font-black transition-all ${
                         guest.isKidsPlanOpted === false
-                          ? 'bg-stone-900 text-white'
-                          : 'border border-stone-200 text-stone-700'
+                          ? 'bg-stone-900 text-white shadow-[0_12px_28px_rgba(28,25,23,0.18)]'
+                          : 'border border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
                       }`}
                     >
                       No
@@ -1723,24 +1745,25 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               ))}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
-              <button
-                type="button"
-                onClick={() => setShowKidsModal(false)}
-                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-black text-stone-700"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setShowKidsModal(false);
-                  onProceed();
-                }}
-                className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white"
-              >
-                Continue
-              </button>
+              <div className="mt-6 flex flex-col-reverse gap-3 border-t border-stone-200 pt-5 sm:flex-row sm:justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowKidsModal(false)}
+                  className="rounded-2xl border border-stone-200 bg-white px-5 py-3 text-xs font-black text-stone-700 transition hover:bg-stone-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowKidsModal(false);
+                    onProceed();
+                  }}
+                  className="rounded-2xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)] transition hover:bg-[var(--theme-dark)]"
+                >
+                  Continue
+                </button>
+              </div>
             </div>
           </div>
         </div>
