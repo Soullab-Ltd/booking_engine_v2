@@ -51,7 +51,7 @@ const MAX_GUEST_AGE = 99;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const FRONTEND_RAZORPAY_TEST_KEY = 'rzp_test_dAUJkW0WtsN6N7';
-const BOOKING_API_BASE_URL = 'http://localhost:4000/bookings';
+const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -645,7 +645,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `http://localhost:4000/coupons/applicable?${query.toString()}`
+        `https://bookingapi.thriive.in/coupons/applicable?${query.toString()}`
       );
 
       if (!res.ok) {
@@ -982,7 +982,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `http://localhost:4000/coupons/validate?${query.toString()}`
+        `https://bookingapi.thriive.in/coupons/validate?${query.toString()}`
       );
 
       const data = await res.json().catch(() => null);
@@ -1586,7 +1586,7 @@ const handlePayment = async () => {
         formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
       }
 
-      const responseRaw = await fetch('http://localhost:4000/bookings', {
+      const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
         method: 'POST',
         body: formData,
       });
