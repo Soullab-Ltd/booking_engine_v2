@@ -30,6 +30,16 @@ const formatDisplayDate = (dateStr: any) => {
   }).format(date).replace(/ /g, '-');
 };
 
+const getStringValue = (...values: unknown[]) => {
+  for (const value of values) {
+    if (typeof value === 'string' && value.trim()) {
+      return value.trim();
+    }
+  }
+
+  return '';
+};
+
 const STEP_LOADING_COPY: Record<number, string> = {
   2: 'Loading plans...',
   3: 'Loading plan details...',
@@ -77,6 +87,84 @@ const getBookingAtgDetails = (bookingData: any) => {
   };
 };
 
+const getBookingPresentationState = (bookingData: any) => {
+  const bookingStatusRaw = getStringValue(
+    bookingData?.bookingConfirmationStatus,
+    bookingData?.booking_confirmation_status,
+    bookingData?.status,
+    bookingData?.bookingStatus,
+    bookingData?.booking_status
+  );
+  const verificationStatusRaw = getStringValue(
+    bookingData?.verificationStatus,
+    bookingData?.verification_status,
+    bookingData?.couponVerificationStatus,
+    bookingData?.coupon_verification_status,
+    bookingData?.idVerificationStatus,
+    bookingData?.id_verification_status
+  );
+  const paymentStatusRaw = getStringValue(
+    bookingData?.paymentStatus,
+    bookingData?.payment_status
+  );
+
+  const bookingStatus = bookingStatusRaw.toLowerCase();
+  const verificationStatus = verificationStatusRaw.toLowerCase();
+  const paymentStatus = paymentStatusRaw.toLowerCase();
+  const hasCouponCode = Boolean(
+    getStringValue(bookingData?.couponCode, bookingData?.coupon_code)
+  );
+  const hasUploadedVerificationProof = Boolean(
+    getStringValue(
+      bookingData?.couponIdProofUrl,
+      bookingData?.coupon_id_proof_url,
+      bookingData?.couponProofUrl,
+      bookingData?.coupon_proof_url
+    )
+  );
+
+  const isPending =
+    bookingStatus.includes('pending') ||
+    verificationStatus.includes('pending') ||
+    verificationStatus.includes('review') ||
+    verificationStatus.includes('verify') ||
+    paymentStatus.includes('pending') ||
+    paymentStatus.includes('processing') ||
+    (hasCouponCode &&
+      hasUploadedVerificationProof &&
+      !bookingStatus.includes('confirm'));
+
+  if (isPending) {
+    return {
+      paymentResult: 'PENDING' as const,
+      bookingStatus: 'PENDING' as const,
+      bookingStatusLabel: 'Pending Verification',
+      bookingStatusMessage:
+        'Your payment was received. Booking will be confirmed after admin confirms the verification process.',
+      backendPaymentStatus: paymentStatusRaw,
+    };
+  }
+
+  return {
+    paymentResult: 'SUCCESS' as const,
+    bookingStatus: 'CONFIRMED' as const,
+    bookingStatusLabel: 'Fully Confirmed',
+    bookingStatusMessage:
+      'Your booking is confirmed. Your confirmation, invoice, and ticket will be shared with you shortly.',
+    backendPaymentStatus: paymentStatusRaw,
+  };
+};
+
+type PaymentConfirmationDetails = {
+  paymentId?: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  paymentSyncStatus?: 'synced' | 'pending' | 'failed';
+  paymentSyncMessage?: string;
+  backendPaymentStatus?: string;
+};
+
 const App: React.FC = () => {
   const [data, setData] = useState<{
     eventData: EventResponse;
@@ -100,7 +188,7 @@ const App: React.FC = () => {
     bookingId: undefined,
   });
 
-  const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'FAILED' | null>(null);
+  const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'PENDING' | 'FAILED' | null>(null);
   
   useEffect(() => {
     const loadData = async () => {
@@ -150,8 +238,10 @@ if (slug) {
           const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
 
 	        if (bookingIdFromUrl) {
+            const bookingPresentation = getBookingPresentationState(allData?.bookingData);
 	          setBookingState((prev) => ({
 	            ...prev,
+              currentStep: view === 'dashboard' ? 7 : 6,
 	            bookingId: bookingIdFromUrl,
               is80GRequired: bookingAtgDetails.isAtgRequested,
               taxInfo: {
@@ -170,17 +260,14 @@ if (slug) {
 	            invoiceUrl: allData?.bookingData?.invoiceUrl || '',
 	            completionCertificateUrl:
               allData?.bookingData?.completionCertificateUrl || '',
+              bookingStatus: bookingPresentation.bookingStatus,
+              bookingStatusLabel: bookingPresentation.bookingStatusLabel,
+              bookingStatusMessage: bookingPresentation.bookingStatusMessage,
+              backendPaymentStatus: bookingPresentation.backendPaymentStatus,
             additionalAssets: allData?.bookingData?.additionalAssets || [],
           }));
 
-          setPaymentResult('SUCCESS');
-        }
-
-        if (bookingIdFromUrl && view === 'dashboard') {
-          setBookingState((prev) => ({
-            ...prev,
-            currentStep: 7,
-          }));
+          setPaymentResult(bookingPresentation.paymentResult);
         }
       } catch (err) {
         console.error('❌ Error fetching data:', err);
@@ -216,16 +303,50 @@ if (slug) {
     window.setTimeout(() => setStepLoadingMessage(''), 220);
   };
 
- const handlePayment = async (success: boolean, bookingId?: string | number) => {
-  if (success) {
+ const handlePayment = async (
+  success: boolean,
+  bookingId?: string | number,
+  paymentDetails?: PaymentConfirmationDetails
+ ) => {
+ if (success) {
     setStepLoadingMessage(STEP_LOADING_COPY[6]);
     setPaymentResult('SUCCESS');
+    setBookingState((prev) => ({
+      ...prev,
+      bookingId: bookingId ?? prev.bookingId,
+      paymentId: paymentDetails?.paymentId || prev.paymentId || '',
+      razorpayPaymentId:
+        paymentDetails?.razorpayPaymentId || prev.razorpayPaymentId || '',
+      razorpayOrderId:
+        paymentDetails?.razorpayOrderId || prev.razorpayOrderId || '',
+      razorpaySignature:
+        paymentDetails?.razorpaySignature || prev.razorpaySignature || '',
+      paymentSyncStatus:
+        paymentDetails?.paymentSyncStatus || prev.paymentSyncStatus || 'pending',
+      paymentSyncMessage:
+        paymentDetails?.paymentSyncMessage || prev.paymentSyncMessage || '',
+      backendPaymentStatus:
+        paymentDetails?.backendPaymentStatus || prev.backendPaymentStatus || 'paid',
+      bookingStatus: prev.bookingStatus || 'CONFIRMED',
+      bookingStatusLabel: prev.bookingStatusLabel || 'Payment Received',
+      bookingStatusMessage:
+        prev.bookingStatusMessage ||
+        'Your Razorpay payment was successful. We are finalizing your booking details.',
+      currentStep: 6,
+    }));
+    window.setTimeout(() => setStepLoadingMessage(''), 220);
 
-    // ✅ FETCH BOOKING DATA AGAIN
-    const allData = await getAllData(
-      selectedEventId.toString(),
-      String(bookingId)
-    );
+    if (!bookingId) {
+      return;
+    }
+
+    try {
+      const allData = await getAllData(
+        selectedEventId.toString(),
+        String(bookingId)
+      );
+      const bookingPresentation = getBookingPresentationState(allData?.bookingData);
+      setPaymentResult(bookingPresentation.paymentResult);
 
       const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
 
@@ -263,13 +384,27 @@ if (slug) {
         allData?.bookingData?.completionCertificateUrl ||
         allData?.bookingData?.completion_certificate_url ||
         '',
+      bookingStatus: bookingPresentation.bookingStatus,
+      bookingStatusLabel: bookingPresentation.bookingStatusLabel,
+      bookingStatusMessage: bookingPresentation.bookingStatusMessage,
+      backendPaymentStatus: bookingPresentation.backendPaymentStatus,
 
       additionalAssets:
         allData?.bookingData?.additionalAssets || [],
 
       currentStep: 6,
     }));
-    window.setTimeout(() => setStepLoadingMessage(''), 220);
+    } catch (refreshError) {
+      console.warn('Booking refresh after payment failed:', refreshError);
+      setBookingState((prev) => ({
+        ...prev,
+        paymentSyncStatus:
+          prev.paymentSyncStatus === 'synced' ? 'synced' : 'pending',
+        paymentSyncMessage:
+          prev.paymentSyncMessage ||
+          'Payment was received. We are still refreshing your booking details.',
+      }));
+    }
   } else {
     setPaymentResult('FAILED');
     setBookingState((prev) => ({ ...prev, currentStep: 5 }));
@@ -409,9 +544,9 @@ const isPlanSelectionLoading =
         );
 
 case 6:
-        return paymentResult === 'SUCCESS' ? (
+        return paymentResult === 'SUCCESS' || paymentResult === 'PENDING' ? (
           <PaymentStatus
-            success={true}
+            status={paymentResult}
             bookingState={bookingState}
             // Inject the formatted date here
             event={{ 

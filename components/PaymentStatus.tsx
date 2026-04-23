@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 
 interface PaymentStatusProps {
-  success: boolean;
+  status: 'SUCCESS' | 'PENDING' | 'FAILED' | null;
   bookingState: BookingState;
   event: EventData;
   ui: any;
@@ -20,7 +20,7 @@ interface PaymentStatusProps {
 }
 
 const PaymentStatus: React.FC<PaymentStatusProps> = ({
-  success,
+  status,
   bookingState,
   event,
   ui,
@@ -29,11 +29,17 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
   const [showConfetti, setShowConfetti] = useState(false);
 
   const paymentUI = ui?.payment || {};
-  const statusUI = paymentUI?.status || {
+  const defaultStatusUI = {
     success: {
       title: 'Success!',
       desc: 'Booking confirmed.',
       emailSent: 'Email sent to',
+      cta: 'Go to Dashboard',
+    },
+    pending: {
+      title: 'Booking Pending',
+      desc: 'Your payment was received and the booking is awaiting admin verification.',
+      emailSent: 'Updates will be sent to',
       cta: 'Go to Dashboard',
     },
     failed: {
@@ -42,16 +48,32 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
       cta: 'Retry',
     },
   };
+  const statusUI = {
+    ...defaultStatusUI,
+    ...(paymentUI?.status || {}),
+    success: {
+      ...defaultStatusUI.success,
+      ...(paymentUI?.status?.success || {}),
+    },
+    pending: {
+      ...defaultStatusUI.pending,
+      ...(paymentUI?.status?.pending || {}),
+    },
+    failed: {
+      ...defaultStatusUI.failed,
+      ...(paymentUI?.status?.failed || {}),
+    },
+  };
 
   useEffect(() => {
-    if (success) {
+    if (status === 'SUCCESS') {
       setShowConfetti(true);
       const timer = setTimeout(() => setShowConfetti(false), 5000);
       return () => clearTimeout(timer);
     }
-  }, [success]);
+  }, [status]);
 
-  if (!success) {
+  if (status === 'FAILED') {
     return (
       <div className="max-w-md mx-auto py-24 px-6 text-center animate-fadeIn">
         <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[30px] flex items-center justify-center mx-auto mb-8 shadow-inner rotate-12">
@@ -78,12 +100,19 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
     );
   }
 
+  const isPending = status === 'PENDING';
+  const activeStatusUI = isPending ? statusUI.pending : statusUI.success;
+
   return (
     <div className="max-w-2xl mx-auto py-12 px-6 w-full animate-fadeIn pb-32">
       <div className="text-center mb-12">
-        <div className="w-28 h-28 bg-teal-100 text-teal-500 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner relative">
+        <div
+          className={`w-28 h-28 rounded-[40px] flex items-center justify-center mx-auto mb-8 shadow-inner relative ${
+            isPending ? 'bg-amber-100 text-amber-500' : 'bg-teal-100 text-teal-500'
+          }`}
+        >
           <CheckCircle className="w-14 h-14" />
-          {showConfetti && (
+          {showConfetti && !isPending && (
             <div className="absolute -inset-4 pointer-events-none">
               <div className="absolute top-0 left-0 animate-ping opacity-20">
                 <Sparkles className="w-8 h-8 text-teal-400" />
@@ -96,17 +125,23 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
         </div>
 
         <h2 className="text-5xl font-black mb-3 tracking-tighter text-stone-900">
-          {statusUI.success.title}
+          {activeStatusUI.title}
         </h2>
 
         <p className="text-stone-500 text-lg font-medium">
-          {statusUI.success.desc}
+          {activeStatusUI.desc}
         </p>
 
         <div className="mt-8 flex flex-col items-center gap-3">
-          <span className="flex items-center gap-2 bg-teal-50 text-[var(--theme)] px-5 py-2.5 rounded-2xl font-bold text-sm border border-teal-100/50 shadow-sm">
+          <span
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl font-bold text-sm border shadow-sm ${
+              isPending
+                ? 'bg-amber-50 text-amber-700 border-amber-200'
+                : 'bg-teal-50 text-[var(--theme)] border-teal-100/50'
+            }`}
+          >
             <Mail className="w-4 h-4" />
-            {statusUI.success.emailSent} {bookingState.guests[0]?.email}
+            {activeStatusUI.emailSent} {bookingState.guests[0]?.email}
           </span>
         </div>
       </div>
@@ -150,8 +185,9 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
   }).join(' — ')}
               </span>
               <span className="flex items-center gap-2 bg-white/10 px-3 py-1.5 rounded-xl text-xs font-bold border border-white/5">
-                <ShieldCheck className="w-4 h-4 text-teal-400" /> Fully
-                Confirmed
+                <ShieldCheck className="w-4 h-4 text-teal-400" />{' '}
+                {bookingState.bookingStatusLabel ||
+                  (isPending ? 'Pending Verification' : 'Fully Confirmed')}
               </span>
             </div>
           </div>
@@ -181,13 +217,21 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
             </div>
           ) : null}
 
-          <div className="rounded-3xl bg-teal-50 border border-teal-100 p-6">
+          <div
+            className={`rounded-3xl border p-6 ${
+              isPending
+                ? 'bg-amber-50 border-amber-200'
+                : 'bg-teal-50 border-teal-100'
+            }`}
+          >
             <h4 className="text-lg font-black text-stone-900 mb-2">
-              Thank you for registering
+              {isPending ? 'Verification In Progress' : 'Thank you for registering'}
             </h4>
             <p className="text-sm font-medium text-stone-600 leading-relaxed">
-              Your confirmation, invoice, and ticket will be sent to you via
-              email within the next 48 hours.
+              {bookingState.bookingStatusMessage ||
+                (isPending
+                  ? 'Your payment is complete. Booking will be confirmed after admin confirms the verification process.'
+                  : 'Your confirmation, invoice, and ticket will be sent to you via email within the next 48 hours.')}
             </p>
           </div>
         </div>
@@ -197,7 +241,7 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
         onClick={onDashboard}
         className="w-full bg-[var(--theme)] text-white py-5 rounded-[24px] font-black text-lg flex items-center justify-center gap-3 hover:bg-[var(--theme-dark)] transition-all shadow-xl shadow-[var(--theme-light)] group"
       >
-        {statusUI.success.cta}
+        {activeStatusUI.cta}
         <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
       </button>
     </div>

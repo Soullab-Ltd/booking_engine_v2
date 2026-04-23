@@ -50,6 +50,11 @@ const getPriceTypeLabel = (priceType?: string) => {
   return 'per person';
 };
 
+const getNightlyDisplayPrice = (plan: any) => {
+  const nightlyPrice = Number(plan?.pricePerNight || 0);
+  return Number.isFinite(nightlyPrice) && nightlyPrice > 0 ? nightlyPrice : 0;
+};
+
 const AmenityIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
   if (n.includes('wifi')) return <Wifi className="w-6 h-6" />;
@@ -239,7 +244,23 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
   };
 
   const activeImage = carouselImages[activeIndex] || fallbackImage;
-  const priceTypeLabel = getPriceTypeLabel((plan as any).priceType);
+  const soldOut = isPlanSoldOut(plan);
+  const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);
+  const rawOfferPrice = Number((plan as any).OfferPrice || 0);
+  const displayPrice = Number(
+    plan.discountedPrice || (rawOfferPrice > 0 ? rawOfferPrice : finalPrice)
+  );
+  const nightlyDisplayPrice = getNightlyDisplayPrice(plan);
+  const hasValidOffer = rawOfferPrice > 0 && rawOfferPrice < finalPrice;
+  const rawPriceTypeLabel = getPriceTypeLabel((plan as any).priceType);
+  const nightlyPriceTypeLabel =
+    rawPriceTypeLabel.includes('night') && nightlyDisplayPrice <= 0
+      ? ''
+      : rawPriceTypeLabel;
+  const planSubtitle = String(
+    plan.PlanSubtitle || plan.stayRoomType || plan.PlanName || ''
+  ).trim();
+  const amenityList = (plan.amenities || plan.icons || []).slice(0, 6);
   const displayFeatures = useMemo(() => {
     if (planFeatures.length > 0) {
       return planFeatures;
@@ -288,26 +309,25 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
       });
     }
 
-    if (priceTypeLabel) {
+    if (nightlyPriceTypeLabel) {
       fallbackFeatures.push({
         id: 'billing-type',
         label: 'Billing',
-        value: priceTypeLabel,
+        value: nightlyPriceTypeLabel,
         icon: 'billing',
       });
     }
 
     return fallbackFeatures.slice(0, 4);
-  }, [plan, planFeatures, priceTypeLabel]);
-  const soldOut = isPlanSoldOut(plan);
+  }, [plan, planFeatures, nightlyPriceTypeLabel]);
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
       ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
       : plan.gstDetails || '';
 
   return (
-    <div className="animate-fadeIn pb-32 bg-white">
-      <div className="relative h-[450px] w-full overflow-hidden">
+    <div className="animate-fadeIn pb-24 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.12),_transparent_28%),linear-gradient(180deg,_#f7f7f4_0%,_#ffffff_28%,_#fcfcfb_100%)]">
+      <div className="relative h-[380px] md:h-[430px] lg:h-[470px] w-full overflow-hidden">
         {!isHeroImageLoaded ? (
           <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-stone-200 via-stone-300 to-stone-200" />
         ) : null}
@@ -323,11 +343,12 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         />
 
         <div className="absolute inset-0 bg-gradient-to-t from-white via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-r from-stone-950/65 via-stone-900/20 to-transparent" />
 
         <div className="absolute top-8 left-8 z-20">
           <button
             onClick={onBack}
-            className="bg-white/20 backdrop-blur-xl hover:bg-white/40 text-white p-3 rounded-2xl transition-all border border-white/20 flex items-center gap-2 font-black text-xs uppercase tracking-widest"
+            className="bg-white/15 backdrop-blur-xl hover:bg-white/30 text-white px-4 py-3 rounded-2xl transition-all border border-white/20 flex items-center gap-2 font-black text-xs uppercase tracking-widest shadow-2xl"
           >
             <ChevronLeft className="w-4 h-4" /> Back
           </button>
@@ -351,24 +372,73 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           </>
         )}
 
-        <div className="absolute bottom-12 left-0 right-0 z-10">
-          <div className="max-w-7xl mx-auto px-8">
-            <span className="bg-[var(--theme)] text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-lg mb-4 inline-block shadow-lg">
-              Accommodation Tier
-            </span>
-            <h1 className="text-5xl md:text-7xl font-black text-white tracking-tighter drop-shadow-2xl">
-              {plan.PlanTitle}
-            </h1>
-            {soldOut ? (
-              <span className="mt-4 inline-block rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
-                Sold Out
-              </span>
-            ) : null}
+        <div className="absolute bottom-8 md:bottom-10 left-0 right-0 z-10">
+          <div className="max-w-7xl mx-auto px-6 md:px-8">
+            <div className="max-w-3xl rounded-[36px] border border-white/15 bg-white/10 p-5 md:p-7 backdrop-blur-xl shadow-2xl">
+              <div className="flex flex-wrap items-center gap-3 mb-5">
+                <span className="bg-[var(--theme)] text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full shadow-lg">
+                  Accommodation Tier
+                </span>
+                {planSubtitle ? (
+                  <span className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/90">
+                    {planSubtitle}
+                  </span>
+                ) : null}
+                {soldOut ? (
+                  <span className="rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
+                    Sold Out
+                  </span>
+                ) : null}
+              </div>
+
+              <h1 className="text-3xl md:text-5xl lg:text-6xl font-black text-white tracking-[-0.04em] drop-shadow-2xl">
+                {plan.PlanTitle}
+              </h1>
+
+              <div className="mt-5 flex flex-wrap items-end gap-5 text-white">
+                <div>
+                  <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/70">
+                    {hasValidOffer ? 'Now Booking At' : 'Price'}
+                  </p>
+                  <p className="mt-2 text-2xl md:text-4xl lg:text-5xl font-black leading-none">
+                    ₹ {displayPrice.toLocaleString()}
+                  </p>
+                </div>
+
+                {hasValidOffer ? (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/60">
+                      Original
+                    </p>
+                    <p className="mt-2 text-lg md:text-2xl font-bold text-white/65 line-through">
+                      ₹ {finalPrice.toLocaleString()}
+                    </p>
+                  </div>
+                ) : null}
+
+                {nightlyDisplayPrice > 0 ? (
+                  <div>
+                    <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/60">
+                      Per Day
+                    </p>
+                    <p className="mt-2 text-base md:text-xl font-bold text-white/90">
+                      ₹ {nightlyDisplayPrice.toLocaleString()}
+                      {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
+                    </p>
+                  </div>
+                ) : null}
+              </div>
+              {gstLabel ? (
+                <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-teal-100">
+                  {gstLabel}
+                </p>
+              ) : null}
+            </div>
           </div>
         </div>
 
         {carouselImages.length > 1 && (
-          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+          <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 flex gap-2 rounded-full border border-white/15 bg-black/20 px-3 py-2 backdrop-blur-md">
             {carouselImages.map((_: string, index: number) => (
               <button
                 key={index}
@@ -385,21 +455,45 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         )}
       </div>
 
-      <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 lg:grid-cols-12 gap-16">
-        <div className="lg:col-span-8 space-y-16">
-          <section className="animate-slideUp">
+      {carouselImages.length > 1 ? (
+        <div className="max-w-7xl mx-auto px-6 md:px-8 -mt-10 relative z-20">
+          <div className="flex gap-3 overflow-x-auto pb-2">
+            {carouselImages.map((image: string, index: number) => (
+              <button
+                key={`${image}-${index}`}
+                onClick={() => {
+                  setIsHeroImageLoaded(false);
+                  setActiveIndex(index);
+                }}
+                className={`relative h-20 w-28 shrink-0 overflow-hidden rounded-2xl border transition-all ${
+                  index === activeIndex
+                    ? 'border-[var(--theme)] shadow-lg shadow-teal-100 scale-[1.02]'
+                    : 'border-stone-200 hover:border-stone-300'
+                }`}
+              >
+                <img src={image} alt={`${plan.PlanTitle} ${index + 1}`} className="h-full w-full object-cover" />
+                <span className={`absolute inset-0 transition ${index === activeIndex ? 'ring-2 ring-inset ring-[var(--theme)]' : 'bg-black/10'}`} />
+              </button>
+            ))}
+          </div>
+        </div>
+      ) : null}
+
+      <div className="max-w-7xl mx-auto px-6 md:px-8 py-14 grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14">
+        <div className="lg:col-span-8 space-y-10">
+          <section className="animate-slideUp rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.06)]">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
                 Plan Details
               </h2>
             </div>
-            <p className="text-2xl text-stone-700 leading-relaxed font-medium">
+            <p className="text-lg md:text-2xl text-stone-700 leading-relaxed font-medium">
               {plan.fullDescription || plan.PlanDescription}
             </p>
           </section>
 
-          <section>
+          <section className="rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.05)]">
             {displayFeatures.length > 0 ? (
               <>
                 <div className="flex items-center gap-3 mb-10">
@@ -413,9 +507,11 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   {displayFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
-                      className="rounded-2xl border border-stone-200 bg-stone-50 p-5 flex flex-col items-center text-center gap-3"
+                      className="rounded-[28px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f7f7f5_100%)] p-5 md:p-6 flex flex-col items-center text-center gap-3 shadow-sm"
                     >
-                      <PlanFeatureIcon iconName={feature?.icon || feature?.Icon || feature?.iconName} />
+                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--theme-light)]">
+                        <PlanFeatureIcon iconName={feature?.icon || feature?.Icon || feature?.iconName} />
+                      </div>
                       <div className="space-y-1">
                         <p className="text-sm font-black uppercase tracking-[0.16em] text-stone-400">
                           {feature?.label || feature?.Label || feature?.title || feature?.Title || 'Feature'}
@@ -437,28 +533,33 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-2 gap-y-3 mb-6">
-              {(plan.amenities || plan.icons || []).slice(0, 4).map((amenity: any) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+              {amenityList.map((amenity: any) => (
                 <div
                   key={amenity.id}
-                  className="flex items-center gap-2 text-sm text-stone-600 font-medium"
+                  className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-700 font-medium"
                 >
-                  <AmenityIcon name={amenity.Title || amenity.title} />
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
+                    <AmenityIcon name={amenity.Title || amenity.title} />
+                  </div>
                   <span>{amenity.Title || amenity.title}</span>
                 </div>
               ))}
             </div>
           </section>
 
-          <div className="p-10 bg-stone-900 rounded-[40px] text-white flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-stone-100">
-            <div className="w-20 h-20 bg-[var(--theme)] rounded-3xl flex items-center justify-center shrink-0 shadow-lg">
+          <div className="p-8 md:p-10 bg-[linear-gradient(135deg,_#10201f_0%,_#172b2a_55%,_#0f766e_100%)] rounded-[40px] text-white flex flex-col md:flex-row items-center gap-8 shadow-2xl shadow-stone-200">
+            <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center shrink-0 shadow-lg backdrop-blur-sm border border-white/10">
               <Heart className="w-10 h-10" />
             </div>
             <div>
-              <h3 className="text-xl font-black mb-2">Customer Support</h3>
-              <p className="text-teal-200 leading-relaxed font-medium">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-teal-100/70 mb-2">
+                Need Help Booking?
+              </p>
+              <h3 className="text-2xl font-black mb-2">Customer Support</h3>
+              <p className="text-teal-50/90 leading-relaxed font-medium">
                 Please contact our customer support @{' '}
-                <a href="tel:9867666444" className="underline underline-offset-4">
+                <a href="tel:9867666444" className="underline underline-offset-4 decoration-teal-200">
                   9867666444
                 </a>{' '}
                 for any queries.
@@ -468,62 +569,78 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         </div>
 
         <div className="lg:col-span-4 relative">
-          <div className="bg-white p-10 rounded-[40px] shadow-2xl border border-stone-50 sticky top-24 overflow-hidden group">
-            <div className="absolute top-0 right-0 -m-8 w-32 h-32 bg-stone-50 rounded-full opacity-50 transition-transform group-hover:scale-150 duration-700"></div>
+          <div className="bg-[linear-gradient(180deg,_#ffffff_0%,_#fbfbf9_100%)] p-8 md:p-10 rounded-[40px] shadow-[0_28px_100px_rgba(15,23,42,0.10)] border border-stone-200 sticky top-24 overflow-hidden group">
+            <div className="absolute top-0 right-0 -m-10 h-36 w-36 rounded-full bg-[var(--theme-light)] opacity-80 transition-transform group-hover:scale-150 duration-700"></div>
+            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--theme)] via-teal-300 to-transparent"></div>
 
-            <h3 className="text-xs font-black text-stone-300 uppercase tracking-widest mb-8">
-              Selected Plan
+            <h3 className="text-xs font-black text-stone-400 uppercase tracking-[0.28em] mb-8 relative z-10">
+              Booking Snapshot
             </h3>
 
-            <div className="mb-12 rounded-3xl border border-stone-100 bg-stone-50/70 p-6">
+            <div className="mb-8 rounded-[30px] border border-stone-200 bg-white p-6 relative z-10 shadow-sm">
               <p className="text-sm font-semibold text-stone-500 mb-1">Retreat Offering</p>
               <h4 className="text-2xl font-black text-stone-900 tracking-tight">
                 {plan.PlanTitle || plan.PlanName}
               </h4>
+              {planSubtitle ? (
+                <p className="mt-2 text-sm font-medium text-stone-500">
+                  {planSubtitle}
+                </p>
+              ) : null}
 
               <div className="mt-5 border-t border-stone-200 pt-5 space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Price</span>
-                  <span className="text-base font-bold text-stone-400 line-through">
-                    ₹ {Number(plan.finalPrice || plan.PlanPrice || 0).toLocaleString()}
-                  </span>
-                </div>
+                {hasValidOffer ? (
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Price</span>
+                    <span className="text-base font-bold text-stone-400 line-through">
+                      ₹ {finalPrice.toLocaleString()}
+                    </span>
+                  </div>
+                ) : null}
 
                 <div className="flex items-end justify-between gap-4">
                   <div>
                     <p className="text-xs font-black text-[var(--theme)] uppercase tracking-[0.2em]">
-                      Now
+                      {hasValidOffer ? 'Now' : 'Price'}
                     </p>
-                    <p className="text-4xl font-black text-stone-900 leading-none mt-1 whitespace-nowrap">
-                      ₹ {Number(plan.discountedPrice || plan.OfferPrice || 0).toLocaleString()}
+                    <p className="text-4xl md:text-5xl font-black text-stone-900 leading-none mt-2 whitespace-nowrap">
+                      ₹ {displayPrice.toLocaleString()}
                     </p>
                   </div>
-
-                  <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest text-right whitespace-nowrap">
-                    {priceTypeLabel}
-                  </p>
                 </div>
 
+                {nightlyDisplayPrice > 0 ? (
+                  <div className="flex items-center justify-between rounded-2xl bg-stone-50 px-4 py-3">
+                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">
+                      Per Day
+                    </span>
+                    <span className="text-sm font-bold text-stone-700 text-right">
+                      ₹ {nightlyDisplayPrice.toLocaleString()}
+                      {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
+                    </span>
+                  </div>
+                ) : null}
+
                 {gstLabel ? (
-                  <p className="text-[10px] font-black text-[var(--theme)] uppercase tracking-widest">
+                  <p className="text-[10px] font-black text-[var(--theme)] uppercase tracking-widest pt-1">
                     {gstLabel}
                   </p>
                 ) : null}
               </div>
             </div>
 
-            <div className="space-y-4 pt-8 border-t border-stone-50 mb-12">
+            <div className="space-y-4 pt-8 border-t border-stone-200 mb-10 relative z-10">
               {soldOut ? (
                 <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
                   This plan is currently sold out. Please choose another available option.
                 </div>
               ) : null}
-              <div className="flex items-center gap-3 text-sm text-stone-500 font-medium">
-                <ShieldCheck className="w-5 h-5 text-teal-500" />
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-sm text-stone-600 font-medium border border-stone-200">
+                <ShieldCheck className="w-5 h-5 text-teal-500 shrink-0" />
                 Flat Rs 10000 for kids aged 17 years and below!
               </div>
-              <div className="flex items-center gap-3 text-sm text-stone-500 font-medium">
-                <Flower2 className="w-5 h-5 text-teal-400" />
+              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-sm text-stone-600 font-medium border border-stone-200">
+                <Flower2 className="w-5 h-5 text-teal-400 shrink-0" />
                 Pure Veg meals included
               </div>
             </div>

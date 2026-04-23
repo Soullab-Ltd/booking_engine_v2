@@ -30,7 +30,19 @@ interface BookingSummaryProps {
   setBookingState: React.Dispatch<React.SetStateAction<BookingState>>;
   event: EventData;
   ui: any;
-  onConfirm: (success: boolean, bookingId?: string | number) => void;
+  onConfirm: (
+    success: boolean,
+    bookingId?: string | number,
+    paymentDetails?: {
+      paymentId?: string;
+      razorpayPaymentId?: string;
+      razorpayOrderId?: string;
+      razorpaySignature?: string;
+      paymentSyncStatus?: 'synced' | 'pending' | 'failed';
+      paymentSyncMessage?: string;
+      backendPaymentStatus?: string;
+    }
+  ) => void;
   onBack: () => void;
 }
 
@@ -39,7 +51,7 @@ const MAX_GUEST_AGE = 99;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const FRONTEND_RAZORPAY_TEST_KEY = 'rzp_test_dAUJkW0WtsN6N7';
-const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+const BOOKING_API_BASE_URL = 'http://localhost:4000/bookings';
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -633,7 +645,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `https://bookingapi.thriive.in/coupons/applicable?${query.toString()}`
+        `http://localhost:4000/coupons/applicable?${query.toString()}`
       );
 
       if (!res.ok) {
@@ -741,7 +753,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     );
   }, [appliedCoupon]);
   const getCanonicalPlanPrice = (plan: any) => {
-    return Math.max(0, Number(plan?.OfferPrice || 0));
+    const offerPrice = Number(plan?.OfferPrice || 0);
+    const planPrice = Number(plan?.PlanPrice || plan?.finalPrice || 0);
+    return Math.max(0, offerPrice > 0 ? offerPrice : planPrice);
   };
 
   const defaultPlanPrice = useMemo(() => {
@@ -968,7 +982,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `https://bookingapi.thriive.in/coupons/validate?${query.toString()}`
+        `http://localhost:4000/coupons/validate?${query.toString()}`
       );
 
       const data = await res.json().catch(() => null);
@@ -1572,7 +1586,7 @@ const handlePayment = async () => {
         formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
       }
 
-      const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
+      const responseRaw = await fetch('http://localhost:4000/bookings', {
         method: 'POST',
         body: formData,
       });
@@ -1652,7 +1666,15 @@ const handlePayment = async () => {
     }));
 
     setIsProcessing(false);
-    onConfirm(true, bookingId);
+    onConfirm(true, bookingId, {
+      paymentId: resolvedPaymentId || '',
+      razorpayPaymentId: resolvedPaymentId || '',
+      razorpayOrderId: resolvedOrderId || '',
+      razorpaySignature: resolvedSignature || '',
+      paymentSyncStatus: paymentSyncResult.synced ? 'synced' : 'pending',
+      paymentSyncMessage: paymentSyncResult.message || '',
+      backendPaymentStatus: 'paid',
+    });
   } catch (err: any) {
     console.error('Payment Error:', err);
     setCouponError(
