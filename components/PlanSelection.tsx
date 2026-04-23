@@ -138,35 +138,38 @@ const PlanCardImage = ({
 
     return () => {
       isMounted = false;
-    }
+    };
   }, [src]);
 
   return (
-    <div className="w-full md:w-[15rem] lg:w-[16rem] h-52 md:h-auto overflow-hidden rounded-t-[28px] md:rounded-l-[28px] md:rounded-tr-none relative bg-stone-100">
+    <div className="w-full md:w-[13.5rem] lg:w-[14.5rem] h-44 md:h-auto overflow-hidden rounded-t-[24px] md:rounded-l-[24px] md:rounded-tr-none relative bg-stone-100">
       {!isReady ? (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[linear-gradient(180deg,_#f4f4f2_0%,_#ecece7_100%)]">
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-stone-200 bg-white/80 px-5 py-4 shadow-sm backdrop-blur-sm">
-            <Loader2 className="h-6 w-6 animate-spin text-[var(--theme)]" />
-            <span className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-500">
+          <div className="flex flex-col items-center gap-2 rounded-2xl border border-stone-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur-sm">
+            <Loader2 className="h-5 w-5 animate-spin text-[var(--theme)]" />
+            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-stone-500">
               Loading Stay
             </span>
           </div>
         </div>
       ) : null}
-      <div className="absolute inset-0 bg-gradient-to-t from-stone-950/50 via-stone-900/10 to-transparent z-10" />
-      <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.12),_transparent_38%)]" />
+
+      <div className="absolute inset-0 bg-gradient-to-t from-stone-950/45 via-stone-900/10 to-transparent z-10" />
+      <div className="absolute inset-0 z-10 bg-[radial-gradient(circle_at_top,_rgba(255,255,255,0.10),_transparent_38%)]" />
+
       {badge ? (
-        <div className="absolute left-5 top-5 z-20">
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white backdrop-blur-md shadow-lg">
-            <Sparkles className="h-3.5 w-3.5" />
+        <div className="absolute left-4 top-4 z-20">
+          <span className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3.5 py-1.5 text-[9px] font-black uppercase tracking-[0.22em] text-white backdrop-blur-md shadow-md">
+            <Sparkles className="h-3 w-3" />
             {badge}
           </span>
         </div>
       ) : null}
+
       <img
         src={src}
         alt={alt}
-        className={`block w-full h-full object-cover transition duration-700 group-hover:scale-[1.04] ${
+        className={`block w-full h-full object-cover transition duration-700 group-hover:scale-[1.03] ${
           isReady ? 'opacity-100' : 'opacity-0'
         }`}
       />
@@ -190,7 +193,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
   if (isLoading) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <div className="rounded-[32px] border border-stone-100 bg-white p-12 text-center shadow-sm">
+        <div className="rounded-[28px] border border-stone-100 bg-white p-10 text-center shadow-sm">
           <Loader2 className="w-10 h-10 text-[var(--theme)] animate-spin mx-auto mb-4" />
           <h2 className="text-2xl font-black text-stone-900">Loading Plans</h2>
           <p className="mt-2 text-sm font-medium text-stone-500">
@@ -204,7 +207,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
   if (!plans.length) {
     return (
       <div className="max-w-5xl mx-auto px-6 py-20 w-full">
-        <div className="rounded-[32px] border-2 border-dashed border-stone-200 bg-white p-12 text-center">
+        <div className="rounded-[28px] border-2 border-dashed border-stone-200 bg-white p-10 text-center">
           <h2 className="text-2xl font-black text-stone-900">No Plans Available</h2>
           <p className="mt-2 text-sm font-medium text-stone-500">
             Plans for this event have not been published yet. Please check back shortly.
@@ -215,31 +218,33 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-12 w-full animate-fadeIn">
-      <div className="mb-12 rounded-[36px] border border-stone-200 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.12),_transparent_42%),linear-gradient(180deg,_#ffffff_0%,_#f7f7f4_100%)] p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.06)]">
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-6">
+    <div className="max-w-5xl mx-auto px-6 py-10 w-full animate-fadeIn">
+      <div className="mb-10 rounded-[32px] border border-stone-200 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.10),_transparent_42%),linear-gradient(180deg,_#ffffff_0%,_#f8f8f5_100%)] p-7 md:p-8 shadow-[0_20px_60px_rgba(15,23,42,0.05)]">
+        <div className="flex flex-col md:flex-row md:items-end md:justify-between gap-5">
           <div className="max-w-2xl">
-            <p className="text-[11px] font-black uppercase tracking-[0.32em] text-[var(--theme)] mb-3">
+            <p className="text-[11px] font-black uppercase tracking-[0.30em] text-[var(--theme)] mb-3">
               Stay Options
             </p>
-            <h2 className="text-3xl md:text-5xl font-black tracking-[-0.03em] text-stone-900 mb-3">
+            <h2 className="text-3xl md:text-4xl font-black tracking-[-0.03em] text-stone-900 mb-3">
               {ui.title}
             </h2>
-            <p className="text-stone-600 text-base md:text-lg leading-relaxed">
+            <p className="text-stone-600 text-sm md:text-base leading-relaxed">
               Choose the stay that fits your comfort, budget, and travel style. Every option is curated for a smoother retreat experience.
             </p>
           </div>
 
-          <div className="md:min-w-[160px]">
-            <div className="rounded-2xl border border-stone-200 bg-white px-4 py-4">
-              <p className="text-[10px] font-black uppercase tracking-[0.24em] text-stone-400">Available Plans</p>
-              <p className="mt-2 text-2xl font-black text-stone-900">{plans.length}</p>
+          <div className="md:min-w-[145px]">
+            <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3.5">
+              <p className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-400">
+                Available Plans
+              </p>
+              <p className="mt-1.5 text-xl font-black text-stone-900">{plans.length}</p>
             </div>
           </div>
         </div>
       </div>
 
-      <div className="grid gap-8">
+      <div className="grid gap-6">
         {plans.map((plan: any, index: number) => {
           const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
           const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
@@ -268,24 +273,26 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
           return (
             <div
               key={plan.planID || plan.id}
-              className={`relative mx-auto w-full max-w-5xl overflow-hidden rounded-[28px] border flex flex-col md:flex-row transition-all duration-500 group ${
+              className={`relative mx-auto w-full max-w-5xl overflow-hidden rounded-[24px] border flex flex-col md:flex-row transition-all duration-400 group ${
                 isFeatured
-                  ? 'border-teal-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f8fcfb_100%)] shadow-[0_32px_100px_rgba(15,118,110,0.10)]'
-                  : 'border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fcfcfa_100%)] shadow-[0_24px_80px_rgba(15,23,42,0.06)] hover:shadow-[0_32px_100px_rgba(15,23,42,0.10)]'
+                  ? 'border-teal-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f9fcfb_100%)] shadow-[0_22px_70px_rgba(15,118,110,0.08)]'
+                  : 'border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fcfcfa_100%)] shadow-[0_18px_55px_rgba(15,23,42,0.05)] hover:shadow-[0_24px_70px_rgba(15,23,42,0.08)]'
               }`}
             >
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--theme)] via-teal-300 to-transparent" />
+
               {soldOut ? (
-                <div className="pointer-events-none absolute -left-2 top-4 z-20 rotate-[-16deg]">
-                  <div className="rounded-md border-[5px] border-rose-700 bg-rose-50/85 px-5 py-3 shadow-xl">
-                    <div className="rounded-sm border-2 border-dashed border-rose-700/70 px-4 py-2">
-                      <span className="block text-center text-lg font-black uppercase tracking-[0.35em] text-rose-700">
+                <div className="pointer-events-none absolute -left-2 top-4 z-20 rotate-[-14deg]">
+                  <div className="rounded-md border-[4px] border-rose-700 bg-rose-50/85 px-4 py-2.5 shadow-lg">
+                    <div className="rounded-sm border-2 border-dashed border-rose-700/70 px-3 py-1.5">
+                      <span className="block text-center text-sm font-black uppercase tracking-[0.30em] text-rose-700">
                         Sold Out
                       </span>
                     </div>
                   </div>
                 </div>
               ) : null}
+
               <PlanCardImage
                 src={getThumbnailImage(plan)}
                 alt={planTitle}
@@ -293,74 +300,79 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
               />
 
               <div className="flex-1 p-5 md:p-6 lg:p-6 flex flex-col relative">
-                <div className="absolute right-0 top-0 h-28 w-28 rounded-full bg-[radial-gradient(circle,_rgba(15,118,110,0.08),_transparent_68%)]" />
+                <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[radial-gradient(circle,_rgba(15,118,110,0.06),_transparent_68%)]" />
 
-                <div className="flex flex-col xl:flex-row xl:items-start xl:justify-between gap-4 mb-5 relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-5 relative z-10">
                   <div className="max-w-2xl">
-                    <div className="mb-3 flex flex-wrap items-center gap-2.5">
-                      <h3 className="text-xl md:text-2xl font-black tracking-[-0.03em] text-stone-900">
+                    <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                      <h3 className="text-lg md:text-xl font-black tracking-[-0.03em] text-stone-900">
                         {planTitle}
                       </h3>
+
                       {isFeatured ? (
-                        <span className="inline-flex items-center gap-2 rounded-full bg-[var(--theme-light)] px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.2em] text-[var(--theme)]">
+                        <span className="inline-flex items-center gap-1.5 rounded-full bg-[var(--theme-light)] px-3 py-1 text-[9px] font-black uppercase tracking-[0.18em] text-[var(--theme)]">
                           <BadgeCheck className="h-3.5 w-3.5" />
                           Featured
                         </span>
-                        ) : null}
+                      ) : null}
                     </div>
 
                     <div className="flex flex-wrap gap-2 mb-3">
                       {planSubtitle ? (
-                        <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-stone-500">
+                        <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-stone-500">
                           {planSubtitle}
                         </span>
                       ) : null}
+
                       {capacityLabel ? (
-                        <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1.5 text-[11px] font-black uppercase tracking-[0.16em] text-stone-500">
+                        <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-stone-500">
                           {capacityLabel}
                         </span>
-                        ) : null}
+                      ) : null}
                     </div>
 
-                    <p className="text-stone-600 text-sm font-medium leading-relaxed whitespace-pre-line max-w-xl line-clamp-3">
+                    <p className="text-stone-600 text-sm md:text-[15px] font-medium leading-relaxed whitespace-pre-line max-w-lg line-clamp-4">
                       {planDescription}
                     </p>
                   </div>
 
-                  <div className="rounded-[22px] border border-stone-200 bg-white/95 backdrop-blur-sm px-3.5 py-3.5 min-w-[160px] max-w-[185px] shadow-[0_12px_30px_rgba(15,23,42,0.05)]">
-                    <p className="text-[10px] font-black uppercase tracking-[0.24em] text-stone-400">
+                  <div className="rounded-[20px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fafaf8_100%)] px-4 py-4 min-w-[200px] max-w-[220px] shadow-[0_10px_26px_rgba(15,23,42,0.05)] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                    <p className="text-[9px] font-black uppercase tracking-[0.22em] text-stone-400">
                       {hasValidOffer ? 'Now Booking At' : 'Price'}
                     </p>
-                    <div className="mt-2.5 flex flex-wrap items-end gap-2">
-                      <span className="text-xl md:text-2xl font-black text-stone-900">
+
+                    <div className="mt-2 flex flex-wrap items-end gap-2">
+                      <span className="text-lg md:text-xl font-black text-stone-900">
                         ₹{displayPrice.toLocaleString()}
                       </span>
+
                       {hasValidOffer ? (
-                        <span className="text-xs font-bold text-stone-400 line-through">
+                        <span className="text-[11px] font-bold text-stone-400 line-through">
                           ₹{finalPrice.toLocaleString()}
                         </span>
                       ) : null}
                     </div>
 
                     {nightlyDisplayPrice > 0 ? (
-                      <p className="mt-2 text-xs font-bold text-stone-600">
+                      <p className="mt-1.5 text-[11px] font-semibold text-stone-600 leading-snug">
                         Per Day: ₹{nightlyDisplayPrice.toLocaleString()}
                         {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
                       </p>
                     ) : null}
 
                     {gstLabel ? (
-                      <p className="mt-2 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--theme)]">
+                      <p className="mt-2 text-[9px] font-black uppercase tracking-[0.14em] text-[var(--theme)]">
                         {gstLabel}
                       </p>
                     ) : null}
                   </div>
                 </div>
 
-                <div className="mt-auto flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 pt-4 border-t border-stone-200 relative z-10">
+                <div className="mt-auto pt-4 border-t border-stone-200 relative z-10">
+  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                   <div className="flex items-center gap-3 text-sm text-stone-500">
-                    <span className="inline-flex h-9 w-9 items-center justify-center rounded-2xl bg-[var(--theme-light)] text-[var(--theme)]">
-                      <BadgeCheck className="h-5 w-5" />
+                    <span className="inline-flex h-8 w-8 items-center justify-center rounded-2xl bg-[var(--theme-light)] text-[var(--theme)] shrink-0">
+                      <BadgeCheck className="h-4.5 w-4.5" />
                     </span>
                     <div>
                       <p className="font-black text-sm text-stone-800">
@@ -377,18 +389,33 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                       if (!soldOut) onSelect(plan);
                     }}
                     disabled={soldOut}
-                    className={`inline-flex min-w-[155px] whitespace-nowrap items-center justify-center gap-3 px-6 py-3.5 rounded-2xl font-black transition-all shadow-lg ${
+                    className={`group relative inline-flex min-w-[148px] whitespace-nowrap items-center justify-center gap-3 px-6 py-3.5 rounded-[22px] font-black transition-all duration-200 overflow-hidden ${
                       soldOut
                         ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
-                        : 'bg-[var(--theme)] text-white hover:bg-[var(--theme-dark)] hover:scale-[1.02] shadow-[0_18px_40px_rgba(15,118,110,0.25)]'
+                        : `
+                          bg-[linear-gradient(135deg,_var(--theme)_0%,_#0f766e_100%)]
+                          text-white
+                          shadow-[0_10px_24px_rgba(15,118,110,0.28)]
+                          hover:shadow-[0_16px_30px_rgba(15,118,110,0.35)]
+                          hover:-translate-y-[2px]
+                          active:translate-y-[1px]
+                          active:shadow-[0_6px_14px_rgba(15,118,110,0.28)]
+                        `
                     }`}
                   >
-                    {soldOut ? 'Sold Out' : ui.cta}
-                    {!soldOut ? <ArrowRight className="h-5 w-5" /> : null}
+                    {!soldOut && (
+                      <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-r from-transparent via-white/15 to-transparent" />
+                    )}
+
+                    <span className="relative z-10">{soldOut ? 'Sold Out' : ui.cta}</span>
+                    {!soldOut ? (
+                      <ArrowRight className="relative z-10 h-5 w-5 transition-all duration-300 group-hover:translate-x-1.5 group-hover:scale-110" />
+                    ) : null}
                   </button>
                 </div>
               </div>
             </div>
+           </div>  
           );
         })}
       </div>

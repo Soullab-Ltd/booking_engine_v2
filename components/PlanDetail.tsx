@@ -3,7 +3,6 @@ import { Plan } from '../types';
 import {
   CheckCircle,
   ArrowRight,
-  ShieldCheck,
   Wifi,
   Sun,
   Wind,
@@ -57,50 +56,70 @@ const getNightlyDisplayPrice = (plan: any) => {
 
 const AmenityIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
-  if (n.includes('wifi')) return <Wifi className="w-6 h-6" />;
-  if (n.includes('heating') || n.includes('floor')) return <Sun className="w-6 h-6" />;
-  if (n.includes('spa')) return <Heart className="w-6 h-6" />;
-  if (n.includes('bed')) return <Bed className="w-6 h-6" />;
-  if (n.includes('meal') || n.includes('banquet') || n.includes('food')) return <Utensils className="w-6 h-6" />;
-  if (n.includes('view') || n.includes('riverside')) return <Wind className="w-6 h-6" />;
-  if (n.includes('concierge') || n.includes('support')) return <ConciergeBell className="w-6 h-6" />;
-  if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="w-6 h-6" />;
-  if (n.includes('private entry') || n.includes('deck')) return <DoorOpen className="w-6 h-6" />;
-  return <CheckCircle className="w-6 h-6" />;
+
+  if (n.includes('wifi')) return <Wifi className="w-5 h-5" />;
+  if (n.includes('heating') || n.includes('floor')) return <Sun className="w-5 h-5" />;
+  if (n.includes('spa')) return <Heart className="w-5 h-5" />;
+  if (n.includes('bed')) return <Bed className="w-5 h-5" />;
+  if (n.includes('meal') || n.includes('banquet') || n.includes('food')) {
+    return <Utensils className="w-5 h-5" />;
+  }
+  if (n.includes('view') || n.includes('riverside')) return <Wind className="w-5 h-5" />;
+  if (n.includes('concierge') || n.includes('support')) {
+    return <ConciergeBell className="w-5 h-5" />;
+  }
+  if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="w-5 h-5" />;
+  if (n.includes('private entry') || n.includes('deck')) {
+    return <DoorOpen className="w-5 h-5" />;
+  }
+
+  return <CheckCircle className="w-5 h-5" />;
 };
 
 const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
   const normalizedIcon = String(iconName || '').trim().toLowerCase();
 
-  if (normalizedIcon.includes('bed')) return <Bed className="w-8 h-8 text-[var(--theme)]" />;
-  if (normalizedIcon.includes('bath') || normalizedIcon.includes('toilet') || normalizedIcon.includes('wash')) {
-    return <Bath className="w-8 h-8 text-[var(--theme)]" />;
+  if (normalizedIcon.includes('bed')) return <Bed className="w-7 h-7 text-[var(--theme)]" />;
+  if (
+    normalizedIcon.includes('bath') ||
+    normalizedIcon.includes('toilet') ||
+    normalizedIcon.includes('wash')
+  ) {
+    return <Bath className="w-7 h-7 text-[var(--theme)]" />;
   }
-  if (normalizedIcon.includes('guest') || normalizedIcon.includes('people') || normalizedIcon.includes('user')) {
-    return <Users className="w-8 h-8 text-[var(--theme)]" />;
+  if (
+    normalizedIcon.includes('guest') ||
+    normalizedIcon.includes('people') ||
+    normalizedIcon.includes('user')
+  ) {
+    return <Users className="w-7 h-7 text-[var(--theme)]" />;
   }
-  if (normalizedIcon.includes('sq') || normalizedIcon.includes('area') || normalizedIcon.includes('size')) {
-    return <Ruler className="w-8 h-8 text-[var(--theme)]" />;
+  if (
+    normalizedIcon.includes('sq') ||
+    normalizedIcon.includes('area') ||
+    normalizedIcon.includes('size')
+  ) {
+    return <Ruler className="w-7 h-7 text-[var(--theme)]" />;
   }
-  if (normalizedIcon.includes('room') || normalizedIcon.includes('home') || normalizedIcon.includes('house')) {
-    return <Home className="w-8 h-8 text-[var(--theme)]" />;
+  if (
+    normalizedIcon.includes('room') ||
+    normalizedIcon.includes('home') ||
+    normalizedIcon.includes('house')
+  ) {
+    return <Home className="w-7 h-7 text-[var(--theme)]" />;
   }
 
-  return <CheckCircle className="w-8 h-8 text-[var(--theme)]" />;
+  return <CheckCircle className="w-7 h-7 text-[var(--theme)]" />;
 };
 
 const getPlanGuestCapacity = (plan: any): string => {
-  const description = String(
-    plan?.PlanDescription || plan?.description || ''
-  ).trim();
+  const description = String(plan?.PlanDescription || plan?.description || '').trim();
 
   const guestMatch =
     description.match(/(?:upto|up to)\s+(\d+)\s+guests?/i) ||
     description.match(/\b(\d+)\s+guests?\b/i);
 
-  if (guestMatch?.[1]) {
-    return guestMatch[1];
-  }
+  if (guestMatch?.[1]) return guestMatch[1];
 
   const capacityCandidates = [
     plan?.maxPax,
@@ -123,9 +142,7 @@ const parseFeatureCollection = (rawValue: any): any[] => {
   let parsedValue = rawValue;
 
   for (let attempt = 0; attempt < 2; attempt += 1) {
-    if (Array.isArray(parsedValue)) {
-      return parsedValue;
-    }
+    if (Array.isArray(parsedValue)) return parsedValue;
 
     if (typeof parsedValue === 'string') {
       const trimmedValue = parsedValue.trim();
@@ -151,13 +168,8 @@ const parseFeatureCollection = (rawValue: any): any[] => {
     return [];
   }
 
-  if (Array.isArray(parsedValue)) {
-    return parsedValue;
-  }
-
-  if (parsedValue && typeof parsedValue === 'object') {
-    return Object.values(parsedValue);
-  }
+  if (Array.isArray(parsedValue)) return parsedValue;
+  if (parsedValue && typeof parsedValue === 'object') return Object.values(parsedValue);
 
   return [];
 };
@@ -166,9 +178,7 @@ const isPlanSoldOut = (plan: any) => {
   if (plan?.isSoldOut === true) return true;
   if (plan?.isSoldOut === false) return false;
 
-  const availableRooms = Number(
-    plan?.availableRooms ?? plan?.inventory?.availableRooms
-  );
+  const availableRooms = Number(plan?.availableRooms ?? plan?.inventory?.availableRooms);
 
   if (!Number.isNaN(availableRooms)) {
     return availableRooms <= 0;
@@ -219,8 +229,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
     });
   }, [plan]);
 
-  const fallbackImage =
-    'https://via.placeholder.com/1200x600?text=No+Image';
+  const fallbackImage = 'https://via.placeholder.com/1200x600?text=No+Image';
 
   const carouselImages = sortedImages.length
     ? sortedImages.map((img: any) => img.imageUrl).filter(Boolean)
@@ -231,16 +240,12 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
   const goPrev = () => {
     setIsHeroImageLoaded(false);
-    setActiveIndex((prev) =>
-      prev === 0 ? carouselImages.length - 1 : prev - 1
-    );
+    setActiveIndex((prev) => (prev === 0 ? carouselImages.length - 1 : prev - 1));
   };
 
   const goNext = () => {
     setIsHeroImageLoaded(false);
-    setActiveIndex((prev) =>
-      prev === carouselImages.length - 1 ? 0 : prev + 1
-    );
+    setActiveIndex((prev) => (prev === carouselImages.length - 1 ? 0 : prev + 1));
   };
 
   const activeImage = carouselImages[activeIndex] || fallbackImage;
@@ -253,14 +258,16 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
   const nightlyDisplayPrice = getNightlyDisplayPrice(plan);
   const hasValidOffer = rawOfferPrice > 0 && rawOfferPrice < finalPrice;
   const rawPriceTypeLabel = getPriceTypeLabel((plan as any).priceType);
+
   const nightlyPriceTypeLabel =
-    rawPriceTypeLabel.includes('night') && nightlyDisplayPrice <= 0
-      ? ''
-      : rawPriceTypeLabel;
+    rawPriceTypeLabel.includes('night') && nightlyDisplayPrice <= 0 ? '' : rawPriceTypeLabel;
+
   const planSubtitle = String(
     plan.PlanSubtitle || plan.stayRoomType || plan.PlanName || ''
   ).trim();
+
   const amenityList = (plan.amenities || plan.icons || []).slice(0, 6);
+
   const displayFeatures = useMemo(() => {
     if (planFeatures.length > 0) {
       return planFeatures;
@@ -320,6 +327,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
 
     return fallbackFeatures.slice(0, 4);
   }, [plan, planFeatures, nightlyPriceTypeLabel]);
+
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
       ? `+ ${Number((plan as any).gstRate).toLocaleString()}% GST`
@@ -331,6 +339,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         {!isHeroImageLoaded ? (
           <div className="absolute inset-0 animate-pulse bg-gradient-to-br from-stone-200 via-stone-300 to-stone-200" />
         ) : null}
+
         <img
           src={activeImage}
           alt={plan.PlanTitle || plan.PlanName || 'Plan image'}
@@ -350,7 +359,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             onClick={onBack}
             className="bg-white/15 backdrop-blur-xl hover:bg-white/30 text-white px-4 py-3 rounded-2xl transition-all border border-white/20 flex items-center gap-2 font-black text-xs uppercase tracking-widest shadow-2xl"
           >
-            <ChevronLeft className="w-4 h-4" /> Back
+            <ChevronLeft className="w-4 h-4" />
+            Back
           </button>
         </div>
 
@@ -379,11 +389,13 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                 <span className="bg-[var(--theme)] text-white text-[10px] font-black uppercase tracking-[0.3em] px-4 py-2 rounded-full shadow-lg">
                   Accommodation Tier
                 </span>
+
                 {planSubtitle ? (
                   <span className="rounded-full border border-white/25 bg-white/10 px-4 py-2 text-[10px] font-black uppercase tracking-[0.24em] text-white/90">
                     {planSubtitle}
                   </span>
                 ) : null}
+
                 {soldOut ? (
                   <span className="rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
                     Sold Out
@@ -428,6 +440,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   </div>
                 ) : null}
               </div>
+
               {gstLabel ? (
                 <p className="mt-4 text-[11px] font-bold uppercase tracking-[0.2em] text-teal-100">
                   {gstLabel}
@@ -471,8 +484,18 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                     : 'border-stone-200 hover:border-stone-300'
                 }`}
               >
-                <img src={image} alt={`${plan.PlanTitle} ${index + 1}`} className="h-full w-full object-cover" />
-                <span className={`absolute inset-0 transition ${index === activeIndex ? 'ring-2 ring-inset ring-[var(--theme)]' : 'bg-black/10'}`} />
+                <img
+                  src={image}
+                  alt={`${plan.PlanTitle} ${index + 1}`}
+                  className="h-full w-full object-cover"
+                />
+                <span
+                  className={`absolute inset-0 transition ${
+                    index === activeIndex
+                      ? 'ring-2 ring-inset ring-[var(--theme)]'
+                      : 'bg-black/10'
+                  }`}
+                />
               </button>
             ))}
           </div>
@@ -485,9 +508,10 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
-                Plan Details
+                About This Experience
               </h2>
             </div>
+
             <p className="text-lg md:text-2xl text-stone-700 leading-relaxed font-medium">
               {plan.fullDescription || plan.PlanDescription}
             </p>
@@ -496,53 +520,62 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
           <section className="rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.05)]">
             {displayFeatures.length > 0 ? (
               <>
-                <div className="flex items-center gap-3 mb-10">
+                <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
-                    {planFeatures.length > 0 ? 'Features' : 'Plan Highlights'}
+                    What's Included
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6 mb-16">
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mb-12">
                   {displayFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
-                      className="rounded-[28px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f7f7f5_100%)] p-5 md:p-6 flex flex-col items-center text-center gap-3 shadow-sm"
+                      className="group rounded-[24px] border border-stone-200/70 bg-white px-4 py-5 md:px-5 md:py-6 text-center shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--theme-light)]"
                     >
-                      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-[var(--theme-light)]">
-                        <PlanFeatureIcon iconName={feature?.icon || feature?.Icon || feature?.iconName} />
+                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,var(--theme-light),#ffffff)] shadow-sm ring-1 ring-stone-100">
+                        <PlanFeatureIcon
+                          iconName={feature?.icon || feature?.Icon || feature?.iconName}
+                        />
                       </div>
-                      <div className="space-y-1">
-                        <p className="text-sm font-black uppercase tracking-[0.16em] text-stone-400">
-                          {feature?.label || feature?.Label || feature?.title || feature?.Title || 'Feature'}
-                        </p>
-                        <p className="text-base md:text-lg font-semibold text-stone-800">
-                          {feature?.value || feature?.Value || feature?.description || '-'}
-                        </p>
-                      </div>
+
+                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-400 mb-1">
+                        {feature?.label ||
+                          feature?.Label ||
+                          feature?.title ||
+                          feature?.Title ||
+                          'Feature'}
+                      </p>
+
+                      <p className="text-sm md:text-[15px] font-semibold text-stone-800 leading-snug">
+                        {feature?.value || feature?.Value || feature?.description || '-'}
+                      </p>
                     </div>
                   ))}
                 </div>
               </>
             ) : null}
 
-            <div className="flex items-center gap-3 mb-10">
+            <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
               <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
-                Amenities
+                Amenities & Comforts
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-2">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
               {amenityList.map((amenity: any) => (
                 <div
                   key={amenity.id}
-                  className="flex items-center gap-3 rounded-2xl border border-stone-200 bg-stone-50 px-4 py-4 text-sm text-stone-700 font-medium"
+                  className="group flex items-center gap-3 rounded-[20px] border border-stone-200/70 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf9_100%)] px-4 py-3.5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[var(--theme-light)]"
                 >
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-stone-100 text-[var(--theme)]">
                     <AmenityIcon name={amenity.Title || amenity.title} />
                   </div>
-                  <span>{amenity.Title || amenity.title}</span>
+
+                  <span className="text-sm font-medium text-stone-700 leading-snug">
+                    {amenity.Title || amenity.title}
+                  </span>
                 </div>
               ))}
             </div>
@@ -552,14 +585,18 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             <div className="w-20 h-20 bg-white/10 rounded-3xl flex items-center justify-center shrink-0 shadow-lg backdrop-blur-sm border border-white/10">
               <Heart className="w-10 h-10" />
             </div>
+
             <div>
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-teal-100/70 mb-2">
                 Need Help Booking?
               </p>
-              <h3 className="text-2xl font-black mb-2">Customer Support</h3>
+              <h3 className="text-2xl font-black mb-2">Need Assistance?</h3>
               <p className="text-teal-50/90 leading-relaxed font-medium">
                 Please contact our customer support @{' '}
-                <a href="tel:9867666444" className="underline underline-offset-4 decoration-teal-200">
+                <a
+                  href="tel:9867666444"
+                  className="underline underline-offset-4 decoration-teal-200"
+                >
                   9867666444
                 </a>{' '}
                 for any queries.
@@ -569,98 +606,146 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         </div>
 
         <div className="lg:col-span-4 relative">
-          <div className="bg-[linear-gradient(180deg,_#ffffff_0%,_#fbfbf9_100%)] p-8 md:p-10 rounded-[40px] shadow-[0_28px_100px_rgba(15,23,42,0.10)] border border-stone-200 sticky top-24 overflow-hidden group">
-            <div className="absolute top-0 right-0 -m-10 h-36 w-36 rounded-full bg-[var(--theme-light)] opacity-80 transition-transform group-hover:scale-150 duration-700"></div>
-            <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--theme)] via-teal-300 to-transparent"></div>
+  <div className="sticky top-24 rounded-[36px] border border-stone-200/80 bg-white p-7 md:p-8 shadow-[0_24px_80px_rgba(15,23,42,0.08)]">
+    <div className="absolute inset-x-0 top-0 h-1 rounded-t-[36px] bg-gradient-to-r from-[var(--theme)] via-teal-300 to-transparent" />
 
-            <h3 className="text-xs font-black text-stone-400 uppercase tracking-[0.28em] mb-8 relative z-10">
-              Booking Snapshot
-            </h3>
+    <div className="relative z-10">
+      <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme)]/80 mb-5">
+        Your Stay Summary
+      </p>
 
-            <div className="mb-8 rounded-[30px] border border-stone-200 bg-white p-6 relative z-10 shadow-sm">
-              <p className="text-sm font-semibold text-stone-500 mb-1">Retreat Offering</p>
-              <h4 className="text-2xl font-black text-stone-900 tracking-tight">
-                {plan.PlanTitle || plan.PlanName}
-              </h4>
-              {planSubtitle ? (
-                <p className="mt-2 text-sm font-medium text-stone-500">
-                  {planSubtitle}
-                </p>
-              ) : null}
+      <div className="pb-6 border-b border-stone-200">
+        <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-400">
+          Selected Stay
+        </p>
 
-              <div className="mt-5 border-t border-stone-200 pt-5 space-y-3">
-                {hasValidOffer ? (
-                  <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">Price</span>
-                    <span className="text-base font-bold text-stone-400 line-through">
-                      ₹ {finalPrice.toLocaleString()}
-                    </span>
-                  </div>
-                ) : null}
+        <h3 className="mt-2 text-2xl md:text-[28px] leading-tight font-black text-stone-900 tracking-tight">
+          {plan.PlanTitle || plan.PlanName}
+        </h3>
 
-                <div className="flex items-end justify-between gap-4">
-                  <div>
-                    <p className="text-xs font-black text-[var(--theme)] uppercase tracking-[0.2em]">
-                      {hasValidOffer ? 'Now' : 'Price'}
-                    </p>
-                    <p className="text-4xl md:text-5xl font-black text-stone-900 leading-none mt-2 whitespace-nowrap">
-                      ₹ {displayPrice.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
+        {planSubtitle ? (
+          <p className="mt-2 text-sm text-stone-500 font-medium">
+            {planSubtitle}
+          </p>
+        ) : null}
+      </div>
 
-                {nightlyDisplayPrice > 0 ? (
-                  <div className="flex items-center justify-between rounded-2xl bg-stone-50 px-4 py-3">
-                    <span className="text-xs font-bold text-stone-400 uppercase tracking-widest">
-                      Per Day
-                    </span>
-                    <span className="text-sm font-bold text-stone-700 text-right">
-                      ₹ {nightlyDisplayPrice.toLocaleString()}
-                      {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
-                    </span>
-                  </div>
-                ) : null}
-
-                {gstLabel ? (
-                  <p className="text-[10px] font-black text-[var(--theme)] uppercase tracking-widest pt-1">
-                    {gstLabel}
-                  </p>
-                ) : null}
-              </div>
-            </div>
-
-            <div className="space-y-4 pt-8 border-t border-stone-200 mb-10 relative z-10">
-              {soldOut ? (
-                <div className="rounded-2xl border border-rose-100 bg-rose-50 px-4 py-3 text-sm font-bold text-rose-700">
-                  This plan is currently sold out. Please choose another available option.
-                </div>
-              ) : null}
-              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-sm text-stone-600 font-medium border border-stone-200">
-                <ShieldCheck className="w-5 h-5 text-teal-500 shrink-0" />
-                Flat Rs 10000 for kids aged 17 years and below!
-              </div>
-              <div className="flex items-center gap-3 rounded-2xl bg-white px-4 py-4 text-sm text-stone-600 font-medium border border-stone-200">
-                <Flower2 className="w-5 h-5 text-teal-400 shrink-0" />
-                Pure Veg meals included
-              </div>
-            </div>
-
-            <button
-              onClick={() => {
-                if (!soldOut) onProceed();
-              }}
-              disabled={soldOut}
-              className={`w-full py-5 rounded-[24px] font-black text-lg transition-all flex items-center justify-center gap-3 ${
-                soldOut
-                  ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
-                  : 'bg-[var(--theme)] text-white shadow-xl shadow-[var(--theme-light)] group active:scale-95 hover:bg-[var(--theme-dark)]'
-              }`}
-            >
-              {soldOut ? 'Sold Out' : 'Book Now!'}
-              <ArrowRight className={`w-6 h-6 ${soldOut ? '' : 'group-hover:translate-x-2 transition-transform'}`} />
-            </button>
+      <div className="py-6 border-b border-stone-200">
+        {hasValidOffer ? (
+          <div className="flex items-center justify-between mb-3">
+            <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">
+              Original Price
+            </span>
+            <span className="text-sm font-bold text-stone-400 line-through">
+              ₹ {finalPrice.toLocaleString()}
+            </span>
           </div>
+        ) : null}
+
+        <div className="flex items-end justify-between gap-4">
+          <div>
+            <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--theme)]">
+              {hasValidOffer ? 'Now Booking At' : 'Price'}
+            </p>
+            <p className="mt-2 text-4xl md:text-5xl font-black leading-none text-stone-900">
+              ₹ {displayPrice.toLocaleString()}
+            </p>
+          </div>
+
+          {nightlyDisplayPrice > 0 ? (
+            <div className="text-right">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-400">
+                Per Day
+              </p>
+              <p className="mt-1 text-sm font-semibold text-stone-700 leading-snug">
+                ₹ {nightlyDisplayPrice.toLocaleString()}
+                {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
+              </p>
+            </div>
+          ) : null}
         </div>
+
+        {gstLabel ? (
+          <p className="mt-4 text-[10px] font-black uppercase tracking-[0.16em] text-[var(--theme)]">
+            {gstLabel}
+          </p>
+        ) : null}
+      </div>
+
+      <div className="py-6 space-y-3 border-b border-stone-200">
+        <div className="flex items-center justify-between text-sm">
+          <span className="text-stone-500 font-medium">Meals</span>
+          <span className="text-stone-900 font-semibold">Pure Veg Included</span>
+        </div>
+
+        {!soldOut ? (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-stone-500 font-medium">Availability</span>
+            <span className="text-emerald-700 font-semibold">Available</span>
+          </div>
+        ) : (
+          <div className="flex items-center justify-between text-sm">
+            <span className="text-stone-500 font-medium">Availability</span>
+            <span className="text-rose-700 font-semibold">Sold Out</span>
+          </div>
+        )}
+      </div>
+
+      <div className="pt-6">
+        <p className="text-sm leading-relaxed text-stone-600 mb-5">
+          A शांत, comfortable stay designed to support your retreat experience.
+        </p>
+
+       <button
+  onClick={() => {
+    if (!soldOut) onProceed();
+  }}
+  disabled={soldOut}
+  className={`group relative w-full overflow-hidden rounded-[26px] py-5 text-lg font-black flex items-center justify-center gap-3 transition-all duration-200 ${
+    soldOut
+      ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
+      : `
+        bg-[linear-gradient(135deg,_var(--theme)_0%,_#0f766e_100%)]
+        text-white
+        shadow-[0_10px_25px_rgba(15,118,110,0.35)]
+        hover:shadow-[0_16px_35px_rgba(15,118,110,0.45)]
+        hover:-translate-y-[2px]
+        active:translate-y-[1px]
+        active:shadow-[0_6px_15px_rgba(15,118,110,0.35)]
+      `
+  }`}
+>
+  {/* soft shine overlay */}
+  {!soldOut && (
+    <span className="absolute inset-0 opacity-0 group-hover:opacity-100 transition duration-300 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
+  )}
+
+  {/* text */}
+  <span className="relative z-10 tracking-wide">
+    {soldOut ? 'Sold Out' : 'Book Now'}
+  </span>
+
+  {/* arrow */}
+  <ArrowRight
+    className={`relative z-10 w-6 h-6 transition-all duration-300 ${
+      soldOut ? '' : 'group-hover:translate-x-2 group-hover:scale-110'
+    }`}
+  />
+</button>
+
+        <p className="mt-4 text-xs text-stone-500 text-center leading-relaxed">
+          Need help? Call{' '}
+          <a
+            href="tel:9867666444"
+            className="font-semibold text-[var(--theme)] underline underline-offset-4"
+          >
+            9867666444
+          </a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
       </div>
     </div>
   );
