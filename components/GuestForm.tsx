@@ -97,6 +97,7 @@ const normalizePhoneInput = (value: string) => {
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
 const MAX_GUEST_AGE = 99;
+const MAX_GUEST_COUNT = 8;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const NAME_LETTERS_ONLY_REGEX = /[^A-Za-z]/g;
 
@@ -742,6 +743,8 @@ const getStayEndDate = (startDate: string, days: number) => {
   };
 
   const addGuest = () => {
+    if (guests.length >= MAX_GUEST_COUNT) return;
+
     const guest = createEmptyGuest() as any;
 
     const normalizedGuest = {
@@ -1611,12 +1614,20 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
             <p className="mt-1 text-sm font-medium text-stone-600">
               {guests.length} guest{guests.length === 1 ? '' : 's'} added so far.
             </p>
+            <p className="mt-1 text-xs font-semibold text-stone-500">
+              Maximum {MAX_GUEST_COUNT} guests can be added.
+            </p>
           </div>
 
           <button
             type="button"
             onClick={addGuest}
-            className="flex items-center justify-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
+            disabled={guests.length >= MAX_GUEST_COUNT}
+            className={`flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-95 ${
+              guests.length >= MAX_GUEST_COUNT
+                ? 'cursor-not-allowed bg-stone-300 shadow-none'
+                : 'bg-[var(--theme)] hover:bg-[var(--theme-dark)]'
+            }`}
           >
             <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
           </button>

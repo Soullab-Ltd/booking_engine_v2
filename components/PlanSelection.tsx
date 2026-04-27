@@ -38,7 +38,7 @@ const getNightlyDisplayPrice = (plan: any) => {
 
 const getPlanCapacityLabel = (plan: any) => {
   const maxPax = Number(plan?.maxPax || plan?.maxGuests || plan?.maxOccupancy || 0);
-  if (Number.isFinite(maxPax) && maxPax > 0) {
+  if (Number.isFinite(maxPax) && maxPax > 1) {
     return `Up to ${maxPax} guest${maxPax > 1 ? 's' : ''}`;
   }
 
@@ -282,7 +282,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-[var(--theme)] via-teal-300 to-transparent" />
 
               {soldOut ? (
-                <div className="pointer-events-none absolute -left-2 top-4 z-20 rotate-[-14deg]">
+                <div className="pointer-events-none absolute -left-2 top-4 z-[60] rotate-[-14deg]">
                   <div className="rounded-md border-[4px] border-rose-700 bg-rose-50/85 px-4 py-2.5 shadow-lg">
                     <div className="rounded-sm border-2 border-dashed border-rose-700/70 px-3 py-1.5">
                       <span className="block text-center text-sm font-black uppercase tracking-[0.30em] text-rose-700">

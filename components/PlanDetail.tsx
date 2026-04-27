@@ -57,59 +57,59 @@ const getNightlyDisplayPrice = (plan: any) => {
 const AmenityIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
 
-  if (n.includes('wifi')) return <Wifi className="w-5 h-5" />;
-  if (n.includes('heating') || n.includes('floor')) return <Sun className="w-5 h-5" />;
-  if (n.includes('spa')) return <Heart className="w-5 h-5" />;
-  if (n.includes('bed')) return <Bed className="w-5 h-5" />;
+  if (n.includes('wifi')) return <Wifi className="h-4 w-4" />;
+  if (n.includes('heating') || n.includes('floor')) return <Sun className="h-4 w-4" />;
+  if (n.includes('spa')) return <Heart className="h-4 w-4" />;
+  if (n.includes('bed')) return <Bed className="h-4 w-4" />;
   if (n.includes('meal') || n.includes('banquet') || n.includes('food')) {
-    return <Utensils className="w-5 h-5" />;
+    return <Utensils className="h-4 w-4" />;
   }
-  if (n.includes('view') || n.includes('riverside')) return <Wind className="w-5 h-5" />;
+  if (n.includes('view') || n.includes('riverside')) return <Wind className="h-4 w-4" />;
   if (n.includes('concierge') || n.includes('support')) {
-    return <ConciergeBell className="w-5 h-5" />;
+    return <ConciergeBell className="h-4 w-4" />;
   }
-  if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="w-5 h-5" />;
+  if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="h-4 w-4" />;
   if (n.includes('private entry') || n.includes('deck')) {
-    return <DoorOpen className="w-5 h-5" />;
+    return <DoorOpen className="h-4 w-4" />;
   }
 
-  return <CheckCircle className="w-5 h-5" />;
+  return <CheckCircle className="h-4 w-4" />;
 };
 
 const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
   const normalizedIcon = String(iconName || '').trim().toLowerCase();
 
-  if (normalizedIcon.includes('bed')) return <Bed className="w-7 h-7 text-[var(--theme)]" />;
+  if (normalizedIcon.includes('bed')) return <Bed className="h-5 w-5 text-[var(--theme)]" />;
   if (
     normalizedIcon.includes('bath') ||
     normalizedIcon.includes('toilet') ||
     normalizedIcon.includes('wash')
   ) {
-    return <Bath className="w-7 h-7 text-[var(--theme)]" />;
+    return <Bath className="h-5 w-5 text-[var(--theme)]" />;
   }
   if (
     normalizedIcon.includes('guest') ||
     normalizedIcon.includes('people') ||
     normalizedIcon.includes('user')
   ) {
-    return <Users className="w-7 h-7 text-[var(--theme)]" />;
+    return <Users className="h-5 w-5 text-[var(--theme)]" />;
   }
   if (
     normalizedIcon.includes('sq') ||
     normalizedIcon.includes('area') ||
     normalizedIcon.includes('size')
   ) {
-    return <Ruler className="w-7 h-7 text-[var(--theme)]" />;
+    return <Ruler className="h-5 w-5 text-[var(--theme)]" />;
   }
   if (
     normalizedIcon.includes('room') ||
     normalizedIcon.includes('home') ||
     normalizedIcon.includes('house')
   ) {
-    return <Home className="w-7 h-7 text-[var(--theme)]" />;
+    return <Home className="h-5 w-5 text-[var(--theme)]" />;
   }
 
-  return <CheckCircle className="w-7 h-7 text-[var(--theme)]" />;
+  return <CheckCircle className="h-5 w-5 text-[var(--theme)]" />;
 };
 
 const getPlanGuestCapacity = (plan: any): string => {
@@ -187,7 +187,7 @@ const isPlanSoldOut = (plan: any) => {
   return Number(plan?.remainingInventory ?? 0) <= 0;
 };
 
-const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
+const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
   const planFeatures = useMemo(() => {
     let featureList: any[] = [];
 
@@ -354,16 +354,6 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
         <div className="absolute inset-0 bg-gradient-to-t from-white via-black/20 to-transparent" />
         <div className="absolute inset-0 bg-gradient-to-r from-stone-950/65 via-stone-900/20 to-transparent" />
 
-        <div className="absolute top-8 left-8 z-20">
-          <button
-            onClick={onBack}
-            className="bg-white/15 backdrop-blur-xl hover:bg-white/30 text-white px-4 py-3 rounded-2xl transition-all border border-white/20 flex items-center gap-2 font-black text-xs uppercase tracking-widest shadow-2xl"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Back
-          </button>
-        </div>
-
         {carouselImages.length > 1 && (
           <>
             <button
@@ -397,7 +387,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                 ) : null}
 
                 {soldOut ? (
-                  <span className="rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
+                  <span className="relative z-[60] rounded-full bg-rose-500/90 px-4 py-2 text-[10px] font-black uppercase tracking-[0.3em] text-white shadow-lg">
                     Sold Out
                   </span>
                 ) : null}
@@ -527,28 +517,29 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
                   </h2>
                 </div>
 
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 md:gap-5 mb-12">
+                <div className="mb-10 grid grid-cols-2 gap-x-4 gap-y-5 sm:flex sm:flex-wrap sm:items-start sm:gap-10">
                   {displayFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
-                      className="group rounded-[24px] border border-stone-200/70 bg-white px-4 py-5 md:px-5 md:py-6 text-center shadow-sm transition-all duration-300 hover:shadow-lg hover:-translate-y-1 hover:border-[var(--theme-light)]"
+                      className="group flex flex-col items-center text-center sm:min-w-[110px]"
                     >
-                      <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-[linear-gradient(180deg,var(--theme-light),#ffffff)] shadow-sm ring-1 ring-stone-100">
+                      <div className="flex h-11 w-11 items-center justify-center">
                         <PlanFeatureIcon
                           iconName={feature?.icon || feature?.Icon || feature?.iconName}
                         />
                       </div>
 
-                      <p className="text-[11px] font-bold uppercase tracking-[0.16em] text-stone-400 mb-1">
-                        {feature?.label ||
-                          feature?.Label ||
-                          feature?.title ||
-                          feature?.Title ||
-                          'Feature'}
-                      </p>
-
-                      <p className="text-sm md:text-[15px] font-semibold text-stone-800 leading-snug">
-                        {feature?.value || feature?.Value || feature?.description || '-'}
+                      <p className="mt-2 whitespace-nowrap text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
+                        <span>
+                          {feature?.value || feature?.Value || feature?.description || '-'}
+                        </span>{' '}
+                        <span className="text-stone-500">
+                          {feature?.label ||
+                            feature?.Label ||
+                            feature?.title ||
+                            feature?.Title ||
+                            'Feature'}
+                        </span>
                       </p>
                     </div>
                   ))}
@@ -563,17 +554,17 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
               </h2>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+            <div className="flex flex-wrap gap-2.5">
               {amenityList.map((amenity: any) => (
                 <div
                   key={amenity.id}
-                  className="group flex items-center gap-3 rounded-[20px] border border-stone-200/70 bg-[linear-gradient(180deg,#ffffff_0%,#fafaf9_100%)] px-4 py-3.5 shadow-sm transition-all duration-300 hover:shadow-md hover:border-[var(--theme-light)]"
+                  className="group inline-flex items-center gap-2.5 rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-2 transition-all duration-300 hover:border-teal-200 hover:bg-teal-50/60"
                 >
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-white shadow-sm ring-1 ring-stone-100 text-[var(--theme)]">
+                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-stone-100 text-[var(--theme)]">
                     <AmenityIcon name={amenity.Title || amenity.title} />
                   </div>
 
-                  <span className="text-sm font-medium text-stone-700 leading-snug">
+                  <span className="text-[12px] font-medium text-stone-700 leading-none">
                     {amenity.Title || amenity.title}
                   </span>
                 </div>
@@ -636,28 +627,28 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed, onBack }) => {
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">
               Original Price
             </span>
-            <span className="text-sm font-bold text-stone-400 line-through">
+            <span className="whitespace-nowrap text-sm font-bold text-stone-400 line-through">
               ₹ {finalPrice.toLocaleString()}
             </span>
           </div>
         ) : null}
 
-        <div className="flex items-end justify-between gap-4">
+        <div className="flex flex-col gap-4">
           <div>
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--theme)]">
               {hasValidOffer ? 'Now Booking At' : 'Price'}
             </p>
-            <p className="mt-2 text-4xl md:text-5xl font-black leading-none text-stone-900">
+            <p className="mt-2 whitespace-nowrap text-4xl md:text-5xl font-black leading-none text-stone-900">
               ₹ {displayPrice.toLocaleString()}
             </p>
           </div>
 
           {nightlyDisplayPrice > 0 ? (
-            <div className="text-right">
+            <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-400">
                 Per Day
               </p>
-              <p className="mt-1 text-sm font-semibold text-stone-700 leading-snug">
+              <p className="mt-1 text-sm font-semibold text-stone-700 leading-snug break-words">
                 ₹ {nightlyDisplayPrice.toLocaleString()}
                 {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
               </p>
