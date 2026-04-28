@@ -1,7 +1,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Calendar, Clock, MapPin, ArrowRight, ShieldCheck, Zap, Heart, Camera, Sun, Wind, Cloud, Info, Star, Users, Sprout, Sparkles, Flower2, Navigation } from 'lucide-react';
-import { EventData } from '../types';
+import { EventData, Plan } from '../types';
 import { MOCK_SCHEDULE, MOCK_MENTORS, MOCK_INSIGHTS } from '../constants';
 import { trackCleverTapEvent } from '../src/services/cleverTap';
 import {
@@ -14,6 +14,7 @@ interface LandingPageProps {
   event: EventData;
   schedules: any[];
   mentors: any;
+  plans?: Plan[];
   insights: any[];
   ui: any;
   onProceed: () => void;

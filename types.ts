@@ -11,6 +11,35 @@ export interface AddOn {
   description: string;
 }
 
+export interface GuestSelectedAddon {
+  addonId: string;
+  title: string;
+  description: string;
+  type: string;
+  price: number;
+  quantity: number;
+  isPricePerNight: boolean;
+  bannerImage: string;
+}
+
+export interface GuestExtraStay {
+  enabled: boolean;
+  days: number;
+  type: string;
+  startDate: string;
+  endDate: string;
+  planId: string | number;
+  price: number;
+  pricePerNight?: number;
+}
+
+export interface GuestAddOns {
+  foodPass: boolean;
+  adventurePass: boolean;
+  selectedAddons: GuestSelectedAddon[];
+  extraStay: GuestExtraStay;
+}
+
 export interface Guest {
   id: string;
   name: string;
@@ -20,17 +49,8 @@ export interface Guest {
   isKidsPlanOpted: boolean;
   foodPreference: FoodPreference;
   travelAssistance: boolean;
-  
-  addOns: {
-    foodPass: boolean;
-    adventurePass: boolean;
-    extraStay: {
-      enabled: boolean;
-      days: number;
-      type: string;
-      startDate: string;
-    };
-  };
+
+  addOns: GuestAddOns;
   remark: string;
 
   gender: string | null;
@@ -47,6 +67,13 @@ export interface PlanIcon {
   iconUrl: string;
   type: string;
   planID: number;
+}
+
+export interface PlanFeature {
+  id: string;
+  label: string;
+  value: string;
+  icon: string;
 }
 
 
@@ -89,6 +116,8 @@ export interface Plan {
   finalPrice?: number;
   gstDetails?: string;
   amenities?: PlanIcon[];
+  icons?: PlanIcon[];
+  planFeatures?: PlanFeature[];
   isSpecialPlan?: boolean | number; 
   tag?: string;
   images: {
@@ -138,10 +167,33 @@ export interface BookingState {
   is80GRequired: boolean;
   taxInfo: {
     panNumber: string;
+    aadharNumber?: string;
     fullName: string;
     address: string;
     panFile?: string;
     aadharFile?: string;
   };
+  atgDetails?: {
+    id?: number;
+    bookingId?: string;
+    panNumber?: string;
+    aadharNumber?: string;
+    panFileUrl?: string;
+    aadharFileUrl?: string;
+  };
+  panNumber?: string;
+  aadharNumber?: string;
+  panFileUrl?: string;
+  aadharFileUrl?: string;
   bookingId?: string | number;
+  paymentId?: string;
+  razorpayPaymentId?: string;
+  razorpayOrderId?: string;
+  razorpaySignature?: string;
+  bookingStatus?: 'CONFIRMED' | 'PENDING' | 'FAILED';
+  bookingStatusLabel?: string;
+  bookingStatusMessage?: string;
+  backendPaymentStatus?: string;
+  paymentSyncStatus?: 'synced' | 'pending' | 'failed';
+  paymentSyncMessage?: string;
 }

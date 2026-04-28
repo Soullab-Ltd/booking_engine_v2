@@ -107,6 +107,35 @@ const normalizePhoneInput = (value: string) => {
 
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
+const MAX_GUEST_AGE = 99;
+const MAX_GUEST_COUNT = 8;
+const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
+const NAME_LETTERS_ONLY_REGEX = /[^A-Za-z]/g;
+
+const normalizeGuestNameInput = (value: string) => {
+  return String(value || '')
+    .replace(/[^A-Za-z\s'.-]/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .replace(/^\s+/g, '');
+};
+
+const normalizeGuestAgeInput = (value: unknown): number | null => {
+  const digitsOnly = String(value ?? '')
+    .replace(/\D/g, '')
+    .slice(0, String(MAX_GUEST_AGE).length);
+
+  if (!digitsOnly) {
+    return null;
+  }
+
+  const parsedAge = Number(digitsOnly);
+
+  if (!Number.isFinite(parsedAge)) {
+    return null;
+  }
+
+  return Math.min(parsedAge, MAX_GUEST_AGE);
+};
 
 interface StayAddonMapping {
   planId?: number | string;
@@ -608,26 +637,32 @@ const getStayEndDate = (startDate: string, days: number) => {
     });
   }, [addons, selectedEventId, selectedPlanId]);
 
-  const getGuestErrors = (guest: Guest | any) => {
+  const getGuestErrors = (guest: Guest | any, guestIndex: number) => {
     const errors: Record<string, string> = {};
+    const isPrimaryGuest = guestIndex === 0;
 
     const trimmedName = String(guest.name || '').trim();
+    const nameLetterCount = trimmedName.replace(NAME_LETTERS_ONLY_REGEX, '').length;
 
     if (!trimmedName) {
       errors.name = 'Name is required';
-    } else if (trimmedName.length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+    } else if (!NAME_ALLOWED_CHARACTERS_REGEX.test(trimmedName)) {
+      errors.name = 'Name can only contain letters, spaces, apostrophes, periods, and hyphens';
+    } else if (nameLetterCount < 2) {
+      errors.name = 'Name must be at least 2 letters';
     }
 
-    if (!guest.email?.trim()) {
+    const trimmedEmail = String(guest.email || '').trim();
+    if (isPrimaryGuest && !trimmedEmail) {
       errors.email = 'Email is required';
-    } else if (!isValidEmail(guest.email)) {
+    } else if (trimmedEmail && !isValidEmail(guest.email)) {
       errors.email = 'Invalid email format';
     }
 
-    if (!guest.phone?.trim()) {
+    const trimmedPhone = String(guest.phone || '').trim();
+    if (isPrimaryGuest && !trimmedPhone) {
       errors.phone = 'Phone is required';
-    } else {
+    } else if (trimmedPhone) {
       const phoneDigits = getPhoneDigits(guest.phone);
       const isIndianGuest = String(guest.country || '').trim().toLowerCase() === 'india';
 
@@ -639,33 +674,36 @@ const getStayEndDate = (startDate: string, days: number) => {
         errors.phone = 'Enter a valid international phone number';
       }
     }
-const age = Number(guest.age);
+    const age = Number(guest.age);
 
-  if (!guest.age && guest.age !== 0) {
-    errors.age = 'Age is required';
-  } else if (isNaN(age)) {
-    errors.age = 'Please enter a valid number';
-  } else if (age < 1) {
-    errors.age = 'Age must be at least 1';
-  } else if (age > 120) {
-    errors.age = 'Age cannot exceed 120 years';
-  }
+    if (!guest.age && guest.age !== 0) {
+      errors.age = 'Age is required';
+    } else if (isNaN(age)) {
+      errors.age = 'Please enter a valid number';
+    } else if (age < 1) {
+      errors.age = 'Age must be at least 1';
+    } else if (age > MAX_GUEST_AGE) {
+      errors.age = `Age cannot exceed ${MAX_GUEST_AGE} years`;
+    }
 
 
     if (!guest.gender) {
       errors.gender = 'Gender is required';
-    }  
-    if (!guest.country) errors.country = 'Country is required';
-    if (!guest.state) errors.state = 'State is required';
-    if (!guest.city?.trim()) errors.city = 'City is required';
+    }
+
+    if (isPrimaryGuest) {
+      if (!guest.country) errors.country = 'Country is required';
+      if (!guest.state) errors.state = 'State is required';
+      if (!guest.city?.trim()) errors.city = 'City is required';
+    }
 
     return errors;
   };
 
   const allGuestsValid = useMemo(() => {
-    return guests.every(
-      (guest: any) => Object.keys(getGuestErrors(guest)).length === 0
-    );
+    return guests.every((guest: any, index: number) => {
+      return Object.keys(getGuestErrors(guest, index)).length === 0;
+    });
   }, [guests]);
 
   const eligibleKids = useMemo(() => {
@@ -704,28 +742,38 @@ const age = Number(guest.age);
   }, [eligibleKids, guests, showKidsModal]);
 
   const updateGuest = (id: string, updates: any) => {
+    const normalizedUpdates = { ...updates };
+
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'name')) {
+      normalizedUpdates.name = normalizeGuestNameInput(normalizedUpdates.name);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'age')) {
+      normalizedUpdates.age = normalizeGuestAgeInput(normalizedUpdates.age);
+    }
+
     const updatedGuests = guests.map((guest: any) => {
       if (String(guest.id) !== String(id)) return guest;
 
-      if (updates.addOns) {
+      if (normalizedUpdates.addOns) {
         return {
           ...guest,
           addOns: {
             ...(guest.addOns || {}),
-            ...updates.addOns,
+            ...normalizedUpdates.addOns,
             selectedAddons:
-              updates.addOns.selectedAddons ??
+              normalizedUpdates.addOns.selectedAddons ??
               guest.addOns?.selectedAddons ??
               [],
             extraStay: {
               ...(guest.addOns?.extraStay || getDefaultExtraStay()),
-              ...(updates.addOns.extraStay || {}),
+              ...(normalizedUpdates.addOns.extraStay || {}),
             },
           },
         };
       }
 
-      return { ...guest, ...updates };
+      return { ...guest, ...normalizedUpdates };
     });
 
     setGuests(updatedGuests);
@@ -745,6 +793,8 @@ const age = Number(guest.age);
   };
 
   const addGuest = () => {
+    if (guests.length >= MAX_GUEST_COUNT) return;
+
     const guest = createEmptyGuest() as any;
 
     const normalizedGuest = {
@@ -1125,7 +1175,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
   return (
     <div className="mx-auto w-full max-w-4xl animate-fadeIn px-4 py-8 pb-52 sm:pb-16">
-      <div className="mb-8 flex flex-col items-start justify-between gap-4 border-b border-stone-200 pb-6 sm:flex-row sm:items-center">
+      <div className="mb-8 border-b border-stone-200 pb-6">
         <div>
           <h2 className="text-2xl font-black tracking-tight text-stone-900">
             {ui.header.title}
@@ -1134,18 +1184,12 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
             <Sparkles className="h-4 w-4 text-[var(--theme)]" /> {ui.header.subtitle}
           </p>
         </div>
-
-        <button
-          onClick={addGuest}
-          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-2 text-xs font-bold text-white shadow-md transition-all active:scale-95 hover:bg-[var(--theme-dark)]"
-        >
-          <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
-        </button>
       </div>
 
       <div className="space-y-6">
         {guests.map((guest: any, index) => {
-          const errors = getGuestErrors(guest);
+          const errors = getGuestErrors(guest, index);
+          const isPrimaryGuest = index === 0;
           const hasTypedEmail = String(guest.email || '').trim().length > 0;
           const emailLooksValid = isValidEmail(guest.email);
           const showRealtimeEmailError = hasTypedEmail && !emailLooksValid;
@@ -1188,7 +1232,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               <div className="grid grid-cols-1 gap-x-6 gap-y-5 md:grid-cols-2">
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.name} <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
                   </label>
                   <input
                     type="text"
@@ -1196,6 +1240,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                     onChange={(e) => updateGuest(guest.id, { name: e.target.value })}
                     minLength={2}
                     placeholder={ui.guestCard.fields.namePlaceholder}
+                    autoCapitalize="words"
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.name
                         ? 'border-red-200 bg-white'
@@ -1207,7 +1252,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.phone} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.phone}
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <input
                     type="tel"
@@ -1234,7 +1282,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.email} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.email}
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <input
                     type="email"
@@ -1264,17 +1315,17 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    {ui.guestCard.fields.age} <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
                   </label>
                   <input
                     type="text"
-                    value={guest.age || ''}
+                    value={guest.age ?? ''}
                     onChange={(e) => {
-  const val = e.target.value.replace(/\D/g, '');
-  const ageValue = val === '' ? null : parseInt(val, 10); 
-  
-  updateGuest(guest.id, { age: ageValue });
-}}
+                      updateGuest(guest.id, { age: e.target.value });
+                    }}
+                    inputMode="numeric"
+                    pattern="[0-9]*"
+                    maxLength={String(MAX_GUEST_AGE).length}
                     placeholder={ui.guestCard.fields.agePlaceholder}
                     className={`h-[42px] w-full rounded-xl border-2 px-4 py-2 text-sm font-bold text-stone-900 outline-none transition-all placeholder:text-stone-300 ${
                       touched && errors.age
@@ -1287,7 +1338,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
               <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Gender <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    Gender <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
                   </label>
 
                   <div className="flex gap-2">
@@ -1347,7 +1398,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    Country <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    Country
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <CountrySelector
                     value={guest.country || ''}
@@ -1359,7 +1413,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    State / Province <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    State / Province
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
 
                   {guest.country === 'India' ? (
@@ -1432,7 +1489,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
-                    City <span className="ml-0.5 font-black text-[var(--theme)]">#</span>
+                    City
+                    {isPrimaryGuest ? (
+                      <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
+                    ) : null}
                   </label>
                   <input
                     type="text"
@@ -1762,6 +1822,38 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
         })}
       </div>
 
+      <div className="mt-8 rounded-3xl border border-dashed border-teal-200 bg-teal-50/60 p-5 sm:p-6">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme)]">
+              Guest List
+            </p>
+            <h3 className="mt-1 text-lg font-black text-stone-900">
+              Add another guest when you're done with this section
+            </h3>
+            <p className="mt-1 text-sm font-medium text-stone-600">
+              {guests.length} guest{guests.length === 1 ? '' : 's'} added so far.
+            </p>
+            <p className="mt-1 text-xs font-semibold text-stone-500">
+              Maximum {MAX_GUEST_COUNT} guests can be added.
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={addGuest}
+            disabled={guests.length >= MAX_GUEST_COUNT}
+            className={`flex items-center justify-center gap-2 rounded-xl px-5 py-3 text-xs font-bold text-white shadow-md transition-all active:scale-95 ${
+              guests.length >= MAX_GUEST_COUNT
+                ? 'cursor-not-allowed bg-stone-300 shadow-none'
+                : 'bg-[var(--theme)] hover:bg-[var(--theme-dark)]'
+            }`}
+          >
+            <PlusCircle className="h-4 w-4" /> {ui.header.addGuest}
+          </button>
+        </div>
+      </div>
+
       <div className="sticky bottom-0 mt-8 flex items-center justify-between gap-3 border-t border-stone-200 bg-white/95 px-2 py-4 backdrop-blur">
         <button
           type="button"
@@ -1815,33 +1907,55 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
       {showKidsModal && (
         <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-3xl bg-white p-6 shadow-2xl">
-            <h3 className="text-lg font-black text-stone-900">
-              Kids Plan Confirmation
-            </h3>
-            <p className="mt-2 text-sm text-stone-600">
-              We found guest(s) aged between 4 and 17. Please confirm if they should be considered under the kids plan.
-            </p>
+          <div className="w-full max-w-xl overflow-hidden rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f9f8f5_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.18)]">
+            <div className="border-b border-stone-200 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.14),_transparent_42%),linear-gradient(180deg,_#ffffff_0%,_#f7f7f4_100%)] px-6 py-6 md:px-7">
+              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme)]">
+                Quick Confirmation
+              </p>
+              <h3 className="mt-2 text-2xl font-black tracking-[-0.03em] text-stone-900">
+                Kids Plan Confirmation
+              </h3>
+              <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-600">
+                We found guest(s) aged between 4 and 17. Please confirm whether they should be included under the kids plan before you continue.
+              </p>
+            </div>
 
-            <div className="mt-5 space-y-3">
+            <div className="px-6 py-6 md:px-7">
+              <div className="mb-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
+                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-stone-400">
+                  Eligible Guests
+                </p>
+                <p className="mt-2 text-sm font-semibold text-stone-700">
+                  Select <span className="text-stone-900">Yes</span> for guests who should be counted in the kids plan.
+                </p>
+              </div>
+
+              <div className="space-y-3">
               {eligibleKids.map((guest: any) => (
                 <div
                   key={guest.id}
-                  className="flex items-center justify-between rounded-2xl border border-stone-200 p-4"
+                  className="flex flex-col gap-4 rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between"
                 >
-                  <div>
-                    <p className="text-sm font-black text-stone-900">{guest.name || 'Guest'}</p>
-                    <p className="text-xs font-medium text-stone-500">Age: {guest.age}</p>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--theme-light)] text-sm font-black text-[var(--theme)]">
+                      {(guest.name || 'G').trim().charAt(0).toUpperCase()}
+                    </div>
+                    <div>
+                      <p className="text-sm font-black text-stone-900">{guest.name || 'Guest'}</p>
+                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">
+                        Age {guest.age}
+                      </p>
+                    </div>
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="grid grid-cols-2 gap-2 md:min-w-[220px]">
                     <button
                       type="button"
                       onClick={() => toggleKidsPlan(String(guest.id), true)}
-                      className={`rounded-xl px-4 py-2 text-xs font-black ${
+                      className={`rounded-2xl px-4 py-3 text-xs font-black transition-all ${
                         guest.isKidsPlanOpted
-                          ? 'bg-stone-900 text-white'
-                          : 'border border-stone-200 text-stone-700'
+                          ? 'bg-[var(--theme)] text-white shadow-[0_12px_28px_rgba(15,118,110,0.22)]'
+                          : 'border border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
                       }`}
                     >
                       Yes
@@ -1849,10 +1963,10 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                     <button
                       type="button"
                       onClick={() => toggleKidsPlan(String(guest.id), false)}
-                      className={`rounded-xl px-4 py-2 text-xs font-black ${
+                      className={`rounded-2xl px-4 py-3 text-xs font-black transition-all ${
                         guest.isKidsPlanOpted === false
-                          ? 'bg-stone-900 text-white'
-                          : 'border border-stone-200 text-stone-700'
+                          ? 'bg-stone-900 text-white shadow-[0_12px_28px_rgba(28,25,23,0.18)]'
+                          : 'border border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
                       }`}
                     >
                       No
@@ -1862,11 +1976,11 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               ))}
             </div>
 
-            <div className="mt-6 flex justify-end gap-3">
+            <div className="mt-6 flex flex-col-reverse gap-3 border-t border-stone-200 pt-5 sm:flex-row sm:justify-end">
               <button
                 type="button"
                 onClick={() => setShowKidsModal(false)}
-                className="rounded-xl border border-stone-200 px-4 py-2 text-xs font-black text-stone-700"
+                className="rounded-2xl border border-stone-200 bg-white px-5 py-3 text-xs font-black text-stone-700 transition hover:bg-stone-50"
               >
                 Cancel
               </button>
@@ -1876,10 +1990,11 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                   setShowKidsModal(false);
                   submitGuestForm();
                 }}
-                className="rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white"
+                className="rounded-2xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)] transition hover:bg-[var(--theme-dark)]"
               >
                 Continue
               </button>
+            </div>
             </div>
           </div>
         </div>

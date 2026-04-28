@@ -160,6 +160,70 @@ const getPlanMaxPax = (plan: any): number => {
   return Number.isFinite(maxPax) && maxPax > 0 ? maxPax : 1;
 };
 
+const PLAN_FEATURE_KEYS = [
+  'planFeatures',
+  'plan_features',
+  'PlanFeatures',
+  'PlanFeature',
+  'featureList',
+  'feature_list',
+  'features',
+] as const;
+
+const parseFeatureCollection = (rawValue: any): any[] => {
+  let parsedValue = rawValue;
+
+  for (let attempt = 0; attempt < 2; attempt += 1) {
+    if (Array.isArray(parsedValue)) {
+      return parsedValue;
+    }
+
+    if (typeof parsedValue === 'string') {
+      const trimmedValue = parsedValue.trim();
+      if (!trimmedValue) return [];
+
+      try {
+        parsedValue = JSON.parse(trimmedValue);
+        continue;
+      } catch {
+        return [];
+      }
+    }
+
+    if (parsedValue && typeof parsedValue === 'object') {
+      if (Array.isArray(parsedValue.items)) {
+        parsedValue = parsedValue.items;
+        continue;
+      }
+
+      return Object.values(parsedValue);
+    }
+
+    return [];
+  }
+
+  if (Array.isArray(parsedValue)) {
+    return parsedValue;
+  }
+
+  if (parsedValue && typeof parsedValue === 'object') {
+    return Object.values(parsedValue);
+  }
+
+  return [];
+};
+
+const getRawPlanFeatures = (plan: any): any[] => {
+  for (const key of PLAN_FEATURE_KEYS) {
+    const parsedFeatures = parseFeatureCollection(plan?.[key]);
+    if (parsedFeatures.length > 0) {
+      return parsedFeatures;
+    }
+  }
+
+  return [];
+};
+
 const getPlanLabel = (normalizedPlan: Partial<Plan>) =>
   normalizedPlan.PlanTitle ||
   normalizedPlan.PlanName ||
@@ -225,6 +289,9 @@ const normalizePlan = (plan: any): Plan => {
   const normalizedDescription = getPlanDescription(plan);
   const normalizedFullDescription = getPlanFullDescription(plan, normalizedDescription);
   const primaryImage = getPrimaryPlanImage(plan);
+  const planPrice = Number(plan.PlanPrice || 0);
+  const offerPrice = Number(plan.OfferPrice || 0);
+  const effectivePrice = offerPrice > 0 ? offerPrice : planPrice;
 
   const normalizedPlan: Plan = {
     ...plan,
@@ -249,10 +316,10 @@ const normalizePlan = (plan: any): Plan => {
     longDescription: normalizeOptionalText(plan.longDescription || normalizedFullDescription),
     planColor: normalizeOptionalText(plan.planColor || DEFAULT_PLAN_COLOR),
     maxPax: getPlanMaxPax(plan),
-    PlanPrice: Number(plan.PlanPrice || 0),
-    OfferPrice: Number(plan.OfferPrice || 0),
-    discountedPrice: Number(plan.OfferPrice || 0),
-    finalPrice: Number(plan.PlanPrice || 0),
+    PlanPrice: planPrice,
+    OfferPrice: offerPrice,
+    discountedPrice: effectivePrice,
+    finalPrice: planPrice,
     isSoldOut: Boolean(plan.isSoldOut),
     availableRooms: Number(
       plan.availableRooms ?? plan.inventory?.availableRooms ?? plan.remainingInventory ?? 0
@@ -270,6 +337,14 @@ const normalizePlan = (plan: any): Plan => {
       type: icon.type || '',
       planID: icon.planID,
     })),
+    planFeatures: getRawPlanFeatures(plan)
+      .map((feature: any, index: number) => ({
+          id: String(feature?.id || `feature-${plan.planID || plan.PlanID || 'plan'}-${index}`),
+          label: normalizeOptionalText(feature?.label || feature?.Label || feature?.title || feature?.Title || ''),
+          value: normalizeOptionalText(feature?.value || feature?.Value || feature?.description || ''),
+          icon: normalizeOptionalText(feature?.icon || feature?.Icon || feature?.iconName || 'check'),
+        }))
+      .filter((feature: any) => feature?.label || feature?.value),
     images: Array.isArray(plan.images) ? plan.images : [],
   };
 

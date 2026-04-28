@@ -248,11 +248,15 @@ export const createEmptyGuest = (): Guest => ({
   addOns: {
     foodPass: false,
     adventurePass: false,
+    selectedAddons: [],
     extraStay: {
       enabled: false,
       days: 1,
       type: "PVI Dorms",
+      planId: '',
+      price: 0,
       startDate: new Date().toISOString().split("T")[0],
+      endDate: new Date().toISOString().split("T")[0],
     },
   },
   remark: "",

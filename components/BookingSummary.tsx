@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { BookingState, Guest, EventData } from '../types';
 import {
   CreditCard,
@@ -31,16 +31,137 @@ import {
   getPrimaryGuest,
 } from '../src/services/cleverTapBooking';
 
+declare global {
+  interface Window {
+    Razorpay?: new (options: Record<string, any>) => {
+      open: () => void;
+      on: (event: string, handler: (response: any) => void) => void;
+    };
+  }
+}
+
 interface BookingSummaryProps {
   bookingState: BookingState;
   setBookingState: React.Dispatch<React.SetStateAction<BookingState>>;
   event: EventData;
   ui: any;
-  onConfirm: (success: boolean, bookingId?: string | number) => void;
+  onConfirm: (
+    success: boolean,
+    bookingId?: string | number,
+    paymentDetails?: {
+      paymentId?: string;
+      razorpayPaymentId?: string;
+      razorpayOrderId?: string;
+      razorpaySignature?: string;
+      paymentSyncStatus?: 'synced' | 'pending' | 'failed';
+      paymentSyncMessage?: string;
+      backendPaymentStatus?: string;
+    }
+  ) => void;
   onBack: () => void;
 }
 
 const KIDS_PLAN_PRICE = 10000;
+const MAX_GUEST_AGE = 99;
+const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
+const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+const FRONTEND_RAZORPAY_TEST_KEY = 'rzp_test_dAUJkW0WtsN6N7';
+const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+
+const loadRazorpayCheckoutScript = (): Promise<void> => {
+  return new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') {
+      reject(new Error('Payment checkout is only available in the browser.'));
+      return;
+    }
+
+    if (window.Razorpay) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_CHECKOUT_SCRIPT}"]`
+    ) as HTMLScriptElement | null;
+
+    const handleScriptLoad = () => {
+      if (window.Razorpay) {
+        resolve();
+        return;
+      }
+
+      reject(new Error('Razorpay checkout did not load correctly.'));
+    };
+
+    const handleScriptError = () => {
+      reject(
+        new Error(
+          'We could not load the Razorpay checkout. Please check your internet connection and try again.'
+        )
+      );
+    };
+
+    if (existingScript) {
+      existingScript.addEventListener('load', handleScriptLoad, { once: true });
+      existingScript.addEventListener('error', handleScriptError, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = RAZORPAY_CHECKOUT_SCRIPT;
+    script.async = true;
+    script.onload = handleScriptLoad;
+    script.onerror = handleScriptError;
+    document.body.appendChild(script);
+  });
+};
+
+const getPaymentResponseSources = (response: any): any[] => {
+  return [
+    response,
+    response?.data,
+    response?.payment,
+    response?.data?.payment,
+    response?.razorpay,
+    response?.data?.razorpay,
+    response?.checkout,
+    response?.data?.checkout,
+    response?.order,
+    response?.data?.order,
+    response?.payment?.order,
+    response?.data?.payment?.order,
+    response?.payment?.razorpay,
+    response?.data?.payment?.razorpay,
+  ].filter(Boolean);
+};
+
+const getSourceValue = (sources: any[], keys: string[]) => {
+  for (const source of sources) {
+    for (const key of keys) {
+      const value = source?.[key];
+      if (value !== undefined && value !== null && value !== '') {
+        return value;
+      }
+    }
+  }
+
+  return undefined;
+};
+
+const getStringSourceValue = (sources: any[], keys: string[]): string => {
+  const value = getSourceValue(sources, keys);
+  return value === undefined || value === null ? '' : String(value).trim();
+};
+
+const getNumberSourceValue = (
+  sources: any[],
+  keys: string[],
+  fallback = 0
+): number => {
+  const value = getSourceValue(sources, keys);
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : fallback;
+};
 
 const getSafeId = (obj: any, keys: string[]): number => {
   for (const key of keys) {
@@ -70,6 +191,147 @@ const getCouponId = (coupon: any): string => {
 
 const getCouponCode = (coupon: any): string => {
   return String(coupon?.code ?? coupon?.couponCode ?? '');
+};
+
+const getCouponKey = (coupon: any): string => {
+  return getCouponId(coupon) || getCouponCode(coupon).toUpperCase();
+};
+
+const parseCouponNumber = (value: any): number | null => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : null;
+};
+
+const getCouponGuestRange = (
+  coupon: any
+): { minGuests: number; maxGuests: number } | null => {
+  const minGuests = parseCouponNumber(
+    coupon?.minGuestCount ?? coupon?.min_guest_count
+  );
+  const maxGuests = parseCouponNumber(
+    coupon?.maxGuestCount ?? coupon?.max_guest_count
+  );
+
+  if (minGuests === null || maxGuests === null) {
+    return null;
+  }
+
+  return {
+    minGuests: Math.min(minGuests, maxGuests),
+    maxGuests: Math.max(minGuests, maxGuests),
+  };
+};
+
+const getCouponGuestThreshold = (coupon: any): number => {
+  const guestRange = getCouponGuestRange(coupon);
+
+  if (guestRange) {
+    return guestRange.minGuests;
+  }
+
+  const candidateKeys = [
+    'minimumGuests',
+    'minGuests',
+    'minGroupSize',
+    'groupSize',
+    'eligibleGuestCount',
+    'requiredGuestCount',
+    'minimumGuestCount',
+    'groupGuestCount',
+  ];
+
+  for (const key of candidateKeys) {
+    const parsed = Number(coupon?.[key]);
+    if (Number.isFinite(parsed) && parsed > 0) {
+      return parsed;
+    }
+  }
+
+  return 0;
+};
+
+const isCouponEligibleForGuestCount = (
+  coupon: any,
+  guestCount: number
+): boolean => {
+  const guestRange = getCouponGuestRange(coupon);
+
+  if (guestRange) {
+    return (
+      guestCount >= guestRange.minGuests && guestCount <= guestRange.maxGuests
+    );
+  }
+
+  const minGuests = getCouponGuestThreshold(coupon);
+  return minGuests <= 0 || guestCount >= minGuests;
+};
+
+const isCouponEligibleForGuests = (
+  coupon: any,
+  guests: Array<Guest | any>
+): boolean => {
+  return isCouponEligibleForGuestCount(coupon, guests.length);
+};
+
+const getCouponGuestRequirementMessage = (
+  coupon: any,
+  guestCount: number
+): string => {
+  const guestRange = getCouponGuestRange(coupon);
+
+  if (guestRange) {
+    if (guestCount >= guestRange.minGuests && guestCount <= guestRange.maxGuests) {
+      return '';
+    }
+
+    return `This coupon is available for ${guestRange.minGuests} to ${guestRange.maxGuests} guests.`;
+  }
+
+  const minGuests = getCouponGuestThreshold(coupon);
+
+  if (minGuests <= 0 || guestCount >= minGuests) {
+    return '';
+  }
+
+  return `This coupon becomes available from ${minGuests} guests onwards.`;
+};
+
+const getCouponEligibilityMessage = (
+  coupon: any,
+  guests: Array<Guest | any>
+): string => {
+  return getCouponGuestRequirementMessage(coupon, guests.length);
+};
+
+const getCouponSortValue = (coupon: any): number => {
+  const parsed = Number(coupon?.value ?? coupon?.discountValue ?? 0);
+  return Number.isFinite(parsed) ? parsed : 0;
+};
+
+const areCouponListsEquivalent = (prev: any[], next: any[]): boolean => {
+  if (prev === next) return true;
+  if (prev.length !== next.length) return false;
+
+  return prev.every((coupon, index) => {
+    const nextCoupon = next[index];
+    const prevRange = getCouponGuestRange(coupon);
+    const nextRange = getCouponGuestRange(nextCoupon);
+
+    return (
+      getCouponKey(coupon) === getCouponKey(nextCoupon) &&
+      getCouponCode(coupon) === getCouponCode(nextCoupon) &&
+      getCouponGuestThreshold(coupon) === getCouponGuestThreshold(nextCoupon) &&
+      getCouponSortValue(coupon) === getCouponSortValue(nextCoupon) &&
+      normalizeBooleanFlag(
+        coupon?.requiresIdUpload ?? coupon?.requires_id_upload
+      ) ===
+        normalizeBooleanFlag(
+          nextCoupon?.requiresIdUpload ?? nextCoupon?.requires_id_upload
+        ) &&
+      (prevRange?.minGuests ?? null) === (nextRange?.minGuests ?? null) &&
+      (prevRange?.maxGuests ?? null) === (nextRange?.maxGuests ?? null)
+    );
+  });
 };
 
 const isPlanSoldOut = (plan: any): boolean => {
@@ -164,6 +426,16 @@ const getActionableBookingErrorMessage = (
     return rawMessage || 'Please review the guest details and correct any missing or invalid fields.';
   }
 
+  if (
+    normalizedMessage.includes('razorpay') &&
+    (normalizedMessage.includes('not configured') ||
+      normalizedMessage.includes('key_id') ||
+      normalizedMessage.includes('key secret') ||
+      normalizedMessage.includes('key_secret'))
+  ) {
+    return 'Razorpay is not configured on the backend. Set RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET in the backend environment, then restart the backend service.';
+  }
+
   if (status >= 500) {
     return 'We could not complete your booking right now. Please try again in a moment or contact support if the issue continues.';
   }
@@ -189,6 +461,13 @@ const getIsoDateString = (value: any, label: string): string => {
   }
 
   return parsed.toISOString();
+};
+
+const getPaymentReferenceValue = (
+  paymentResult: any,
+  keys: string[]
+): string => {
+  return getStringSourceValue([paymentResult], keys);
 };
 
 const BookingSummary: React.FC<BookingSummaryProps> = ({
@@ -228,11 +507,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   const [availableCoupons, setAvailableCoupons] = useState<any[]>([]);
   const [appliedCoupon, setAppliedCoupon] = useState<any | null>(null);
+  const [dismissedAutoCouponKey, setDismissedAutoCouponKey] = useState('');
 
   const [showCouponIdModal, setShowCouponIdModal] = useState(false);
   const [pendingCoupon, setPendingCoupon] = useState<any | null>(null);
 
   const guests = bookingState?.guests || [];
+  const guestCount = guests.length;
   const couponIdProof = (bookingState as any)?.couponIdProof || null;
   const couponIdProofUrl = (bookingState as any)?.couponIdProofUrl || '';
 
@@ -263,80 +544,242 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     plan_id: selectedPlanId,
     plan_name: selectedPlanName,
   });
+  const selectedPlan = useMemo(
+    () => (bookingState as any)?.selectedPlan || (bookingState as any)?.plan || {},
+    [bookingState]
+  );
+
+  const existingAtgPanFileUrl =
+    String(
+      (bookingState as any)?.atgDetails?.panFileUrl ||
+        (bookingState as any)?.atgDetails?.pan_file_url ||
+        (bookingState as any)?.panFileUrl ||
+        (bookingState as any)?.taxInfo?.panFile ||
+        ''
+    ).trim();
+  const existingAtgAadharFileUrl =
+    String(
+      (bookingState as any)?.atgDetails?.aadharFileUrl ||
+        (bookingState as any)?.atgDetails?.aadhar_file_url ||
+        (bookingState as any)?.aadharFileUrl ||
+        (bookingState as any)?.taxInfo?.aadharFile ||
+        ''
+    ).trim();
 
   useEffect(() => {
-    const fetchCoupons = async () => {
-      try {
-        if (!selectedEventId || !selectedPlanId) {
-          setAvailableCoupons([]);
-          return;
-        }
+    const existingPan =
+      String(
+        (bookingState as any)?.atgDetails?.panNumber ||
+          (bookingState as any)?.panNumber ||
+          (bookingState as any)?.taxInfo?.panNumber ||
+          ''
+      ).trim();
+    const existingAadhar =
+      String(
+        (bookingState as any)?.atgDetails?.aadharNumber ||
+          (bookingState as any)?.aadharNumber ||
+          (bookingState as any)?.taxInfo?.aadharNumber ||
+          ''
+      ).trim();
+    const hasAtgRequest =
+      Boolean((bookingState as any)?.atgDetails) ||
+      normalizeBooleanFlag((bookingState as any)?.is80GRequired) ||
+      Boolean(existingPan) ||
+      Boolean(existingAadhar) ||
+      Boolean(existingAtgPanFileUrl) ||
+      Boolean(existingAtgAadharFileUrl);
 
-        const res = await fetch(
-          `https://bookingapi.thriive.in/coupons/applicable?eventId=${selectedEventId}&planId=${selectedPlanId}`
-        );
-
-        if (!res.ok) {
-          setAvailableCoupons([]);
-          return;
-        }
-
-        const data = await res.json();
-        const couponList = Array.isArray(data) ? data : [];
-        setAvailableCoupons(couponList);
-
-        trackCleverTapEvent(
-          'coupon_list_loaded',
-          {
-            ...baseTrackingProps(),
-            coupons_count: couponList.length,
-          },
-          {
-            dedupeKey: `coupon_list_loaded:${selectedEventId}:${selectedPlanId}:${couponList.length}`,
-          }
-        );
-
-        const existingCode = String(
-          (bookingState as any)?.couponCode || ''
-        ).trim();
-
-        if (existingCode) {
-          const matched = couponList.find(
-            (coupon: any) =>
-              getCouponCode(coupon).toUpperCase() === existingCode.toUpperCase()
-          );
-
-          if (matched) {
-            setAppliedCoupon((prev: any) => {
-              if (
-                prev &&
-                getCouponCode(prev).toUpperCase() === existingCode.toUpperCase()
-              ) {
-                return prev;
-              }
-              return matched;
-            });
-          } else {
-            setAppliedCoupon(null);
-            setBookingState((prev: any) => ({
-              ...prev,
-              couponCode: '',
-              appliedDiscountId: null,
-              couponIdProof: null,
-              couponIdProofUrl: '',
-            }));
-          }
-        } else {
-          setAppliedCoupon(null);
-        }
-      } catch (err) {
-        console.error('Coupon fetch error:', err);
-        setAvailableCoupons([]);
+    setIs80GRequired(hasAtgRequest);
+    setAtgData((prev) => {
+      if (prev.pan === existingPan && prev.aadhar === existingAadhar) {
+        return prev;
       }
-    };
 
-    fetchCoupons();
-  }, [selectedEventId, selectedPlanId, (bookingState as any)?.couponCode]);
+      return {
+        pan: existingPan,
+        aadhar: existingAadhar,
+      };
+    });
+  }, [
+    bookingState,
+    existingAtgPanFileUrl,
+    existingAtgAadharFileUrl,
+  ]);
+
+  const applyCoupon = useCallback((coupon: any) => {
+    const nextCouponCode = getCouponCode(coupon);
+    const nextDiscountId = getCouponId(coupon) || null;
+
+    setAppliedCoupon((prev: any) => {
+      if (prev && getCouponKey(prev) === getCouponKey(coupon)) {
+        return prev;
+      }
+
+      return coupon;
+    });
+
+    setBookingState((prev: any) => {
+      if (
+        prev?.couponCode === nextCouponCode &&
+        prev?.appliedDiscountId === nextDiscountId
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        couponCode: nextCouponCode,
+        appliedDiscountId: nextDiscountId,
+      };
+    });
+  }, [setBookingState]);
+
+  const clearAppliedCoupon = useCallback(() => {
+    setAppliedCoupon(null);
+    setPendingCoupon(null);
+    setShowCouponIdModal(false);
+
+    setBookingState((prev: any) => {
+      if (
+        prev?.couponCode === '' &&
+        prev?.appliedDiscountId == null &&
+        prev?.couponIdProof == null &&
+        prev?.couponIdProofUrl === ''
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        couponCode: '',
+        appliedDiscountId: null,
+        couponIdProof: null,
+        couponIdProofUrl: '',
+      };
+    });
+  }, [setBookingState]);
+
+ useEffect(() => {
+  const fetchCoupons = async () => {
+    try {
+      if (!selectedEventId || !selectedPlanId) {
+        setAvailableCoupons([]);
+        return;
+      }
+
+      const query = new URLSearchParams({
+        eventId: String(selectedEventId),
+        planId: String(selectedPlanId),
+      });
+
+      const res = await fetch(
+        `https://bookingapi.thriive.in/coupons/applicable?${query.toString()}`
+      );
+
+      if (!res.ok) {
+        setAvailableCoupons([]);
+        return;
+      }
+
+      const data = await res.json();
+      const couponList = Array.isArray(data) ? data : [];
+
+      setAvailableCoupons((prev) =>
+        areCouponListsEquivalent(prev, couponList) ? prev : couponList
+      );
+    } catch (err) {
+      console.error('Coupon fetch error:', err);
+      setAvailableCoupons((prev) => (prev.length > 0 ? [] : prev));
+    }
+  };
+
+  fetchCoupons();
+}, [selectedEventId, selectedPlanId]);
+
+  const bestEligibleAutoCoupon = useMemo(() => {
+    return [...availableCoupons]
+      .filter((coupon) => {
+        const guestRange = getCouponGuestRange(coupon);
+        const minGuests = getCouponGuestThreshold(coupon);
+        const requiresId = normalizeBooleanFlag(
+          coupon?.requiresIdUpload ?? coupon?.requires_id_upload
+        );
+
+        if (!guestRange && minGuests <= 0) return false;
+        if (!isCouponEligibleForGuests(coupon, guests)) return false;
+        if (requiresId && !couponIdProof && !couponIdProofUrl) return false;
+
+        return true;
+      })
+      .sort((a, b) => {
+        const thresholdDiff =
+          getCouponGuestThreshold(b) - getCouponGuestThreshold(a);
+
+        if (thresholdDiff !== 0) {
+          return thresholdDiff;
+        }
+
+        return getCouponSortValue(b) - getCouponSortValue(a);
+      })[0] || null;
+  }, [availableCoupons, guests, guestCount, couponIdProof, couponIdProofUrl]);
+
+  useEffect(() => {
+    trackCleverTapEvent(
+      'coupon_list_loaded',
+      {
+        ...baseTrackingProps(),
+        coupons_count: availableCoupons.length,
+      },
+      {
+        dedupeKey: `coupon_list_loaded:${selectedEventId}:${selectedPlanId}:${availableCoupons.length}`,
+      }
+    );
+  }, [availableCoupons.length, selectedEventId, selectedPlanId]);
+
+  useEffect(() => {
+    if (availableCoupons.length === 0) return;
+
+    const currentCoupon = appliedCoupon
+      ? availableCoupons.find(
+          (coupon) => getCouponKey(coupon) === getCouponKey(appliedCoupon)
+        ) || appliedCoupon
+      : null;
+
+    if (currentCoupon && !isCouponEligibleForGuests(currentCoupon, guests)) {
+      const nextAutoCoupon =
+        bestEligibleAutoCoupon &&
+        getCouponKey(bestEligibleAutoCoupon) !== dismissedAutoCouponKey
+          ? bestEligibleAutoCoupon
+          : null;
+
+      if (nextAutoCoupon) {
+        if (getCouponKey(currentCoupon) !== getCouponKey(nextAutoCoupon)) {
+          applyCoupon(nextAutoCoupon);
+        }
+        setCustomCodeError('');
+      } else {
+        clearAppliedCoupon();
+        setCustomCodeError(getCouponEligibilityMessage(currentCoupon, guests));
+      }
+
+      return;
+    }
+
+    if (!currentCoupon && bestEligibleAutoCoupon) {
+      if (getCouponKey(bestEligibleAutoCoupon) !== dismissedAutoCouponKey) {
+        applyCoupon(bestEligibleAutoCoupon);
+        setCustomCodeError('');
+      }
+    }
+  }, [
+    availableCoupons,
+    appliedCoupon,
+    guests,
+    bestEligibleAutoCoupon,
+    dismissedAutoCouponKey,
+    applyCoupon,
+    clearAppliedCoupon,
+  ]);
 
   useEffect(() => {
     trackCleverTapEvent(
@@ -369,20 +812,27 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         appliedCoupon?.only_student_or_service
     );
   }, [appliedCoupon]);
-  const getCanonicalPlanPrice = (bookingState: any) => {
-  const selectedPlan = bookingState?.selectedPlan || bookingState?.plan || {};
+  const getCanonicalPlanPrice = (plan: any) => {
+    const offerPrice = Number(plan?.OfferPrice || 0);
+    const planPrice = Number(plan?.PlanPrice || plan?.finalPrice || 0);
+    return Math.max(0, offerPrice > 0 ? offerPrice : planPrice);
+  };
 
-  return Math.max(0, Number(selectedPlan?.OfferPrice || 0));
-};
- const defaultPlanPrice = useMemo(() => {
-  return getCanonicalPlanPrice(bookingState);
-}, [bookingState]);
+  const defaultPlanPrice = useMemo(() => {
+    return getCanonicalPlanPrice(selectedPlan);
+  }, [selectedPlan]);
+
   const selectedPlanTitle =
-    (bookingState as any)?.plan?.PlanTitle ||
-    (bookingState as any)?.plan?.PlanName ||
-    (bookingState as any)?.selectedPlan?.PlanTitle ||
-    (bookingState as any)?.selectedPlan?.PlanName ||
-    'Standard Plan';
+    selectedPlan?.PlanTitle || selectedPlan?.PlanName || 'Standard Plan';
+  const selectedPlanSubtitle = String(
+    selectedPlan?.PlanSubtitle || selectedPlan?.stayRoomType || ''
+  ).trim();
+  const selectedPlanSupportText =
+    selectedPlanSubtitle && selectedPlanSubtitle !== selectedPlanTitle
+      ? selectedPlanSubtitle
+      : '';
+  const selectedPlanGuestLabel =
+    guestCount === 1 ? '1 Guest Selected' : `${guestCount} Guests Selected`;
 
   const getGuestBasePrice = (guest: Guest | any, planPrice: number) => {
     const age = Number(guest?.age || 0);
@@ -531,18 +981,37 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   ]);
 
   useEffect(() => {
-    setBookingState((prev: any) => ({
-      ...prev,
-      guestsCount: guests.length,
-      grossAmount: pricingBreakdown.grossAmount,
-      discountAmount: pricingBreakdown.discountAmount,
-      totalAmount: pricingBreakdown.totalAmount,
-      addOnsAmount: pricingBreakdown.addonsTotal,
-      stayAmount: pricingBreakdown.stayTotal,
-      finalAmount: pricingBreakdown.totalAmount,
-      couponCode: appliedCoupon ? getCouponCode(appliedCoupon) : '',
-      appliedDiscountId: appliedCoupon ? getCouponId(appliedCoupon) : null,
-    }));
+    setBookingState((prev: any) => {
+      const nextCouponCode = appliedCoupon ? getCouponCode(appliedCoupon) : '';
+      const nextDiscountId = appliedCoupon ? getCouponId(appliedCoupon) : null;
+
+      if (
+        prev?.guestsCount === guests.length &&
+        prev?.grossAmount === pricingBreakdown.grossAmount &&
+        prev?.discountAmount === pricingBreakdown.discountAmount &&
+        prev?.totalAmount === pricingBreakdown.totalAmount &&
+        prev?.addOnsAmount === pricingBreakdown.addonsTotal &&
+        prev?.stayAmount === pricingBreakdown.stayTotal &&
+        prev?.finalAmount === pricingBreakdown.totalAmount &&
+        prev?.couponCode === nextCouponCode &&
+        prev?.appliedDiscountId === nextDiscountId
+      ) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        guestsCount: guests.length,
+        grossAmount: pricingBreakdown.grossAmount,
+        discountAmount: pricingBreakdown.discountAmount,
+        totalAmount: pricingBreakdown.totalAmount,
+        addOnsAmount: pricingBreakdown.addonsTotal,
+        stayAmount: pricingBreakdown.stayTotal,
+        finalAmount: pricingBreakdown.totalAmount,
+        couponCode: nextCouponCode,
+        appliedDiscountId: nextDiscountId,
+      };
+    });
   }, [
     guests.length,
     pricingBreakdown.grossAmount,
@@ -552,7 +1021,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     pricingBreakdown.stayTotal,
     appliedCoupon,
     setBookingState,
-  ], [is80GRequired, setBookingState]);
+  ]);
 
   const handleCheckCustomCode = async () => {
     if (!customCodeInput.trim()) return;
@@ -572,8 +1041,13 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         throw new Error('Invalid event or plan');
       }
 
+      const query = new URLSearchParams({
+        code,
+        eventId: String(selectedEventId),
+        planId: String(selectedPlanId),
+      });
       const res = await fetch(
-        `https://bookingapi.thriive.in/coupons/validate?code=${code}&eventId=${selectedEventId}&planId=${selectedPlanId}`
+        `https://bookingapi.thriive.in/coupons/validate?${query.toString()}`
       );
 
       const data = await res.json().catch(() => null);
@@ -584,9 +1058,16 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
       const validatedCoupon = data;
 
+      if (!isCouponEligibleForGuests(validatedCoupon, guests)) {
+        throw new Error(
+          getCouponEligibilityMessage(validatedCoupon, guests) ||
+            'This coupon is not applicable for the current guests.'
+        );
+      }
+
       setAvailableCoupons((prev) => {
         const exists = prev.find(
-          (coupon: any) => getCouponId(coupon) === getCouponId(validatedCoupon)
+          (coupon: any) => getCouponKey(coupon) === getCouponKey(validatedCoupon)
         );
         return exists ? prev : [validatedCoupon, ...prev];
       });
@@ -625,6 +1106,12 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const handleApplyCouponClick = (coupon: any) => {
     const currentCouponId = getCouponId(appliedCoupon);
     const nextCouponId = getCouponId(coupon);
+    const guestEligibilityMessage = getCouponEligibilityMessage(coupon, guests);
+
+    if (guestEligibilityMessage) {
+      setCustomCodeError(guestEligibilityMessage);
+      return;
+    }
 
     const isSameCoupon =
       currentCouponId !== '' &&
@@ -644,20 +1131,14 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     });
 
     if (isSameCoupon) {
-      setAppliedCoupon(null);
-      setPendingCoupon(null);
-      setShowCouponIdModal(false);
-
-      setBookingState((prev: any) => ({
-        ...prev,
-        couponCode: '',
-        appliedDiscountId: null,
-        couponIdProof: null,
-        couponIdProofUrl: '',
-      }));
+      setDismissedAutoCouponKey(getCouponKey(coupon));
+      clearAppliedCoupon();
 
       return;
     }
+
+    setDismissedAutoCouponKey('');
+    setCustomCodeError('');
 
     const requiresId = normalizeBooleanFlag(
       coupon?.requiresIdUpload ?? coupon?.requires_id_upload
@@ -680,13 +1161,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       return;
     }
 
-    setAppliedCoupon(coupon);
-
-    setBookingState((prev: any) => ({
-      ...prev,
-      couponCode: getCouponCode(coupon),
-      appliedDiscountId: getCouponId(coupon) || null,
-    }));
+    applyCoupon(coupon);
 
     trackCleverTapEvent('coupon_applied', {
       ...baseTrackingProps(),
@@ -706,13 +1181,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     if (!uploadedFile && !uploadedUrl) return;
     if (!pendingCoupon) return;
 
-    setAppliedCoupon(pendingCoupon);
-
-    setBookingState((prev: any) => ({
-      ...prev,
-      couponCode: getCouponCode(pendingCoupon),
-      appliedDiscountId: getCouponId(pendingCoupon) || null,
-    }));
+    setDismissedAutoCouponKey('');
+    applyCoupon(pendingCoupon);
 
     trackCleverTapEvent('coupon_applied', {
       ...baseTrackingProps(),
@@ -829,6 +1299,344 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     return items;
   };
 
+  const resolveBookingId = useCallback((response: any): string | number | undefined => {
+    return (
+      response?.bookingId ??
+      response?.data?.bookingId ??
+      response?.id ??
+      response?.data?.id ??
+      response?.booking_id ??
+      response?.data?.booking_id ??
+      response?.booking?.id ??
+      response?.data?.booking?.id
+    );
+  }, []);
+
+  const syncSuccessfulPayment = useCallback(
+    async (
+      response: any,
+      bookingId: string | number,
+      paymentResult: any
+    ): Promise<{ synced: boolean; message: string }> => {
+      const paymentSources = getPaymentResponseSources(response);
+      const verifyUrl = getStringSourceValue(paymentSources, [
+        'verifyUrl',
+        'verify_url',
+        'verificationUrl',
+        'verification_url',
+      ]);
+
+      const resolvedPaymentId = getPaymentReferenceValue(paymentResult, [
+        'razorpay_payment_id',
+        'payment_id',
+        'paymentId',
+      ]);
+      const resolvedOrderId = getPaymentReferenceValue(paymentResult, [
+        'razorpay_order_id',
+        'order_id',
+        'orderId',
+      ]);
+      const resolvedSignature = getPaymentReferenceValue(paymentResult, [
+        'razorpay_signature',
+        'signature',
+      ]);
+
+      const verificationPayload = {
+        razorpay_order_id: resolvedOrderId,
+        razorpay_payment_id: resolvedPaymentId,
+        razorpay_signature: resolvedSignature,
+        razorpayOrderId: resolvedOrderId,
+        razorpayPaymentId: resolvedPaymentId,
+        razorpaySignature: resolvedSignature,
+      };
+
+      const confirmationPayload = {
+        bookingId: String(bookingId),
+        paymentId: resolvedPaymentId,
+        razorpayPaymentId: resolvedPaymentId,
+        razorpayOrderId: resolvedOrderId,
+        razorpaySignature: resolvedSignature,
+        paymentStatus: 'paid',
+        status: 'Confirmed',
+        bookingConfirmationStatus: 'Confirmed',
+      };
+
+      const requestCandidates = [
+        verifyUrl
+          ? {
+              url: verifyUrl,
+              method: 'POST',
+              body: verificationPayload,
+            }
+          : null,
+        {
+          url: `${BOOKING_API_BASE_URL}/${bookingId}/payment`,
+          method: 'POST',
+          body: confirmationPayload,
+        },
+        {
+          url: `${BOOKING_API_BASE_URL}/${bookingId}/verify-payment`,
+          method: 'POST',
+          body: verificationPayload,
+        },
+      ].filter(Boolean) as Array<{ url: string; method: string; body: any }>;
+
+      let lastSyncMessage = '';
+
+      for (const candidate of requestCandidates) {
+        try {
+          const syncResponse = await fetch(candidate.url, {
+            method: candidate.method,
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(candidate.body),
+          });
+
+          if (syncResponse.ok) {
+            return {
+              synced: true,
+              message: '',
+            };
+          }
+
+          const responseText = await syncResponse.text();
+          const normalizedText = String(responseText || '').toLowerCase();
+
+          if (
+            syncResponse.status === 404 ||
+            syncResponse.status === 405 ||
+            normalizedText.includes('cannot post') ||
+            normalizedText.includes('cannot patch') ||
+            normalizedText.includes('cannot put')
+          ) {
+            continue;
+          }
+
+          lastSyncMessage = getActionableBookingErrorMessage(
+            responseText,
+            syncResponse.status
+          );
+        } catch (error: any) {
+          lastSyncMessage =
+            error?.message ||
+            'We could not sync the Razorpay payment reference back to the booking.';
+        }
+      }
+
+      return {
+        synced: false,
+        message:
+          lastSyncMessage ||
+          'Payment succeeded, but the backend did not save the payment reference automatically.',
+      };
+    },
+    []
+  );
+
+  const launchRazorpayCheckout = useCallback(
+    async (
+      response: any,
+      bookingId: string | number | undefined,
+      fallbackConfig?: {
+        key?: string;
+        amount?: number;
+        currency?: string;
+        name?: string;
+        description?: string;
+        prefill?: {
+          name?: string;
+          email?: string;
+          contact?: string;
+        };
+        notes?: Record<string, string>;
+      }
+    ) => {
+      const paymentSources = getPaymentResponseSources(response);
+      const paymentLink = getStringSourceValue(paymentSources, [
+        'short_url',
+        'shortUrl',
+        'paymentLink',
+        'payment_link',
+        'checkoutUrl',
+        'checkout_url',
+        'redirectUrl',
+        'redirect_url',
+      ]);
+
+      if (paymentLink) {
+        window.location.assign(paymentLink);
+        return { redirected: true };
+      }
+
+      const orderSources = [
+        response?.order,
+        response?.data?.order,
+        response?.payment?.order,
+        response?.data?.payment?.order,
+      ].filter(Boolean);
+
+      const razorpayKey =
+        getStringSourceValue(paymentSources, [
+          'key',
+          'keyId',
+          'key_id',
+          'razorpayKey',
+          'razorpay_key',
+          'razorpayKeyId',
+          'razorpay_key_id',
+        ]) ||
+        String(fallbackConfig?.key || '').trim();
+
+      const razorpayOrderId =
+        getStringSourceValue(paymentSources, [
+          'orderId',
+          'order_id',
+          'razorpayOrderId',
+          'razorpay_order_id',
+        ]) || getStringSourceValue(orderSources, ['id']);
+
+      if (!razorpayOrderId) {
+        throw new Error(
+          'The backend did not return a Razorpay order id for this payment. Web checkout needs an order_id or payment link from /bookings before it can open.'
+        );
+      }
+
+      if (!razorpayKey) {
+        throw new Error(
+          'Razorpay checkout details are missing. Please verify the payment configuration.'
+        );
+      }
+
+      await loadRazorpayCheckoutScript();
+
+      const RazorpayCheckout = window.Razorpay;
+
+      if (!RazorpayCheckout) {
+        throw new Error('Razorpay checkout is unavailable right now.');
+      }
+
+      const amount = getNumberSourceValue(
+        [...paymentSources, ...orderSources],
+        ['amount'],
+        Number(fallbackConfig?.amount ?? Math.round(pricingBreakdown.totalAmount * 100))
+      );
+
+      const currency =
+        getStringSourceValue([...paymentSources, ...orderSources], ['currency']) ||
+        String(fallbackConfig?.currency || '').trim() ||
+        'INR';
+
+      const firstGuest = (guests[0] || {}) as any;
+      const eventTitle =
+        String(
+          fallbackConfig?.name ||
+            (event as any)?.title ||
+            (event as any)?.EventName ||
+            'Event'
+        ).trim();
+      const planTitle = String(
+        selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title || 'Selected Plan'
+      ).trim();
+      const paymentDescription = String(
+        fallbackConfig?.description || `${planTitle} booking`
+      ).trim();
+      const checkoutImage =
+        /^https?:\/\//i.test(String(eventBanner || '').trim()) &&
+        !String(eventBanner || '').toLowerCase().includes('localhost')
+          ? String(eventBanner).trim()
+          : undefined;
+
+      const notes = {
+        booking_id: bookingId ? String(bookingId) : '',
+        event_id: selectedEventId ? String(selectedEventId) : '',
+        plan_id: selectedPlanId ? String(selectedPlanId) : '',
+        ...(fallbackConfig?.notes || {}),
+      };
+
+      const paymentResult = await new Promise<any>((resolve, reject) => {
+        const razorpayOptions: Record<string, any> = {
+          key: razorpayKey,
+          amount,
+          currency,
+          name: eventTitle,
+          description: paymentDescription,
+          prefill: {
+            name: String(
+              fallbackConfig?.prefill?.name || firstGuest?.name || ''
+            ).trim(),
+            email: String(
+              fallbackConfig?.prefill?.email || firstGuest?.email || ''
+            ).trim(),
+            contact: String(
+              fallbackConfig?.prefill?.contact ||
+                firstGuest?.phone ||
+                firstGuest?.phoneNumber ||
+                ''
+            ).trim(),
+          },
+          notes,
+          theme: {
+            color: '#0f766e',
+          },
+          modal: {
+            ondismiss: () => {
+              reject(new Error('Payment was cancelled before completion.'));
+            },
+          },
+          handler: (checkoutResponse: any) => {
+            resolve(checkoutResponse);
+          },
+        };
+
+        if (checkoutImage) {
+          razorpayOptions.image = checkoutImage;
+        }
+
+        if (razorpayOrderId) {
+          razorpayOptions.order_id = razorpayOrderId;
+        }
+
+        const razorpay = new RazorpayCheckout(razorpayOptions);
+
+        razorpay.on('payment.failed', (paymentFailure: any) => {
+          const failureReason =
+            paymentFailure?.error?.description ||
+            paymentFailure?.error?.reason ||
+            paymentFailure?.error?.step ||
+            'Payment failed. Please try again.';
+          reject(new Error(String(failureReason)));
+        });
+
+        razorpay.open();
+      });
+
+      const paymentSyncResult = bookingId
+        ? await syncSuccessfulPayment(response, bookingId, paymentResult)
+        : {
+            synced: false,
+            message:
+              'Payment succeeded, but the booking reference was missing while saving the payment details.',
+          };
+
+      return {
+        redirected: false,
+        paymentResult,
+        paymentSyncResult,
+      };
+    },
+    [
+      event,
+      eventBanner,
+      guests,
+      pricingBreakdown.totalAmount,
+      selectedEventId,
+      selectedPlan,
+      selectedPlanId,
+      syncSuccessfulPayment,
+    ]
+  );
+
 const handlePayment = async () => {
   setIsProcessing(true);
   setCouponError('');
@@ -861,12 +1669,30 @@ const handlePayment = async () => {
     }));
 
     for (const [index, g] of guestsPayload.entries()) {
-      if (!g.name) throw new Error(`Guest ${index + 1}: name is required`);
-      if (!g.email) throw new Error(`Guest ${index + 1}: email is required`);
-      if (!g.phoneNumber) throw new Error(`Guest ${index + 1}: phone number is required`);
+      const isPrimaryGuest = index === 0;
+      const trimmedName = String(g.name || '').trim();
+      const nameLetterCount = trimmedName.replace(/[^A-Za-z]/g, '').length;
+
+      if (!trimmedName) throw new Error(`Guest ${index + 1}: name is required`);
+      if (
+        !NAME_ALLOWED_CHARACTERS_REGEX.test(trimmedName) ||
+        nameLetterCount < 2
+      ) {
+        throw new Error(`Guest ${index + 1}: name is invalid`);
+      }
       if (!g.gender) throw new Error(`Guest ${index + 1}: gender is required`);
-      if (!Number.isFinite(g.age) || g.age < 1 || g.age > 120) {
+      if (!Number.isFinite(g.age) || g.age < 1 || g.age > MAX_GUEST_AGE) {
         throw new Error(`Guest ${index + 1}: invalid age`);
+      }
+
+      if (isPrimaryGuest) {
+        if (!g.email) throw new Error(`Guest ${index + 1}: email is required`);
+        if (!g.phoneNumber) {
+          throw new Error(`Guest ${index + 1}: phone number is required`);
+        }
+        if (!g.country) throw new Error(`Guest ${index + 1}: country is required`);
+        if (!g.state) throw new Error(`Guest ${index + 1}: state is required`);
+        if (!g.city) throw new Error(`Guest ${index + 1}: city is required`);
       }
 
       if ('EventID' in (g as any) || 'EventName' in (g as any) || 'banner' in (g as any)) {
@@ -929,7 +1755,6 @@ const handlePayment = async () => {
       stayAmount: Math.round(pricingBreakdown.stayTotal),
       couponCode: appliedCoupon ? getCouponCode(appliedCoupon) : null,
       appliedDiscountId: appliedCoupon ? getCouponId(appliedCoupon) : null,
-      paymentId: 'MOCK_PAY_' + Date.now(),
       isAtgRequested: is80GRequired ? 1 : 0,
       panNumber: atgData.pan || '',
       aadharNumber: atgData.aadhar || '',
@@ -952,37 +1777,66 @@ const handlePayment = async () => {
     });
 
     console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
+    const submitBooking = async () => {
+      const formData = new FormData();
+      formData.append('data', JSON.stringify(payload));
 
-    const formData = new FormData();
-    formData.append('data', JSON.stringify(payload));
+      if (atgFiles.pan) formData.append('panFile', atgFiles.pan);
+      if (atgFiles.aadhar) formData.append('aadharFile', atgFiles.aadhar);
 
-    if (atgFiles.pan) formData.append('panFile', atgFiles.pan);
-    if (atgFiles.aadhar) formData.append('aadharFile', atgFiles.aadhar);
+      if ((bookingState as any)?.couponIdProof) {
+        formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
+      }
 
-    if ((bookingState as any)?.couponIdProof) {
-      formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
+      const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
+        method: 'POST',
+        body: formData,
+      });
+
+      const responseText = await responseRaw.text();
+
+      if (!responseRaw.ok) {
+        console.error('❌ Booking API error response:', responseText);
+        throw new Error(
+          getActionableBookingErrorMessage(responseText, responseRaw.status)
+        );
+      }
+
+      return JSON.parse(responseText);
+    };
+
+    if (Math.round(pricingBreakdown.totalAmount) < 1) {
+      const zeroAmountResponse = await submitBooking();
+      const zeroAmountBookingId = resolveBookingId(zeroAmountResponse);
+
+      if (!zeroAmountBookingId) {
+        throw new Error(
+          'The backend did not return a booking reference for this payment attempt.'
+        );
+      }
+
+      setIsProcessing(false);
+      onConfirm(true, zeroAmountBookingId);
+      return;
     }
 
-    const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
-      method: 'POST',
-      body: formData,
-    });
+    const checkoutResponse = await submitBooking();
+    const bookingId = resolveBookingId(checkoutResponse);
 
-    const responseText = await responseRaw.text();
-
-    if (!responseRaw.ok) {
-      console.error('❌ Booking API error response:', responseText);
+    if (!bookingId) {
       throw new Error(
-        getActionableBookingErrorMessage(responseText, responseRaw.status)
+        'The backend did not return a booking reference for this payment attempt.'
       );
     }
 
-    const response = JSON.parse(responseText);
+    setIsProcessing(false);
+    const paymentOutcome = await launchRazorpayCheckout(checkoutResponse, bookingId, {
+      key: FRONTEND_RAZORPAY_TEST_KEY,
+    });
 
-    const bookingId =
-      response?.bookingId ||
-      response?.data?.bookingId ||
-      response?.booking_id;
+    if (paymentOutcome?.redirected) {
+      return;
+    }
 
     if (bookingId) {
       trackCleverTapEvent('booking_confirmed', {
@@ -1022,11 +1876,47 @@ const handlePayment = async () => {
           dedupeWindowMs: 10000,
         }
       );
-
-      setTimeout(() => onConfirm(true, bookingId), 1500);
-    } else {
-      onConfirm(false);
     }
+
+    const resolvedPaymentId = getPaymentReferenceValue(
+      paymentOutcome?.paymentResult,
+      ['razorpay_payment_id', 'payment_id', 'paymentId']
+    );
+    const resolvedOrderId = getPaymentReferenceValue(
+      paymentOutcome?.paymentResult,
+      ['razorpay_order_id', 'order_id', 'orderId']
+    );
+    const resolvedSignature = getPaymentReferenceValue(
+      paymentOutcome?.paymentResult,
+      ['razorpay_signature', 'signature']
+    );
+    const paymentSyncResult = paymentOutcome?.paymentSyncResult || {
+      synced: false,
+      message: '',
+    };
+
+    setBookingState((prev: any) => ({
+      ...prev,
+      bookingId,
+      paymentId: resolvedPaymentId || prev?.paymentId || '',
+      razorpayPaymentId:
+        resolvedPaymentId || prev?.razorpayPaymentId || '',
+      razorpayOrderId: resolvedOrderId || prev?.razorpayOrderId || '',
+      razorpaySignature: resolvedSignature || prev?.razorpaySignature || '',
+      paymentSyncStatus: paymentSyncResult.synced ? 'synced' : 'pending',
+      paymentSyncMessage: paymentSyncResult.message || '',
+    }));
+
+    setIsProcessing(false);
+    onConfirm(true, bookingId, {
+      paymentId: resolvedPaymentId || '',
+      razorpayPaymentId: resolvedPaymentId || '',
+      razorpayOrderId: resolvedOrderId || '',
+      razorpaySignature: resolvedSignature || '',
+      paymentSyncStatus: paymentSyncResult.synced ? 'synced' : 'pending',
+      paymentSyncMessage: paymentSyncResult.message || '',
+      backendPaymentStatus: 'paid',
+    });
   } catch (err: any) {
     console.error('Payment Error:', err);
     trackCleverTapEvent('booking_submission_failed', {
@@ -1050,7 +1940,54 @@ const handlePayment = async () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 py-12 w-full animate-fadeIn pb-32 text-left">
+    <div
+      className="max-w-5xl mx-auto px-4 py-12 w-full animate-fadeIn pb-32 text-left"
+      aria-busy={isProcessing}
+    >
+      {isProcessing && (
+        <div className="fixed inset-0 z-[1200] flex items-center justify-center bg-stone-900/45 px-6 backdrop-blur-sm">
+          <div className="relative w-full max-w-md overflow-hidden rounded-[36px] border border-white/10 bg-[radial-gradient(circle_at_top,_rgba(45,212,191,0.2),_rgba(28,25,23,0.98)_38%)] px-8 py-8 text-center text-white shadow-[0_32px_80px_rgba(0,0,0,0.45)]">
+            <div className="absolute inset-x-10 top-0 h-px bg-gradient-to-r from-transparent via-teal-300/70 to-transparent" />
+            <div className="absolute -top-16 left-1/2 h-28 w-28 -translate-x-1/2 rounded-full bg-teal-400/10 blur-3xl" />
+
+            <div className="relative mx-auto mb-5 flex h-20 w-20 items-center justify-center">
+              <div className="absolute inset-0 rounded-full border border-white/10 bg-white/5" />
+              <div className="absolute inset-2 rounded-full border border-teal-300/20" />
+              <div className="h-11 w-11 rounded-full border-2 border-white/15 border-t-teal-300 animate-spin" />
+              <div className="absolute h-2.5 w-2.5 rounded-full bg-teal-300 shadow-[0_0_18px_rgba(94,234,212,0.9)]" />
+            </div>
+
+            <div className="relative">
+              <span className="inline-flex items-center rounded-full border border-teal-300/20 bg-teal-300/10 px-4 py-1 text-[10px] font-black uppercase tracking-[0.35em] text-teal-100">
+                Secure Checkout
+              </span>
+              <p className="mt-5 text-lg font-black uppercase tracking-[0.32em] text-white">
+                Confirming Booking
+              </p>
+              <p className="mt-4 text-sm font-medium leading-relaxed text-stone-300">
+                We&apos;re reserving your plan, validating payment details, and
+                securing your booking reference.
+              </p>
+            </div>
+
+            <div className="relative mt-6 space-y-3 rounded-[28px] border border-white/8 bg-white/5 px-5 py-4 text-left">
+              <div className="flex items-center gap-3">
+                <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(74,222,128,0.8)]" />
+                <span className="text-[11px] font-bold uppercase tracking-[0.18em] text-stone-200">
+                  Preparing your booking details
+                </span>
+              </div>
+              <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
+                <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-teal-300 via-cyan-200 to-teal-300" />
+              </div>
+              <p className="text-xs font-medium leading-relaxed text-stone-400">
+                Please keep this page open. This helps us avoid duplicate submissions.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-10 bg-white rounded-[32px] overflow-hidden shadow-sm border border-stone-100">
         <div className="h-48 relative">
           <img
@@ -1123,7 +2060,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Plan Amount
+                      Guest Plan Subtotal
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900">
                       ₹{pricingBreakdown.planTotal.toLocaleString()}
@@ -1132,7 +2069,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Add-ons Amount
+                      Add-ons Total
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900">
                       ₹{pricingBreakdown.addonsTotal.toLocaleString()}
@@ -1141,7 +2078,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Stay Amount
+                      Extra Stay Total
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900">
                       ₹{pricingBreakdown.stayTotal.toLocaleString()}
@@ -1150,7 +2087,7 @@ const handlePayment = async () => {
 
                   <tr className="bg-stone-50/50">
                     <td className="px-6 py-4 text-xs font-bold text-stone-500 uppercase tracking-widest">
-                      Gross Amount
+                      Pre-discount Total
                     </td>
                     <td className="px-6 py-4 text-right font-black text-stone-900 text-lg">
                       ₹{pricingBreakdown.grossAmount.toLocaleString()}
@@ -1161,7 +2098,7 @@ const handlePayment = async () => {
                     <tr className="bg-emerald-50/50">
                       <td className="px-6 py-4 font-black text-emerald-700 uppercase italic text-xs flex items-center gap-2">
                         <Tag className="w-3 h-3" />
-                        Discount Applied ({getCouponCode(appliedCoupon)})
+                        Coupon Savings ({getCouponCode(appliedCoupon)})
                       </td>
                       <td className="px-6 py-4 text-right font-black text-emerald-700 text-lg">
                         - ₹{pricingBreakdown.discountAmount.toLocaleString()}
@@ -1212,6 +2149,10 @@ const handlePayment = async () => {
             </div>
 
             <div className="space-y-3">
+              <p className="px-2 text-[10px] font-bold uppercase tracking-widest text-stone-400">
+                Eligible group offers switch on automatically once the guest-count rule is met.
+              </p>
+
               <div
                 className={`flex items-center gap-2 p-1.5 rounded-2xl border-2 transition-all ${
                   customCodeError
@@ -1293,13 +2234,19 @@ const handlePayment = async () => {
             <div className="grid grid-cols-1 gap-4">
               {availableCoupons.length > 0 ? (
                 availableCoupons.map((coupon: any) => {
+                  const guestRange = getCouponGuestRange(coupon);
                   const requiresId = normalizeBooleanFlag(
                     coupon?.requiresIdUpload ?? coupon?.requires_id_upload
                   );
+                  const minGuests = getCouponGuestThreshold(coupon);
+                  const isEligibleForGuests = isCouponEligibleForGuests(
+                    coupon,
+                    guests
+                  );
 
                   const isCouponApplied =
-                    getCouponId(appliedCoupon) !== '' &&
-                    getCouponId(appliedCoupon) === getCouponId(coupon);
+                    getCouponKey(appliedCoupon) !== '' &&
+                    getCouponKey(appliedCoupon) === getCouponKey(coupon);
 
                   return (
                     <div
@@ -1341,6 +2288,30 @@ const handlePayment = async () => {
                             </p>
                           )}
 
+                          {guestRange ? (
+                            <p
+                              className={`text-[9px] font-black uppercase flex items-center gap-1 mt-1 ${
+                                isEligibleForGuests
+                                  ? 'text-emerald-600'
+                                  : 'text-stone-400'
+                              }`}
+                            >
+                              <Users className="w-3 h-3" />
+                              Valid for {guestRange.minGuests}-{guestRange.maxGuests} guests
+                            </p>
+                          ) : minGuests > 0 ? (
+                            <p
+                              className={`text-[9px] font-black uppercase flex items-center gap-1 mt-1 ${
+                                isEligibleForGuests
+                                  ? 'text-emerald-600'
+                                  : 'text-stone-400'
+                              }`}
+                            >
+                              <Users className="w-3 h-3" />
+                              Valid for {minGuests}+ guests
+                            </p>
+                          ) : null}
+
                           <p className="text-stone-500 text-[11px] font-medium truncate mt-0.5">
                             {coupon.description || coupon.title}
                           </p>
@@ -1350,13 +2321,22 @@ const handlePayment = async () => {
                       <button
                         type="button"
                         onClick={() => handleApplyCouponClick(coupon)}
+                        disabled={!isEligibleForGuests}
                         className={`w-full sm:w-auto px-8 py-3 rounded-2xl font-black text-[11px] uppercase tracking-widest transition-all ${
                           isCouponApplied
                             ? 'bg-stone-900 text-white shadow-lg'
+                            : !isEligibleForGuests
+                            ? 'bg-stone-100 border-2 border-stone-200 text-stone-400 cursor-not-allowed'
                             : 'bg-white border-2 border-stone-200 text-stone-600 hover:border-[var(--theme)] hover:text-[var(--theme)]'
                         }`}
-                      >
-                        {isCouponApplied ? 'Remove' : 'Apply'}
+                        >
+                        {isCouponApplied
+                          ? 'Remove'
+                          : !isEligibleForGuests && guestRange
+                          ? `Need ${guestRange.minGuests}-${guestRange.maxGuests}`
+                          : !isEligibleForGuests && minGuests > 0
+                          ? `Need ${minGuests}`
+                          : 'Apply'}
                       </button>
                     </div>
                   );
@@ -1433,6 +2413,16 @@ const handlePayment = async () => {
                     >
                       {atgFiles.pan ? '✅ Attached' : '📎 Attach PAN Copy'}
                     </label>
+                    {!atgFiles.pan && existingAtgPanFileUrl && (
+                      <a
+                        href={existingAtgPanFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-black uppercase tracking-widest text-[var(--theme)] underline"
+                      >
+                        View Existing PAN Copy
+                      </a>
+                    )}
                   </div>
 
                   <div className="flex flex-col gap-3 text-left">
@@ -1469,6 +2459,16 @@ const handlePayment = async () => {
                     >
                       {atgFiles.aadhar ? '✅ Attached' : '📎 Attach Aadhar Copy'}
                     </label>
+                    {!atgFiles.aadhar && existingAtgAadharFileUrl && (
+                      <a
+                        href={existingAtgAadharFileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[11px] font-black uppercase tracking-widest text-[var(--theme)] underline"
+                      >
+                        View Existing Aadhar Copy
+                      </a>
+                    )}
                   </div>
                 </div>
               </div>
@@ -1487,88 +2487,107 @@ const handlePayment = async () => {
               </p>
             </div>
 
-            <div className="bg-stone-50 rounded-3xl p-5 space-y-4 border border-stone-100">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                  <Users className="w-3.5 h-3.5" /> Guests
-                </span>
-                <span className="text-xs font-black text-stone-900 uppercase tracking-tighter">
-                  {guests.length}
-                </span>
+            <div className="rounded-3xl border border-stone-100 bg-stone-50 p-4 space-y-4">
+              <div className="rounded-[28px] bg-gradient-to-br from-stone-900 via-stone-800 to-stone-900 p-5 text-white shadow-xl shadow-stone-200">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-[0.35em] text-teal-200">
+                      Selected Plan
+                    </p>
+                    <h4 className="mt-2 text-xl font-black tracking-tight text-white">
+                      {selectedPlanTitle}
+                    </h4>
+                    {selectedPlanSupportText && (
+                      <p className="mt-1 text-xs font-medium text-stone-300">
+                        {selectedPlanSupportText}
+                      </p>
+                    )}
+                  </div>
+
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl border border-white/10 bg-white/10 text-teal-200">
+                    <Heart className="h-5 w-5" />
+                  </div>
+                </div>
+
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-300">
+                      Guests
+                    </p>
+                    <p className="mt-1 text-sm font-black text-white">
+                      {selectedPlanGuestLabel}
+                    </p>
+                  </div>
+
+                  <div className="rounded-2xl border border-white/10 bg-white/5 p-3 text-right">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-stone-300">
+                      Base Rate
+                    </p>
+                    <p className="mt-1 text-sm font-black text-white">
+                      ₹{defaultPlanPrice.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
               </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest flex items-center gap-2">
-                  <Heart className="w-3.5 h-3.5" /> Plan
-                </span>
-                <span className="text-xs font-black text-stone-900 uppercase tracking-tighter truncate max-w-[140px] text-right">
-                  {selectedPlanTitle}
-                </span>
-              </div>
+              <div className="rounded-[28px] border border-stone-100 bg-white p-5 space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Guest Plan Subtotal
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.planTotal.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Plan Price
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{defaultPlanPrice.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Add-ons Total
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.addonsTotal.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Plan Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.planTotal.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Extra Stay Total
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.stayTotal.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Add-ons Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.addonsTotal.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    Pre-discount Total
+                  </span>
+                  <span className="text-sm font-black text-stone-900">
+                    ₹{pricingBreakdown.grossAmount.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Stay Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.stayTotal.toLocaleString()}
-                </span>
-              </div>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
+                    {appliedCoupon
+                      ? `Coupon Savings (${getCouponCode(appliedCoupon)})`
+                      : 'Coupon Savings'}
+                  </span>
+                  <span className="text-sm font-black text-emerald-700">
+                    - ₹{pricingBreakdown.discountAmount.toLocaleString()}
+                  </span>
+                </div>
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Gross Amount
-                </span>
-                <span className="text-xs font-black text-stone-900">
-                  ₹{pricingBreakdown.grossAmount.toLocaleString()}
-                </span>
-              </div>
+                <hr className="border-dashed border-stone-200" />
 
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest">
-                  Discount Applied
-                </span>
-                <span className="text-xs font-black text-emerald-700">
-                  - ₹{pricingBreakdown.discountAmount.toLocaleString()}
-                </span>
-              </div>
-
-              <hr className="border-stone-200 border-dashed" />
-
-              <div className="flex items-center justify-between pt-1">
-                <span className="text-[11px] font-black text-stone-900 uppercase tracking-tight">
-                  Total Payable
-                </span>
-                <span className="text-xl font-black text-[var(--theme)]">
-                  ₹{pricingBreakdown.totalAmount.toLocaleString()}
-                </span>
+                <div className="flex items-center justify-between">
+                  <span className="text-[11px] font-black text-stone-900 uppercase tracking-tight">
+                    Amount Due
+                  </span>
+                  <span className="text-2xl font-black text-[var(--theme)]">
+                    ₹{pricingBreakdown.totalAmount.toLocaleString()}
+                  </span>
+                </div>
               </div>
             </div>
 
