@@ -1118,13 +1118,15 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
     const invalidFields = Array.from(
       new Set(
-        guests.flatMap((guest: any) => Object.keys(getGuestErrors(guest)))
+        guests.flatMap((guest: any, index: number) =>
+          Object.keys(getGuestErrors(guest, index))
+        )
       )
     );
 
     if (!allGuestsValid) {
       const invalidGuestCount = guests.filter(
-        (guest: any) => Object.keys(getGuestErrors(guest)).length > 0
+        (guest: any, index: number) => Object.keys(getGuestErrors(guest, index)).length > 0
       ).length;
 
       trackCleverTapEvent('guest_form_validation_failed', {
