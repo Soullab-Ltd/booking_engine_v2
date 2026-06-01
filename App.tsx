@@ -56,6 +56,14 @@ const waitForTransitionFrame = () =>
     });
   });
 
+const scrollViewportToTop = () => {
+  window.requestAnimationFrame(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  });
+};
+
 const getBookingAtgDetails = (bookingData: any) => {
   const atgDetails = bookingData?.atgDetails || bookingData?.atg_details || null;
 
@@ -285,6 +293,7 @@ if (slug) {
     setStepLoadingMessage(STEP_LOADING_COPY[nextStepValue] || 'Loading...');
     await waitForTransitionFrame();
     setBookingState((prev) => ({ ...prev, currentStep: nextStepValue }));
+    scrollViewportToTop();
     window.setTimeout(() => setStepLoadingMessage(''), 220);
   };
 
@@ -300,6 +309,7 @@ if (slug) {
       selectedPlan: plan,
       currentStep: 3,
     }));
+    scrollViewportToTop();
     window.setTimeout(() => setStepLoadingMessage(''), 220);
   };
 

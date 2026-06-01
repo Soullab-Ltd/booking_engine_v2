@@ -233,7 +233,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
             </p>
           </div>
 
-          <div className="md:min-w-[145px]">
+          <div className="w-full md:w-auto md:min-w-[145px]">
             <div className="rounded-2xl border border-stone-200 bg-white px-4 py-3.5">
               <p className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-400">
                 Available Plans
@@ -336,7 +336,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                     </p>
                   </div>
 
-                  <div className="rounded-[20px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fafaf8_100%)] px-4 py-4 min-w-[200px] max-w-[220px] shadow-[0_10px_26px_rgba(15,23,42,0.05)] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                  <div className="w-full rounded-[20px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fafaf8_100%)] px-4 py-4 sm:max-w-[220px] sm:min-w-[200px] shadow-[0_10px_26px_rgba(15,23,42,0.05)] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
                     <p className="text-[9px] font-black uppercase tracking-[0.22em] text-stone-400">
                       {hasValidOffer ? 'Now Booking At' : 'Price'}
                     </p>
@@ -389,7 +389,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                       if (!soldOut) onSelect(plan);
                     }}
                     disabled={soldOut}
-                    className={`group relative inline-flex min-w-[148px] whitespace-nowrap items-center justify-center gap-3 px-6 py-3.5 rounded-[22px] font-black transition-all duration-200 overflow-hidden ${
+                    className={`group relative inline-flex w-full items-center justify-center gap-3 rounded-[22px] px-6 py-3.5 font-black transition-all duration-200 overflow-hidden sm:w-auto sm:min-w-[148px] ${
                       soldOut
                         ? 'cursor-not-allowed bg-stone-200 text-stone-500 shadow-none'
                         : `

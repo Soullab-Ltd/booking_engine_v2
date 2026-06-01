@@ -521,7 +521,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                   {displayFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
-                      className="group flex flex-col items-center text-center sm:min-w-[110px]"
+                      className="group flex flex-col items-center text-center"
                     >
                       <div className="flex h-11 w-11 items-center justify-center">
                         <PlanFeatureIcon
@@ -529,7 +529,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                         />
                       </div>
 
-                      <p className="mt-2 whitespace-nowrap text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
+                      <p className="mt-2 text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
                         <span>
                           {feature?.value || feature?.Value || feature?.description || '-'}
                         </span>{' '}
@@ -627,7 +627,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
             <span className="text-xs font-bold uppercase tracking-[0.14em] text-stone-400">
               Original Price
             </span>
-            <span className="whitespace-nowrap text-sm font-bold text-stone-400 line-through">
+            <span className="text-sm font-bold text-stone-400 line-through">
               ₹ {finalPrice.toLocaleString()}
             </span>
           </div>
@@ -638,7 +638,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
             <p className="text-[11px] font-black uppercase tracking-[0.18em] text-[var(--theme)]">
               {hasValidOffer ? 'Now Booking At' : 'Price'}
             </p>
-            <p className="mt-2 whitespace-nowrap text-4xl md:text-5xl font-black leading-none text-stone-900">
+            <p className="mt-2 break-words text-4xl md:text-5xl font-black leading-none text-stone-900">
               ₹ {displayPrice.toLocaleString()}
             </p>
           </div>

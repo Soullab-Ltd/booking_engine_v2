@@ -288,6 +288,28 @@ const getCouponEligibilityMessage = (
   return getCouponGuestRequirementMessage(coupon, guests.length);
 };
 
+const getCouponStatusLabel = (
+  coupon: any,
+  guests: Array<Guest | any>,
+  hasProof: boolean
+): string => {
+  const guestEligibilityMessage = getCouponEligibilityMessage(coupon, guests);
+
+  if (guestEligibilityMessage) {
+    return guestEligibilityMessage;
+  }
+
+  const requiresId = normalizeBooleanFlag(
+    coupon?.requiresIdUpload ?? coupon?.requires_id_upload
+  );
+
+  if (requiresId && !hasProof) {
+    return 'Eligible, upload ID proof to use this coupon.';
+  }
+
+  return 'Eligible for this booking.';
+};
+
 const getCouponSortValue = (coupon: any): number => {
   const parsed = Number(coupon?.value ?? coupon?.discountValue ?? 0);
   return Number.isFinite(parsed) ? parsed : 0;
@@ -1992,6 +2014,14 @@ const handlePayment = async () => {
                     coupon,
                     guests
                   );
+                  const hasProof = Boolean(couponIdProof || couponIdProofUrl);
+                  const couponStatusLabel = getCouponStatusLabel(
+                    coupon,
+                    guests,
+                    hasProof
+                  );
+                  const isReadyToApply =
+                    isEligibleForGuests && (!requiresId || hasProof);
 
                   const isCouponApplied =
                     getCouponKey(appliedCoupon) !== '' &&
@@ -2064,6 +2094,18 @@ const handlePayment = async () => {
                           <p className="text-stone-500 text-[11px] font-medium truncate mt-0.5">
                             {coupon.description || coupon.title}
                           </p>
+
+                          <p
+                            className={`text-[10px] font-bold mt-1 ${
+                              isReadyToApply || isCouponApplied
+                                ? 'text-emerald-600'
+                                : isEligibleForGuests
+                                ? 'text-amber-600'
+                                : 'text-stone-400'
+                            }`}
+                          >
+                            {couponStatusLabel}
+                          </p>
                         </div>
                       </div>
 
@@ -2081,10 +2123,10 @@ const handlePayment = async () => {
                         >
                         {isCouponApplied
                           ? 'Remove'
-                          : !isEligibleForGuests && guestRange
-                          ? `Need ${guestRange.minGuests}-${guestRange.maxGuests}`
-                          : !isEligibleForGuests && minGuests > 0
-                          ? `Need ${minGuests}`
+                          : !isEligibleForGuests
+                          ? ''
+                          : requiresId && !hasProof
+                          ? 'Upload ID'
                           : 'Apply'}
                       </button>
                     </div>
@@ -2455,8 +2497,8 @@ const handlePayment = async () => {
       </button>
 
       {showCouponIdModal && (
-        <div className="fixed inset-0 z-[1000] flex items-center justify-center bg-stone-900/80 p-6 backdrop-blur-sm">
-          <div className="w-full max-w-sm overflow-hidden rounded-[32px] bg-white shadow-2xl animate-scaleUp">
+        <div className="fixed inset-0 z-[1000] flex items-end justify-center overflow-y-auto bg-stone-900/80 p-4 backdrop-blur-sm sm:items-center sm:p-6">
+          <div className="w-full max-w-sm overflow-hidden rounded-[32px] bg-white shadow-2xl animate-scaleUp max-h-[calc(100dvh-2rem)]">
             <div className="bg-[var(--theme)] p-6 text-white flex justify-between items-center">
               <div>
                 <h3 className="text-xl font-black tracking-tighter">
@@ -2478,7 +2520,7 @@ const handlePayment = async () => {
               </button>
             </div>
 
-            <div className="p-8 space-y-6 text-center">
+            <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto p-5 space-y-6 text-center sm:p-8">
               <div className="flex flex-col items-center gap-4">
                 <div className="w-16 h-16 bg-teal-50 rounded-full flex items-center justify-center">
                   <UploadCloud className="w-8 h-8 text-[var(--theme)]" />
@@ -2504,7 +2546,7 @@ const handlePayment = async () => {
 
                 <label
                   htmlFor="modal-coupon-upload"
-                  className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed py-4 text-[11px] font-black uppercase transition-all ${
+                  className={`flex w-full cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed px-3 py-4 text-[11px] font-black uppercase transition-all ${
                     couponIdProof || couponIdProofUrl
                       ? 'border-[var(--theme)] bg-teal-50 text-[var(--theme)]'
                       : 'border-stone-200 text-stone-400'

@@ -265,7 +265,7 @@ const CountrySelector = ({
       {isOpen && (
         <>
           <div className="fixed inset-0 z-[140]" onClick={() => setIsOpen(false)} />
-          <div className="absolute z-[150] mt-2 w-full overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl animate-fadeIn">
+          <div className="fixed inset-x-4 top-24 z-[150] overflow-hidden rounded-2xl border border-stone-200 bg-white shadow-xl animate-fadeIn sm:absolute sm:inset-x-0 sm:top-full sm:mt-2">
             <div className="border-b border-stone-100 bg-stone-50 p-2">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-stone-400" />
@@ -280,7 +280,7 @@ const CountrySelector = ({
               </div>
             </div>
 
-            <div className="custom-scrollbar max-h-60 overflow-y-auto">
+            <div className="custom-scrollbar max-h-[min(60dvh,20rem)] overflow-y-auto sm:max-h-60">
               {filteredCountries.length > 0 ? (
                 filteredCountries.map((country) => (
                   <button
@@ -1634,11 +1634,11 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
         </div>
       </div>
 
-      <div className="sticky bottom-0 mt-8 flex items-center justify-between gap-3 border-t border-stone-200 bg-white/95 px-2 py-4 backdrop-blur">
+      <div className="sticky bottom-0 mt-8 flex flex-col gap-3 border-t border-stone-200 bg-white/95 px-2 py-4 pb-[calc(1rem+env(safe-area-inset-bottom))] backdrop-blur sm:flex-row sm:items-center sm:justify-between">
         <button
           type="button"
           onClick={onBack}
-          className="rounded-xl border border-stone-200 px-5 py-3 text-xs font-black text-stone-700 transition-all hover:bg-stone-50"
+          className="w-full rounded-xl border border-stone-200 px-5 py-3 text-xs font-black text-stone-700 transition-all hover:bg-stone-50 sm:w-auto"
         >
           Back
         </button>
@@ -1646,15 +1646,15 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
         <button
           type="button"
           onClick={handleProceedClick}
-          className="flex items-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white transition-all hover:bg-[var(--theme-dark)]"
+          className="flex w-full items-center justify-center gap-2 rounded-xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white transition-all hover:bg-[var(--theme-dark)] sm:w-auto"
         >
           Continue <ArrowRight className="h-4 w-4" />
         </button>
       </div>
 
       {showAddOnInfo && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl">
+        <div className="fixed inset-0 z-[200] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
+          <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[calc(100dvh-2rem)]">
             <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
               <h3 className="text-sm font-black text-stone-900">
                 {getInfoContent(showAddOnInfo)?.title || 'Add-on Info'}
@@ -1676,7 +1676,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               />
             )}
 
-            <div className="px-5 py-4">
+            <div className="max-h-[calc(100dvh-14rem)] overflow-y-auto px-5 py-4 sm:max-h-[24rem]">
               <p className="whitespace-pre-line text-sm leading-6 text-stone-700">
                 {getInfoContent(showAddOnInfo)?.desc || 'No details available.'}
               </p>
@@ -1686,8 +1686,8 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
       )}
 
       {showKidsModal && (
-        <div className="fixed inset-0 z-[210] flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-xl overflow-hidden rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f9f8f5_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.18)]">
+        <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
+          <div className="w-full max-w-xl overflow-hidden rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f9f8f5_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.18)] max-h-[calc(100dvh-2rem)]">
             <div className="border-b border-stone-200 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.14),_transparent_42%),linear-gradient(180deg,_#ffffff_0%,_#f7f7f4_100%)] px-6 py-6 md:px-7">
               <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme)]">
                 Quick Confirmation
@@ -1700,7 +1700,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               </p>
             </div>
 
-            <div className="px-6 py-6 md:px-7">
+            <div className="overflow-y-auto px-6 py-6 md:px-7">
               <div className="mb-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
                 <p className="text-[11px] font-black uppercase tracking-[0.22em] text-stone-400">
                   Eligible Guests
@@ -1756,11 +1756,11 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
               ))}
             </div>
 
-              <div className="mt-6 flex flex-col-reverse gap-3 border-t border-stone-200 pt-5 sm:flex-row sm:justify-end">
+              <div className="mt-6 flex flex-col-reverse gap-3 border-t border-stone-200 pt-5 pb-[env(safe-area-inset-bottom)] sm:flex-row sm:justify-end">
                 <button
                   type="button"
                   onClick={() => setShowKidsModal(false)}
-                  className="rounded-2xl border border-stone-200 bg-white px-5 py-3 text-xs font-black text-stone-700 transition hover:bg-stone-50"
+                  className="w-full rounded-2xl border border-stone-200 bg-white px-5 py-3 text-xs font-black text-stone-700 transition hover:bg-stone-50 sm:w-auto"
                 >
                   Cancel
                 </button>
@@ -1770,7 +1770,7 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                     setShowKidsModal(false);
                     onProceed();
                   }}
-                  className="rounded-2xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)] transition hover:bg-[var(--theme-dark)]"
+                  className="w-full rounded-2xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)] transition hover:bg-[var(--theme-dark)] sm:w-auto"
                 >
                   Continue
                 </button>
