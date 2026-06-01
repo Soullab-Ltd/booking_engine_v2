@@ -10,6 +10,7 @@ import {
   ConciergeBell,
   DoorOpen,
   Utensils,
+  UtensilsCrossed,
   ChevronLeft,
   Heart,
   Flower2,
@@ -18,6 +19,9 @@ import {
   Bath,
   Ruler,
   Home,
+  CircleParking,
+  Building2,
+  WavesLadder,
 } from 'lucide-react';
 
 interface PlanDetailProps {
@@ -57,23 +61,45 @@ const getNightlyDisplayPrice = (plan: any) => {
 const AmenityIcon = ({ name }: { name: string }) => {
   const n = name.toLowerCase();
 
-  if (n.includes('wifi')) return <Wifi className="h-4 w-4" />;
-  if (n.includes('heating') || n.includes('floor')) return <Sun className="h-4 w-4" />;
-  if (n.includes('spa')) return <Heart className="h-4 w-4" />;
-  if (n.includes('bed')) return <Bed className="h-4 w-4" />;
+  if (n.includes('wifi')) return <Wifi className="h-9 w-9" strokeWidth={2.2} />;
+  if (n.includes('parking')) return <CircleParking className="h-9 w-9" strokeWidth={2.2} />;
+  if (n.includes('elevator') || n.includes('lift')) {
+    return <Building2 className="h-9 w-9" strokeWidth={2.2} />;
+  }
+  if (n.includes('swimming') || n.includes('pool')) {
+    return <WavesLadder className="h-9 w-9" strokeWidth={2.2} />;
+  }
+  if (n.includes('heating') || n.includes('floor')) return <Sun className="h-9 w-9" strokeWidth={2.2} />;
+  if (n.includes('spa')) return <Heart className="h-9 w-9" strokeWidth={2.2} />;
+  if (n.includes('bed')) return <Bed className="h-9 w-9" strokeWidth={2.2} />;
   if (n.includes('meal') || n.includes('banquet') || n.includes('food')) {
-    return <Utensils className="h-4 w-4" />;
+    return <UtensilsCrossed className="h-9 w-9" strokeWidth={2.2} />;
   }
-  if (n.includes('view') || n.includes('riverside')) return <Wind className="h-4 w-4" />;
+  if (n.includes('view') || n.includes('riverside')) return <Wind className="h-9 w-9" strokeWidth={2.2} />;
   if (n.includes('concierge') || n.includes('support')) {
-    return <ConciergeBell className="h-4 w-4" />;
+    return <ConciergeBell className="h-9 w-9" strokeWidth={2.2} />;
   }
-  if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="h-4 w-4" />;
+  if (n.includes('meditation') || n.includes('altar')) return <Flower2 className="h-9 w-9" strokeWidth={2.2} />;
   if (n.includes('private entry') || n.includes('deck')) {
-    return <DoorOpen className="h-4 w-4" />;
+    return <DoorOpen className="h-9 w-9" strokeWidth={2.2} />;
   }
 
-  return <CheckCircle className="h-4 w-4" />;
+  return <CheckCircle className="h-9 w-9" strokeWidth={2.2} />;
+};
+
+const getAmenityLabel = (name: string) => {
+  const normalizedName = String(name || '').trim();
+  const loweredName = normalizedName.toLowerCase();
+
+  if (loweredName.includes('wifi')) return 'Wi‑Fi';
+  if (loweredName.includes('parking')) return 'Parking';
+  if (loweredName.includes('elevator') || loweredName.includes('lift')) return 'Elevator';
+  if (loweredName.includes('meal') || loweredName.includes('banquet') || loweredName.includes('food')) {
+    return 'Food';
+  }
+  if (loweredName.includes('swimming') || loweredName.includes('pool')) return 'Swimming pool';
+
+  return normalizedName;
 };
 
 const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
@@ -554,18 +580,18 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
               </h2>
             </div>
 
-            <div className="flex flex-wrap gap-2.5">
+            <div className="grid grid-cols-3 gap-x-6 gap-y-8 sm:flex sm:flex-wrap sm:items-start sm:gap-10">
               {amenityList.map((amenity: any) => (
                 <div
                   key={amenity.id}
-                  className="group inline-flex items-center gap-2.5 rounded-full border border-stone-200/80 bg-stone-50/80 px-3 py-2 transition-all duration-300 hover:border-teal-200 hover:bg-teal-50/60"
+                  className="group flex flex-col items-center text-center"
                 >
-                  <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white ring-1 ring-stone-100 text-[var(--theme)]">
+                  <div className="flex h-12 w-12 items-center justify-center text-[var(--theme)] transition-transform duration-300 group-hover:scale-110">
                     <AmenityIcon name={amenity.Title || amenity.title} />
                   </div>
 
-                  <span className="text-[12px] font-medium text-stone-700 leading-none">
-                    {amenity.Title || amenity.title}
+                  <span className="mt-2 text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
+                    {getAmenityLabel(amenity.Title || amenity.title)}
                   </span>
                 </div>
               ))}
