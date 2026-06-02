@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plan } from '../types';
+import { sanitizeRichText } from '../src/utils/richText';
 import {
   Loader2,
   ArrowRight,
@@ -249,6 +250,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
           const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
           const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
           const planDescription = plan.PlanDescription || plan.description || '';
+          const safePlanDescription = sanitizeRichText(planDescription);
           const soldOut = isPlanSoldOut(plan);
           const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);
           const rawOfferPrice = Number(plan.OfferPrice || 0);
@@ -331,9 +333,10 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                       ) : null}
                     </div>
 
-                    <p className="text-stone-600 text-sm md:text-[15px] font-medium leading-relaxed whitespace-pre-line max-w-lg line-clamp-4">
-                      {planDescription}
-                    </p>
+                    <div
+                      className="text-stone-600 text-sm md:text-[15px] font-medium leading-relaxed max-w-lg line-clamp-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-5"
+                      dangerouslySetInnerHTML={{ __html: safePlanDescription }}
+                    />
                   </div>
 
                   <div className="w-full rounded-[20px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fafaf8_100%)] px-4 py-4 sm:max-w-[220px] sm:min-w-[200px] shadow-[0_10px_26px_rgba(15,23,42,0.05)] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">

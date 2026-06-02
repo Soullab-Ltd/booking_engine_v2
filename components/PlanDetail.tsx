@@ -1,5 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Plan } from '../types';
+import { sanitizeRichText, stripHtml } from '../src/utils/richText';
 import {
   CheckCircle,
   ArrowRight,
@@ -139,7 +140,7 @@ const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
 };
 
 const getPlanGuestCapacity = (plan: any): string => {
-  const description = String(plan?.PlanDescription || plan?.description || '').trim();
+  const description = stripHtml(plan?.PlanDescription || plan?.description || '');
 
   const guestMatch =
     description.match(/(?:upto|up to)\s+(\d+)\s+guests?/i) ||
@@ -214,6 +215,11 @@ const isPlanSoldOut = (plan: any) => {
 };
 
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
+  const safeFullDescription = useMemo(
+    () => sanitizeRichText(plan.fullDescription || plan.PlanDescription),
+    [plan.PlanDescription, plan.fullDescription]
+  );
+
   const planFeatures = useMemo(() => {
     let featureList: any[] = [];
 
@@ -528,9 +534,10 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
               </h2>
             </div>
 
-            <p className="text-lg md:text-2xl text-stone-700 leading-relaxed font-medium">
-              {plan.fullDescription || plan.PlanDescription}
-            </p>
+            <div
+              className="text-lg md:text-2xl text-stone-700 leading-relaxed font-medium space-y-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-6"
+              dangerouslySetInnerHTML={{ __html: safeFullDescription }}
+            />
           </section>
 
           <section className="rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.05)]">

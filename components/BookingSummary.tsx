@@ -201,6 +201,12 @@ const getCouponGuestRange = (
     return null;
   }
 
+  // Treat zero/negative ranges from admin or API as "no explicit guest range"
+  // so proof-based coupons don't render as "0-0 guests".
+  if (minGuests <= 0 || maxGuests <= 0) {
+    return null;
+  }
+
   return {
     minGuests: Math.min(minGuests, maxGuests),
     maxGuests: Math.max(minGuests, maxGuests),
@@ -2124,7 +2130,7 @@ const handlePayment = async () => {
                         {isCouponApplied
                           ? 'Remove'
                           : !isEligibleForGuests
-                          ? ''
+                          ? 'Not Eligible'
                           : requiresId && !hasProof
                           ? 'Upload ID'
                           : 'Apply'}
