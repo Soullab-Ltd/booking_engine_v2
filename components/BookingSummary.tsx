@@ -241,10 +241,22 @@ const getCouponGuestThreshold = (coupon: any): number => {
   return 0;
 };
 
+const couponUsesIdVerificationOnly = (coupon: any): boolean => {
+  const requiresId = normalizeBooleanFlag(
+    coupon?.requiresIdUpload ?? coupon?.requires_id_upload
+  );
+
+  return requiresId && getCouponGuestRange(coupon) === null && getCouponGuestThreshold(coupon) <= 0;
+};
+
 const isCouponEligibleForGuestCount = (
   coupon: any,
   guestCount: number
 ): boolean => {
+  if (couponUsesIdVerificationOnly(coupon)) {
+    return true;
+  }
+
   const guestRange = getCouponGuestRange(coupon);
 
   if (guestRange) {
@@ -268,6 +280,10 @@ const getCouponGuestRequirementMessage = (
   coupon: any,
   guestCount: number
 ): string => {
+  if (couponUsesIdVerificationOnly(coupon)) {
+    return '';
+  }
+
   const guestRange = getCouponGuestRange(coupon);
 
   if (guestRange) {
