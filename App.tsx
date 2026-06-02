@@ -40,6 +40,134 @@ const getStringValue = (...values: unknown[]) => {
   return '';
 };
 
+const normalizeBookingGuest = (guest: any, index: number) => {
+  const emptyGuest = createEmptyGuest();
+  const parsedAge = Number(
+    guest?.age ?? guest?.Age ?? guest?.guestAge ?? guest?.guest_age ?? NaN
+  );
+
+  return {
+    ...emptyGuest,
+    ...guest,
+    id: String(
+      guest?.id ??
+        guest?.guestId ??
+        guest?.guest_id ??
+        guest?.GuestID ??
+        `${index + 1}`
+    ),
+    name: getStringValue(
+      guest?.name,
+      guest?.guestName,
+      guest?.guest_name,
+      guest?.fullName,
+      guest?.full_name,
+      guest?.GuestName
+    ),
+    phone: getStringValue(
+      guest?.phone,
+      guest?.phoneNumber,
+      guest?.phone_number,
+      guest?.mobile,
+      guest?.mobileNumber,
+      guest?.mobile_number
+    ),
+    email: getStringValue(guest?.email, guest?.Email, guest?.emailAddress),
+    age: Number.isFinite(parsedAge) && parsedAge > 0 ? parsedAge : emptyGuest.age,
+    gender: getStringValue(guest?.gender, guest?.Gender) || emptyGuest.gender,
+    city: getStringValue(guest?.city, guest?.City),
+    state: getStringValue(guest?.state, guest?.State),
+    country: getStringValue(guest?.country, guest?.Country),
+    remark: getStringValue(guest?.remark, guest?.remarks, guest?.notes),
+    addOns: guest?.addOns || emptyGuest.addOns,
+  };
+};
+
+const getBookingGuests = (bookingData: any) => {
+  const rawGuests = [
+    ...(Array.isArray(bookingData?.guests) ? bookingData.guests : []),
+    ...(Array.isArray(bookingData?.guestDetails) ? bookingData.guestDetails : []),
+    ...(Array.isArray(bookingData?.guest_details) ? bookingData.guest_details : []),
+  ];
+
+  const uniqueGuests = rawGuests.filter(
+    (guest, index, arr) =>
+      index ===
+      arr.findIndex((item) => {
+        const itemId = String(
+          item?.id ?? item?.guestId ?? item?.guest_id ?? item?.GuestID ?? ''
+        );
+        const guestId = String(
+          guest?.id ?? guest?.guestId ?? guest?.guest_id ?? guest?.GuestID ?? ''
+        );
+
+        if (itemId && guestId) return itemId === guestId;
+
+        return (
+          getStringValue(
+            item?.email,
+            item?.Email,
+            item?.phone,
+            item?.phoneNumber,
+            item?.mobile
+          ) ===
+          getStringValue(
+            guest?.email,
+            guest?.Email,
+            guest?.phone,
+            guest?.phoneNumber,
+            guest?.mobile
+          )
+        );
+      })
+  );
+
+  return uniqueGuests.length > 0
+    ? uniqueGuests.map(normalizeBookingGuest)
+    : [createEmptyGuest()];
+};
+
+const getBookingPrimaryGuest = (bookingData: any) => {
+  const explicitPrimaryGuest =
+    bookingData?.primaryGuest || bookingData?.primary_guest || null;
+  const firstGuest =
+    (Array.isArray(bookingData?.guests) && bookingData.guests[0]) ||
+    (Array.isArray(bookingData?.guestDetails) && bookingData.guestDetails[0]) ||
+    (Array.isArray(bookingData?.guest_details) && bookingData.guest_details[0]) ||
+    null;
+
+  const source = explicitPrimaryGuest || firstGuest || bookingData || {};
+
+  return {
+    name: getStringValue(
+      source?.name,
+      source?.guestName,
+      source?.guest_name,
+      source?.fullName,
+      source?.full_name,
+      bookingData?.primaryGuestName,
+      bookingData?.primary_guest_name
+    ),
+    email: getStringValue(
+      source?.email,
+      source?.Email,
+      source?.emailAddress,
+      bookingData?.primaryGuestEmail,
+      bookingData?.primary_guest_email
+    ),
+    phoneNumber: getStringValue(
+      source?.phoneNumber,
+      source?.phone_number,
+      source?.phone,
+      source?.mobile,
+      source?.mobileNumber,
+      source?.mobile_number,
+      bookingData?.primaryGuestPhoneNumber,
+      bookingData?.primary_guest_phone_number
+    ),
+  };
+};
+
 const STEP_LOADING_COPY: Record<number, string> = {
   2: 'Loading plans...',
   3: 'Loading plan details...',
@@ -251,6 +379,12 @@ if (slug) {
 	            ...prev,
               currentStep: view === 'dashboard' ? 7 : 6,
 	            bookingId: bookingIdFromUrl,
+              guests: getBookingGuests(allData?.bookingData),
+              primaryGuest: getBookingPrimaryGuest(allData?.bookingData),
+              primaryGuestName: getBookingPrimaryGuest(allData?.bookingData).name,
+              primaryGuestEmail: getBookingPrimaryGuest(allData?.bookingData).email,
+              primaryGuestPhoneNumber:
+                getBookingPrimaryGuest(allData?.bookingData).phoneNumber,
               is80GRequired: bookingAtgDetails.isAtgRequested,
               taxInfo: {
                 ...prev.taxInfo,
@@ -363,6 +497,12 @@ if (slug) {
 	    setBookingState((prev) => ({
 	      ...prev,
 	      bookingId: bookingId ?? prev.bookingId,
+        guests: getBookingGuests(allData?.bookingData),
+        primaryGuest: getBookingPrimaryGuest(allData?.bookingData),
+        primaryGuestName: getBookingPrimaryGuest(allData?.bookingData).name,
+        primaryGuestEmail: getBookingPrimaryGuest(allData?.bookingData).email,
+        primaryGuestPhoneNumber:
+          getBookingPrimaryGuest(allData?.bookingData).phoneNumber,
         is80GRequired: bookingAtgDetails.isAtgRequested || prev.is80GRequired,
         taxInfo: {
           ...prev.taxInfo,
