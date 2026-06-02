@@ -83,6 +83,36 @@ interface DashboardBookingState extends BookingState {
   refundPolicyUrl?: string;
   faqsUrl?: string;
   codeOfConductUrl?: string;
+  primaryGuest?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    phoneNumber?: string;
+  } | null;
+  primary_guest?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+    phoneNumber?: string;
+  } | null;
+  contactName?: string;
+  contact_name?: string;
+  fullName?: string;
+  full_name?: string;
+  name?: string;
+  guestName?: string;
+  guest_name?: string;
+  email?: string;
+  Email?: string;
+  contactEmail?: string;
+  contact_email?: string;
+  emailAddress?: string;
+  phone?: string;
+  phoneNumber?: string;
+  phone_number?: string;
+  mobile?: string;
+  mobileNumber?: string;
+  mobile_number?: string;
 }
 
 interface DashboardEventData extends EventData {
@@ -176,8 +206,48 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
   );
 
   const primaryGuest = useMemo(() => {
-    return booking.guests?.[0] || null;
-  }, [booking.guests]);
+    const firstGuest = booking.guests?.[0] || null;
+    const bookingPrimaryGuest = booking.primaryGuest || booking.primary_guest || null;
+
+    return {
+      ...(bookingPrimaryGuest || {}),
+      ...(firstGuest || {}),
+      name:
+        firstGuest?.name ||
+        bookingPrimaryGuest?.name ||
+        booking.contactName ||
+        booking.contact_name ||
+        booking.fullName ||
+        booking.full_name ||
+        booking.guestName ||
+        booking.guest_name ||
+        booking.name ||
+        '',
+      email:
+        firstGuest?.email ||
+        bookingPrimaryGuest?.email ||
+        booking.contactEmail ||
+        booking.contact_email ||
+        booking.emailAddress ||
+        booking.email ||
+        booking.Email ||
+        '',
+      phone:
+        firstGuest?.phone ||
+        firstGuest?.phoneNumber ||
+        bookingPrimaryGuest?.phone ||
+        bookingPrimaryGuest?.phoneNumber ||
+        booking.contactPhone ||
+        booking.contact_phone ||
+        booking.phone ||
+        booking.phoneNumber ||
+        booking.phone_number ||
+        booking.mobile ||
+        booking.mobileNumber ||
+        booking.mobile_number ||
+        '',
+    };
+  }, [booking]);
 
   const eventName =
     eventData.title ||
