@@ -284,7 +284,7 @@ const logAdminPlanValidationSummary = (rawPlans: any[], normalizedPlans: Plan[])
   );
 };
 
-const normalizePlan = (plan: any): Plan => {
+const normalizePlan = (plan: any, currentEventId?: string | number): Plan => {
   const normalizedTitle = normalizeOptionalText(
     plan.PlanTitle || plan.PlanName || plan.title || ''
   );
@@ -295,6 +295,33 @@ const normalizePlan = (plan: any): Plan => {
   const planPrice = Number(plan.PlanPrice || 0);
   const offerPrice = Number(plan.OfferPrice || 0);
   const effectivePrice = offerPrice > 0 ? offerPrice : planPrice;
+  const matchedEventInventory = Array.isArray(plan.eventInventories)
+    ? plan.eventInventories.find(
+        (eventInventory: any) =>
+          Number(eventInventory?.eventId) === Number(currentEventId)
+      )
+    : null;
+  const resolvedRemainingInventory = Number(
+    matchedEventInventory?.remainingInventory ??
+      plan.remainingInventory ??
+      0
+  );
+  const resolvedAvailableRooms = Number(
+    matchedEventInventory?.remainingInventory ??
+      plan.availableRooms ??
+      plan.inventory?.availableRooms ??
+      plan.remainingInventory ??
+      0
+  );
+  const resolvedTotalRooms = Number(
+    matchedEventInventory?.totalInventory ??
+      plan.inventory?.totalRooms ??
+      0
+  );
+  const resolvedIsSoldOut =
+    typeof matchedEventInventory?.isSoldOut === 'boolean'
+      ? matchedEventInventory.isSoldOut
+      : Boolean(plan.isSoldOut);
 
   const normalizedPlan: Plan = {
     ...plan,
@@ -304,7 +331,7 @@ const normalizePlan = (plan: any): Plan => {
     PlanID: plan.PlanID ?? plan.planID,
     PlanName: normalizeOptionalText(plan.PlanName || normalizedTitle),
     priceType: plan.priceType || '',
-    remainingInventory: Number(plan.remainingInventory ?? 0),
+    remainingInventory: resolvedRemainingInventory,
     title: normalizedTitle,
     sequence: Number(plan.sequence ?? 0),
     PlanTitle: normalizedTitle,
@@ -323,15 +350,12 @@ const normalizePlan = (plan: any): Plan => {
     OfferPrice: offerPrice,
     discountedPrice: effectivePrice,
     finalPrice: planPrice,
-    isSoldOut: Boolean(plan.isSoldOut),
-    availableRooms: Number(
-      plan.availableRooms ?? plan.inventory?.availableRooms ?? plan.remainingInventory ?? 0
-    ),
+    isSoldOut: resolvedIsSoldOut,
+    availableRooms: resolvedAvailableRooms,
     inventory: {
       ...(plan.inventory || {}),
-      availableRooms: Number(
-        plan.inventory?.availableRooms ?? plan.availableRooms ?? plan.remainingInventory ?? 0
-      ),
+      totalRooms: resolvedTotalRooms || plan.inventory?.totalRooms,
+      availableRooms: resolvedAvailableRooms,
     },
     amenities: (plan.amenities || []).map((icon: any) => ({
       id: icon.id,
@@ -420,7 +444,7 @@ console.log(
   };
 
   const rawPlans = apiData.plans || [];
-  const mappedPlans: Plan[] = rawPlans.map(normalizePlan);
+  const mappedPlans: Plan[] = rawPlans.map((plan: any) => normalizePlan(plan, eventId));
   logAdminPlanValidationSummary(rawPlans, mappedPlans);
 
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
@@ -481,7 +505,7 @@ console.log(
 };
 
   const plans: Plan[] = rawPlans
-    .map(normalizePlan)
+    .map((plan: any) => normalizePlan(plan, eventId))
     .map((plan: Plan) => ({
       ...plan,
       pricePerNight: Number((plan as any).pricePerNight || 0),
@@ -552,7 +576,7 @@ export const getAllDataBySlug = async (
 
   const rawPlans = apiData.plans || [];
   const mappedPlans: Plan[] = rawPlans
-    .map(normalizePlan)
+    .map((plan: any) => normalizePlan(plan, apiData.EventID))
     .sort((a: any, b: any) => Number(a.sequence || 0) - Number(b.sequence || 0));
   logAdminPlanValidationSummary(rawPlans, mappedPlans);
   const mappedAddons = (apiData.addons || []).map((addon: any) => ({
@@ -609,7 +633,7 @@ export const getAllDataBySlug = async (
     addons: mappedAddons || [],
   };
 
-  const plans: Plan[] = rawPlans.map(normalizePlan).map((plan: Plan) => ({
+  const plans: Plan[] = rawPlans.map((plan: any) => normalizePlan(plan, apiData.EventID)).map((plan: Plan) => ({
     ...plan,
     pricePerNight: Number((plan as any).pricePerNight || 0),
   }));
