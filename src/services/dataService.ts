@@ -318,10 +318,19 @@ const normalizePlan = (plan: any, currentEventId?: string | number): Plan => {
       plan.inventory?.totalRooms ??
       0
   );
+  const hasEventInventory = matchedEventInventory !== null;
   const resolvedIsSoldOut =
-    typeof matchedEventInventory?.isSoldOut === 'boolean'
-      ? matchedEventInventory.isSoldOut
-      : Boolean(plan.isSoldOut);
+    hasEventInventory
+      ? Boolean(
+          matchedEventInventory?.isSoldOut ||
+            resolvedRemainingInventory <= 0 ||
+            resolvedAvailableRooms <= 0
+        )
+      : Boolean(
+          plan.isSoldOut ||
+            resolvedRemainingInventory <= 0 ||
+            resolvedAvailableRooms <= 0
+        );
 
   const normalizedPlan: Plan = {
     ...plan,
