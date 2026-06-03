@@ -295,6 +295,14 @@ const getPlanFeatureOverrides = (plan: any) => {
     ];
   }
 
+  if (planTitle.includes('pvi dorms') || planTitle.includes('dorm')) {
+    return [
+      { id: 'override-bed', label: 'bed', value: '1', icon: 'bed' },
+      { id: 'override-guests', label: 'guest', value: '1', icon: 'guest' },
+      { id: 'override-bathroom', label: 'bathroom', value: 'Common', icon: 'bath' },
+    ];
+  }
+
   return null;
 };
 
@@ -695,9 +703,9 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                         />
                       </div>
 
-                      <p className="mt-2 text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
+                      <span className="mt-2 text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
                         {getDisplayFeatureText(plan, feature)}
-                      </p>
+                      </span>
                     </div>
                   ))}
                 </div>
