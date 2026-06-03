@@ -250,10 +250,10 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
           const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
           const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
           const planDescription =
-            plan.fullDescription ||
-            plan.longDescription ||
             plan.PlanDescription ||
             plan.description ||
+            plan.fullDescription ||
+            plan.longDescription ||
             '';
           const safePlanDescription = sanitizeRichText(planDescription);
           const soldOut = isPlanSoldOut(plan);
