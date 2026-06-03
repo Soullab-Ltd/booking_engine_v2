@@ -139,6 +139,58 @@ const PlanFeatureIcon = ({ iconName }: { iconName: string }) => {
   return <CheckCircle className="h-5 w-5 text-[var(--theme)]" />;
 };
 
+const getDisplayFeatureText = (plan: any, feature: any): string => {
+  const rawLabel = String(
+    feature?.label || feature?.Label || feature?.title || feature?.Title || 'Feature'
+  ).trim();
+  const rawValue = String(feature?.value || feature?.Value || feature?.description || '').trim();
+  const normalizedLabel = rawLabel.toLowerCase();
+  const amenityTitles = (plan?.amenities || plan?.icons || [])
+    .map((item: any) => String(item?.Title || item?.title || item || '').toLowerCase());
+  const planTitle = String(plan?.PlanTitle || plan?.title || plan?.PlanName || '').toLowerCase();
+
+  if (!rawValue && rawLabel) {
+    return rawLabel;
+  }
+
+  if (normalizedLabel.includes('bath')) {
+    const hasCommonBath = amenityTitles.some((item: string) =>
+      item.includes('common bathroom') || item.includes('shared bathroom')
+    );
+    if (hasCommonBath) return 'Common';
+    if (rawValue === '1') return '1 bathroom';
+    return `${rawValue} ${rawLabel}`.trim();
+  }
+
+  if (normalizedLabel.includes('bed')) {
+    const isDormPlan =
+      planTitle.includes('dorm') ||
+      amenityTitles.some((item: string) => item.includes('bunk bed'));
+    const hasKingBed = amenityTitles.some((item: string) => item.includes('king size bed') || item.includes('private king bed'));
+    const bedLabel = isDormPlan
+      ? 'Bunk-bed'
+      : hasKingBed
+        ? 'bed (king size)'
+        : Number(rawValue) === 1
+          ? 'Bed'
+          : 'beds';
+    return `${rawValue} ${bedLabel}`.trim();
+  }
+
+  if (normalizedLabel.includes('guest')) {
+    if (/^up to\s+\d+/i.test(rawValue)) {
+      return `${rawValue} ${/up to\s+1\b/i.test(rawValue) ? 'guest' : 'guests'}`.trim();
+    }
+    return `${rawValue} ${Number(rawValue) === 1 ? 'Guest' : 'Guests'}`.trim();
+  }
+
+  if (normalizedLabel.includes('sq') || normalizedLabel.includes('area') || normalizedLabel.includes('size')) {
+    return `${rawValue} sq. ft.`.trim();
+  }
+
+  return `${rawValue} ${rawLabel}`.trim() || rawLabel || '-';
+};
+
 const getPlanGuestCapacity = (plan: any): string => {
   const description = stripHtml(plan?.PlanDescription || plan?.description || '');
 
@@ -163,6 +215,87 @@ const getPlanGuestCapacity = (plan: any): string => {
   }
 
   return '';
+};
+
+const getPlanBathroomCount = (plan: any): string => {
+  const description = stripHtml(
+    plan?.fullDescription || plan?.longDescription || plan?.PlanDescription || plan?.description || ''
+  );
+
+  const bathroomMatch =
+    description.match(/\b(\d+)\s*bathrooms?\b/i) ||
+    description.match(/\battached\s+bathroom\b/i);
+
+  if (bathroomMatch?.[1]) return bathroomMatch[1];
+  if (bathroomMatch) return '1';
+
+  return '';
+};
+
+const getPlanBedCount = (plan: any): string => {
+  const description = stripHtml(
+    plan?.fullDescription || plan?.longDescription || plan?.PlanDescription || plan?.description || ''
+  );
+
+  const digitMatch = description.match(/\b(\d+)\s+(?:single\s+)?beds?\b/i);
+  if (digitMatch?.[1]) return digitMatch[1];
+
+  const wordToNumber: Record<string, string> = {
+    single: '1',
+    one: '1',
+    twin: '2',
+    double: '2',
+    two: '2',
+    triple: '3',
+    three: '3',
+    quadruple: '4',
+    four: '4',
+  };
+
+  const wordMatch = description.match(/\b(single|one|twin|double|two|triple|three|quadruple|four)\s+(?:occupancy|beds?)\b/i);
+  if (wordMatch?.[1]) {
+    return wordToNumber[wordMatch[1].toLowerCase()] || '';
+  }
+
+  return '';
+};
+
+const getPlanArea = (plan: any): string => {
+  const description = stripHtml(
+    plan?.fullDescription || plan?.longDescription || plan?.PlanDescription || plan?.description || ''
+  );
+
+  const areaMatch = description.match(/\b(\d+(?:\.\d+)?)\s*(?:sq\.?\s*ft\.?|square\s*feet)\b/i);
+  if (areaMatch?.[1]) {
+    const areaValue = Number(areaMatch[1]);
+    return Number.isFinite(areaValue) ? areaValue.toLocaleString() : areaMatch[1];
+  }
+
+  return '';
+};
+
+const getPlanFeatureOverrides = (plan: any) => {
+  const planTitle = String(plan?.PlanTitle || plan?.title || plan?.PlanName || '').toLowerCase();
+
+  if (planTitle.includes('premium double')) {
+    return [
+      { id: 'override-bathroom', label: 'bathroom', value: '1', icon: 'bath' },
+      { id: 'override-bed', label: 'bed (king size)', value: '1', icon: 'bed' },
+      { id: 'override-area', label: 'sq. ft.', value: '250', icon: 'area' },
+      { id: 'override-guests', label: 'guests', value: 'Up to 2', icon: 'guest' },
+    ];
+  }
+
+  if (planTitle.includes('premium single')) {
+    return [
+      { id: 'override-bathroom', label: 'bathroom', value: '1', icon: 'bath' },
+      { id: 'override-guests', label: 'guest', value: '1', icon: 'guest' },
+      { id: 'override-area', label: 'sq. ft.', value: '400', icon: 'area' },
+      { id: 'override-bed', label: 'king-size bed', value: '', icon: 'bed' },
+    ];
+  }
+
+  return null;
 };
 
 const parseFeatureCollection = (rawValue: any): any[] => {
@@ -301,6 +434,11 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
   const amenityList = (plan.amenities || plan.icons || []).slice(0, 6);
 
   const displayFeatures = useMemo(() => {
+    const overriddenFeatures = getPlanFeatureOverrides(plan);
+    if (overriddenFeatures?.length) {
+      return overriddenFeatures;
+    }
+
     if (planFeatures.length > 0) {
       return planFeatures;
     }
@@ -312,19 +450,33 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
       icon: string;
     }> = [];
 
-    const roomType = String(
-      (plan as any).PlanSubtitle ||
-        (plan as any).stayRoomType ||
-        (plan as any).stayType ||
-        ''
-    ).trim();
-
-    if (roomType) {
+    const bathroomCount = getPlanBathroomCount(plan);
+    if (bathroomCount) {
       fallbackFeatures.push({
-        id: 'room-type',
-        label: 'Room Type',
-        value: roomType,
-        icon: 'room',
+        id: 'bathroom-count',
+        label: bathroomCount === '1' ? 'bathroom' : 'bathrooms',
+        value: bathroomCount,
+        icon: 'bath',
+      });
+    }
+
+    const area = getPlanArea(plan);
+    if (area) {
+      fallbackFeatures.push({
+        id: 'room-area',
+        label: 'sq. ft.',
+        value: area,
+        icon: 'area',
+      });
+    }
+
+    const bedCount = getPlanBedCount(plan);
+    if (bedCount) {
+      fallbackFeatures.push({
+        id: 'bed-count',
+        label: Number(bedCount) === 1 ? 'bed' : 'beds',
+        value: bedCount,
+        icon: 'bed',
       });
     }
 
@@ -332,33 +484,14 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
     if (guestCapacity) {
       fallbackFeatures.push({
         id: 'guest-capacity',
-        label: 'Guests',
-        value: guestCapacity,
+        label: 'guests',
+        value: `Up to ${guestCapacity}`,
         icon: 'guest',
       });
     }
 
-    const nightlyRate = Number((plan as any).pricePerNight || 0);
-    if (Number.isFinite(nightlyRate) && nightlyRate > 0) {
-      fallbackFeatures.push({
-        id: 'nightly-rate',
-        label: 'Nightly Rate',
-        value: `Rs ${nightlyRate.toLocaleString()}`,
-        icon: 'rate',
-      });
-    }
-
-    if (nightlyPriceTypeLabel) {
-      fallbackFeatures.push({
-        id: 'billing-type',
-        label: 'Billing',
-        value: nightlyPriceTypeLabel,
-        icon: 'billing',
-      });
-    }
-
     return fallbackFeatures.slice(0, 4);
-  }, [plan, planFeatures, nightlyPriceTypeLabel]);
+  }, [plan, planFeatures]);
 
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
@@ -529,13 +662,13 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
           <section className="animate-slideUp rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.06)]">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
-              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
-                About This Experience
+              <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight text-[var(--theme)]">
+                Description
               </h2>
             </div>
 
             <div
-              className="text-lg md:text-2xl text-stone-700 leading-relaxed font-medium space-y-4 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-4 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-6"
+              className="text-[15px] md:text-[17px] text-stone-600 leading-7 font-normal space-y-3 [&_ol]:list-decimal [&_ol]:pl-6 [&_p]:mb-3 [&_p:last-child]:mb-0 [&_strong]:font-semibold [&_ul]:list-disc [&_ul]:pl-6"
               dangerouslySetInnerHTML={{ __html: safeFullDescription }}
             />
           </section>
@@ -545,7 +678,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
               <>
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
-                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
+                  <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight text-[var(--theme)]">
                     Features
                   </h2>
                 </div>
@@ -562,18 +695,9 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                         />
                       </div>
 
-                      <div className="mt-2 space-y-1 text-center">
-                        <p className="text-[13px] md:text-[14px] font-semibold text-stone-900 leading-snug">
-                          {feature?.value || feature?.Value || feature?.description || '-'}
-                        </p>
-                        <p className="text-[11px] md:text-[12px] font-medium uppercase tracking-[0.14em] text-stone-500">
-                          {feature?.label ||
-                            feature?.Label ||
-                            feature?.title ||
-                            feature?.Title ||
-                            'Feature'}
-                        </p>
-                      </div>
+                      <p className="mt-2 text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
+                        {getDisplayFeatureText(plan, feature)}
+                      </p>
                     </div>
                   ))}
                 </div>

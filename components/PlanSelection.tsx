@@ -334,7 +334,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                     </div>
 
                     <div
-                      className="text-stone-600 text-sm md:text-[15px] font-medium leading-normal max-w-lg line-clamp-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-1 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0"
+                      className="text-justify text-stone-600 text-sm md:text-[15px] font-medium leading-normal max-w-lg line-clamp-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-1 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0"
                       dangerouslySetInnerHTML={{ __html: safePlanDescription }}
                     />
                   </div>
