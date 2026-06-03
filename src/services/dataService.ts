@@ -132,6 +132,9 @@ const getPlanSubtitle = (plan: any): string => {
 const getPlanDescription = (plan: any): string => {
   return normalizeOptionalText(
     plan.PlanDescription ||
+      plan.planDescription ||
+      plan.plan_description ||
+      plan.PlanDesc ||
       plan.description ||
       plan.shortDescription ||
       ''
