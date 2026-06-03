@@ -546,7 +546,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
                   <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
-                    What's Included
+                    Features
                   </h2>
                 </div>
 
@@ -562,18 +562,18 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                         />
                       </div>
 
-                      <p className="mt-2 text-[13px] md:text-[14px] font-medium text-stone-800 leading-snug">
-                        <span>
+                      <div className="mt-2 space-y-1 text-center">
+                        <p className="text-[13px] md:text-[14px] font-semibold text-stone-900 leading-snug">
                           {feature?.value || feature?.Value || feature?.description || '-'}
-                        </span>{' '}
-                        <span className="text-stone-500">
+                        </p>
+                        <p className="text-[11px] md:text-[12px] font-medium uppercase tracking-[0.14em] text-stone-500">
                           {feature?.label ||
                             feature?.Label ||
                             feature?.title ||
                             feature?.Title ||
                             'Feature'}
-                        </span>
-                      </p>
+                        </p>
+                      </div>
                     </div>
                   ))}
                 </div>
