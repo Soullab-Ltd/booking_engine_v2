@@ -249,7 +249,12 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
         {plans.map((plan: any, index: number) => {
           const planTitle = plan.PlanTitle || plan.title || plan.PlanName || 'Plan';
           const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
-          const planDescription = plan.PlanDescription || plan.description || '';
+          const planDescription =
+            plan.fullDescription ||
+            plan.longDescription ||
+            plan.PlanDescription ||
+            plan.description ||
+            '';
           const safePlanDescription = sanitizeRichText(planDescription);
           const soldOut = isPlanSoldOut(plan);
           const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);

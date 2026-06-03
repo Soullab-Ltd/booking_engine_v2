@@ -670,7 +670,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
           <section className="animate-slideUp rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.06)]">
             <div className="flex items-center gap-3 mb-6">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
-              <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight text-[var(--theme)]">
+              <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
                 Description
               </h2>
             </div>
@@ -686,12 +686,12 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
               <>
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
-                  <h2 className="text-[22px] md:text-[28px] font-semibold tracking-tight text-[var(--theme)]">
+                  <h2 className="text-xs font-black uppercase tracking-[0.3em] text-[var(--theme)]">
                     Features
                   </h2>
                 </div>
 
-                <div className="mb-10 grid grid-cols-2 gap-x-4 gap-y-5 sm:flex sm:flex-wrap sm:items-start sm:gap-10">
+                <div className="mb-10 grid grid-cols-2 gap-x-5 gap-y-6 sm:flex sm:flex-wrap sm:items-start sm:gap-10">
                   {displayFeatures.map((feature: any, index: number) => (
                     <div
                       key={feature?.id || `${feature?.label || feature?.Label || 'feature'}-${index}`}
