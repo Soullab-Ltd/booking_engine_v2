@@ -304,9 +304,9 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
               <div className="flex-1 p-5 md:p-6 lg:p-6 flex flex-col relative">
                 <div className="absolute right-0 top-0 h-24 w-24 rounded-full bg-[radial-gradient(circle,_rgba(15,118,110,0.06),_transparent_68%)]" />
 
-                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-5 mb-5 relative z-10">
+                <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-3 mb-4 relative z-10">
                   <div className="max-w-2xl">
-                    <div className="mb-2.5 flex flex-wrap items-center gap-2">
+                    <div className="mb-1.5 flex flex-wrap items-center gap-2">
                       <h3 className="text-lg md:text-xl font-black tracking-[-0.03em] text-stone-900">
                         {planTitle}
                       </h3>
@@ -319,7 +319,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                       ) : null}
                     </div>
 
-                    <div className="flex flex-wrap gap-2 mb-3">
+                    <div className="flex flex-wrap gap-2 mb-2">
                       {planSubtitle ? (
                         <span className="rounded-full border border-stone-200 bg-stone-50 px-3 py-1 text-[10px] font-black uppercase tracking-[0.14em] text-stone-500">
                           {planSubtitle}
@@ -334,7 +334,7 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                     </div>
 
                     <div
-                      className="text-stone-600 text-sm md:text-[15px] font-medium leading-relaxed max-w-lg line-clamp-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-2 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-5"
+                      className="text-stone-600 text-sm md:text-[15px] font-medium leading-normal max-w-lg line-clamp-4 [&_ol]:list-decimal [&_ol]:pl-5 [&_p]:mb-1 [&_p:last-child]:mb-0 [&_strong]:font-black [&_ul]:list-disc [&_ul]:pl-5 [&_ul]:my-1 [&_ol]:my-1 [&_li]:my-0"
                       dangerouslySetInnerHTML={{ __html: safePlanDescription }}
                     />
                   </div>
