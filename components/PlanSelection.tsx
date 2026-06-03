@@ -251,9 +251,9 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
           const planSubtitle = plan.stayRoomType || plan.PlanSubtitle || '';
           const planDescription =
             plan.PlanDescription ||
-            plan.description ||
-            plan.fullDescription ||
-            plan.longDescription ||
+            plan.planDescription ||
+            plan.plan_description ||
+            plan.PlanDesc ||
             '';
           const safePlanDescription = sanitizeRichText(planDescription);
           const soldOut = isPlanSoldOut(plan);
