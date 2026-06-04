@@ -8,6 +8,133 @@
     <script>
       window.__META_PIXEL_ID__ = '1322598772185048';
     </script>
+    <script>
+      (function () {
+        var ATTRIBUTION_STORAGE_KEY = 'booking_attribution';
+        var LEGACY_STORAGE_KEY = 'meta_attribution';
+        var PIXEL_EVENT_ID_KEY = 'meta_pixel_event_id';
+        var COOKIE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
+
+        function getCookieDomain() {
+          var hostname = window.location.hostname;
+
+          if (hostname === 'localhost' || /^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+            return '';
+          }
+
+          if (hostname === 'shreansdaga.org' || hostname.endsWith('.shreansdaga.org')) {
+            return '.shreansdaga.org';
+          }
+
+          return '';
+        }
+
+        function setCookie(name, value, maxAgeSeconds) {
+          if (!value) return;
+
+          var domain = getCookieDomain();
+          var domainPart = domain ? '; domain=' + domain : '';
+          document.cookie =
+            name +
+            '=' +
+            encodeURIComponent(value) +
+            '; path=/; max-age=' +
+            (maxAgeSeconds || COOKIE_MAX_AGE_SECONDS) +
+            '; SameSite=Lax' +
+            domainPart;
+        }
+
+        function getOrCreatePixelEventId() {
+          var existing = sessionStorage.getItem(PIXEL_EVENT_ID_KEY);
+          if (existing) return existing;
+
+          var id =
+            'purchase_' +
+            Date.now() +
+            '_' +
+            Math.random().toString(36).slice(2, 10);
+          sessionStorage.setItem(PIXEL_EVENT_ID_KEY, id);
+          return id;
+        }
+
+        function buildFbcFromFbclid(fbclid) {
+          if (!fbclid) return null;
+          return 'fb.1.' + Date.now() + '.' + fbclid;
+        }
+
+        function readStoredAttribution() {
+          var raw =
+            sessionStorage.getItem(ATTRIBUTION_STORAGE_KEY) ||
+            localStorage.getItem(ATTRIBUTION_STORAGE_KEY) ||
+            localStorage.getItem(LEGACY_STORAGE_KEY);
+
+          if (!raw) return {};
+
+          try {
+            return JSON.parse(raw) || {};
+          } catch (_) {
+            return {};
+          }
+        }
+
+        function persistAttribution(attribution) {
+          var serialized = JSON.stringify(attribution);
+          sessionStorage.setItem(ATTRIBUTION_STORAGE_KEY, serialized);
+          localStorage.setItem(ATTRIBUTION_STORAGE_KEY, serialized);
+          localStorage.setItem(LEGACY_STORAGE_KEY, serialized);
+
+          if (attribution.fbclid) setCookie('meta_fbclid', attribution.fbclid);
+          if (attribution.fbc) setCookie('_fbc', attribution.fbc);
+          if (attribution.fbp) setCookie('_fbp', attribution.fbp);
+          if (attribution.externalId) setCookie('meta_external_id', attribution.externalId);
+        }
+
+        function captureAttribution() {
+          var url = new URL(window.location.href);
+          var params = url.searchParams;
+          var existing = readStoredAttribution();
+          var fbclid = params.get('fbclid') || existing.fbclid || null;
+
+          var attribution = {
+            source: 'meta_pixel',
+            pixelEventId: getOrCreatePixelEventId(),
+            fbclid: fbclid,
+            fbc:
+              params.get('fbc') ||
+              existing.fbc ||
+              buildFbcFromFbclid(fbclid),
+            fbp:
+              params.get('fbp') ||
+              localStorage.getItem('_fbp') ||
+              existing.fbp ||
+              null,
+            externalId: params.get('external_id') || existing.externalId || null,
+            utmSource: params.get('utm_source') || existing.utmSource || null,
+            utmMedium: params.get('utm_medium') || existing.utmMedium || null,
+            utmCampaign: params.get('utm_campaign') || existing.utmCampaign || null,
+            utmContent: params.get('utm_content') || existing.utmContent || null,
+            utmTerm: params.get('utm_term') || existing.utmTerm || null,
+            landingUrl: existing.landingUrl || window.location.href,
+            referrer: existing.referrer || document.referrer || null,
+            capturedAt: existing.capturedAt || new Date().toISOString()
+          };
+
+          persistAttribution(attribution);
+          return attribution;
+        }
+
+        window.getBookingAttribution = function () {
+          var stored = readStoredAttribution();
+          if (stored && (stored.fbclid || stored.fbc || stored.fbp || stored.externalId)) {
+            return stored;
+          }
+
+          return captureAttribution();
+        };
+
+        captureAttribution();
+      })();
+    </script>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>

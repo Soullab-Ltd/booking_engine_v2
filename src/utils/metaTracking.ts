@@ -1,5 +1,6 @@
 const META_PIXEL_SCRIPT_ID = 'meta-pixel-script';
 const META_ATTRIBUTION_STORAGE_KEY = 'meta_attribution';
+const BOOKING_ATTRIBUTION_STORAGE_KEY = 'booking_attribution';
 const META_PURCHASE_EVENT_STORAGE_KEY = 'meta_last_purchase_event_id';
 const META_COOKIE_MAX_AGE_SECONDS = 90 * 24 * 60 * 60;
 
@@ -31,6 +32,10 @@ declare global {
     _fbq?: any;
     fbq?: (...args: any[]) => void;
     __META_PIXEL_ID__?: string;
+    getBookingAttribution?: () => Partial<MetaAttributionData> & {
+      pixelEventId?: string;
+      source?: string;
+    };
   }
 }
 
@@ -93,6 +98,7 @@ const sanitizeAttributionData = (
 
 const persistMetaAttribution = (data: Partial<MetaAttributionData>) => {
   const normalized = sanitizeAttributionData(data);
+  window.localStorage.setItem(BOOKING_ATTRIBUTION_STORAGE_KEY, JSON.stringify(normalized));
   window.localStorage.setItem(META_ATTRIBUTION_STORAGE_KEY, JSON.stringify(normalized));
 
   if (normalized.fbclid) setCookie('meta_fbclid', normalized.fbclid);
@@ -113,48 +119,75 @@ const createFbpFallback = () => {
 
 export const getStoredMetaAttribution = (): MetaAttributionData => {
   let fromStorage: Partial<MetaAttributionData> = {};
+  const bootstrapAttribution =
+    typeof window.getBookingAttribution === 'function'
+      ? window.getBookingAttribution()
+      : {};
 
   try {
     fromStorage = JSON.parse(
-      window.localStorage.getItem(META_ATTRIBUTION_STORAGE_KEY) || '{}'
+      window.localStorage.getItem(BOOKING_ATTRIBUTION_STORAGE_KEY) ||
+      window.localStorage.getItem(META_ATTRIBUTION_STORAGE_KEY) ||
+      '{}'
     );
   } catch {
     fromStorage = {};
   }
 
   return sanitizeAttributionData({
+    ...bootstrapAttribution,
     ...fromStorage,
-    fbclid: getCookie('meta_fbclid') || fromStorage.fbclid,
-    fbc: getCookie('_fbc') || fromStorage.fbc,
-    fbp: getCookie('_fbp') || fromStorage.fbp,
-    externalId: getCookie('meta_external_id') || fromStorage.externalId,
+    fbclid: getCookie('meta_fbclid') || fromStorage.fbclid || bootstrapAttribution.fbclid,
+    fbc: getCookie('_fbc') || fromStorage.fbc || bootstrapAttribution.fbc,
+    fbp: getCookie('_fbp') || fromStorage.fbp || bootstrapAttribution.fbp,
+    externalId:
+      getCookie('meta_external_id') ||
+      fromStorage.externalId ||
+      bootstrapAttribution.externalId,
   });
 };
 
 export const captureMetaAttribution = () => {
+  const bootstrapAttribution =
+    typeof window.getBookingAttribution === 'function'
+      ? window.getBookingAttribution()
+      : {};
   const url = new URL(window.location.href);
   const params = url.searchParams;
   const existing = getStoredMetaAttribution();
 
-  const fbclid = params.get('fbclid') || existing.fbclid;
-  const fbc = params.get('fbc') || getCookie('_fbc') || (fbclid ? buildFbcFromFbclid(fbclid) : existing.fbc);
-  const fbp = params.get('fbp') || getCookie('_fbp') || existing.fbp || createFbpFallback();
-  const externalId = params.get('external_id') || existing.externalId;
+  const fbclid = params.get('fbclid') || existing.fbclid || bootstrapAttribution.fbclid || '';
+  const fbc =
+    params.get('fbc') ||
+    getCookie('_fbc') ||
+    existing.fbc ||
+    bootstrapAttribution.fbc ||
+    (fbclid ? buildFbcFromFbclid(fbclid) : '');
+  const fbp =
+    params.get('fbp') ||
+    getCookie('_fbp') ||
+    existing.fbp ||
+    bootstrapAttribution.fbp ||
+    createFbpFallback();
+  const externalId =
+    params.get('external_id') || existing.externalId || bootstrapAttribution.externalId || '';
 
   persistMetaAttribution({
     ...existing,
+    ...bootstrapAttribution,
     fbclid,
     fbc,
     fbp,
     externalId,
-    utmSource: params.get('utm_source') || existing.utmSource,
-    utmMedium: params.get('utm_medium') || existing.utmMedium,
-    utmCampaign: params.get('utm_campaign') || existing.utmCampaign,
-    utmContent: params.get('utm_content') || existing.utmContent,
-    utmTerm: params.get('utm_term') || existing.utmTerm,
-    landingUrl: existing.landingUrl || window.location.href,
-    referrer: existing.referrer || document.referrer,
-    capturedAt: existing.capturedAt || new Date().toISOString(),
+    utmSource: params.get('utm_source') || existing.utmSource || bootstrapAttribution.utmSource,
+    utmMedium: params.get('utm_medium') || existing.utmMedium || bootstrapAttribution.utmMedium,
+    utmCampaign:
+      params.get('utm_campaign') || existing.utmCampaign || bootstrapAttribution.utmCampaign,
+    utmContent: params.get('utm_content') || existing.utmContent || bootstrapAttribution.utmContent,
+    utmTerm: params.get('utm_term') || existing.utmTerm || bootstrapAttribution.utmTerm,
+    landingUrl: existing.landingUrl || bootstrapAttribution.landingUrl || window.location.href,
+    referrer: existing.referrer || bootstrapAttribution.referrer || document.referrer,
+    capturedAt: existing.capturedAt || bootstrapAttribution.capturedAt || new Date().toISOString(),
   });
 };
 
