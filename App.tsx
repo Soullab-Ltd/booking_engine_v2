@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { ChevronLeft, Loader2 } from 'lucide-react';
 import { createEmptyGuest } from './constants';
 import { BookingState, Plan } from './types';
@@ -17,6 +17,15 @@ import GuestForm from './components/GuestForm';
 import BookingSummary from './components/BookingSummary';
 import PaymentStatus from './components/PaymentStatus';
 import DownloadsDashboard from './components/DownloadsDashboard';
+import {
+  captureMetaAttribution,
+  createMetaEventId,
+  getStoredMetaAttribution,
+  hasTrackedMetaPurchase,
+  initMetaPixel,
+  markMetaPurchaseTracked,
+  trackMetaEvent,
+} from './src/utils/metaTracking';
 
 
 const formatDisplayDate = (dateStr: any) => {
@@ -299,9 +308,11 @@ type PaymentConfirmationDetails = {
   paymentSyncStatus?: 'synced' | 'pending' | 'failed';
   paymentSyncMessage?: string;
   backendPaymentStatus?: string;
+  metaPurchaseEventId?: string;
 };
 
 const App: React.FC = () => {
+  const hasTrackedViewContentRef = useRef<string>('');
   const [data, setData] = useState<{
     eventData: EventResponse;
     plans: Plan[];
@@ -325,6 +336,11 @@ const App: React.FC = () => {
   });
 
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'PENDING' | 'FAILED' | null>(null);
+
+  useEffect(() => {
+    captureMetaAttribution();
+    initMetaPixel();
+  }, []);
   
   useEffect(() => {
     const loadData = async () => {
@@ -423,6 +439,86 @@ if (slug) {
     loadData();
   }, []);
 
+  useEffect(() => {
+    const plan = bookingState.selectedPlan;
+    const planKey = String(plan?.planID || plan?.PlanID || plan?.id || '').trim();
+
+    if (bookingState.currentStep !== 3 || !planKey || hasTrackedViewContentRef.current === planKey) {
+      return;
+    }
+
+    trackMetaEvent('ViewContent', {
+      content_name: plan?.PlanTitle || plan?.PlanName || plan?.title || 'Selected Plan',
+      content_ids: [planKey],
+      content_type: 'product',
+      value: Number(plan?.OfferPrice || plan?.discountedPrice || plan?.PlanPrice || 0),
+      currency: 'INR',
+    });
+
+    hasTrackedViewContentRef.current = planKey;
+  }, [bookingState.currentStep, bookingState.selectedPlan]);
+
+  useEffect(() => {
+    if (bookingState.currentStep !== 6 || paymentResult !== 'SUCCESS') {
+      return;
+    }
+
+    const eventId =
+      String(bookingState.metaPurchaseEventId || '').trim() ||
+      createMetaEventId('purchase');
+
+    if (hasTrackedMetaPurchase(eventId)) {
+      return;
+    }
+
+    const primaryGuest = bookingState.guests?.[0];
+    const attribution = getStoredMetaAttribution();
+    const planIdentifier = String(
+      bookingState.selectedPlan?.planID ||
+        bookingState.selectedPlan?.PlanID ||
+        bookingState.selectedPlan?.id ||
+        ''
+    ).trim();
+
+    trackMetaEvent(
+      'Purchase',
+      {
+        value: Number(
+          bookingState.selectedPlan?.OfferPrice ||
+            bookingState.selectedPlan?.discountedPrice ||
+            bookingState.selectedPlan?.PlanPrice ||
+            0
+        ),
+        currency: 'INR',
+        content_name:
+          bookingState.selectedPlan?.PlanTitle ||
+          bookingState.selectedPlan?.PlanName ||
+          bookingState.selectedPlan?.title ||
+          'Selected Plan',
+        content_ids: planIdentifier ? [planIdentifier] : undefined,
+        content_type: 'product',
+        order_id: String(bookingState.bookingId || bookingState.paymentId || eventId),
+        num_items: Number(bookingState.guests?.length || 1),
+        event_source_url: window.location.href,
+        external_id:
+          attribution.externalId ||
+          primaryGuest?.email ||
+          primaryGuest?.phone ||
+          '',
+      },
+      eventId
+    );
+
+    markMetaPurchaseTracked(eventId);
+
+    if (!bookingState.metaPurchaseEventId) {
+      setBookingState((prev) => ({
+        ...prev,
+        metaPurchaseEventId: eventId,
+      }));
+    }
+  }, [bookingState, paymentResult]);
+
   const moveToStep = async (nextStepValue: number) => {
     setStepLoadingMessage(STEP_LOADING_COPY[nextStepValue] || 'Loading...');
     await waitForTransitionFrame();
@@ -471,6 +567,8 @@ if (slug) {
         paymentDetails?.paymentSyncMessage || prev.paymentSyncMessage || '',
       backendPaymentStatus:
         paymentDetails?.backendPaymentStatus || prev.backendPaymentStatus || 'paid',
+      metaPurchaseEventId:
+        paymentDetails?.metaPurchaseEventId || prev.metaPurchaseEventId || '',
       bookingStatus: prev.bookingStatus || 'CONFIRMED',
       bookingStatusLabel: prev.bookingStatusLabel || 'Payment Received',
       bookingStatusMessage:

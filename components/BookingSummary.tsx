@@ -15,6 +15,11 @@ import {
   X,
   FileText,
 } from 'lucide-react';
+import {
+  createMetaEventId,
+  getStoredMetaAttribution,
+  trackMetaEvent,
+} from '../src/utils/metaTracking';
 
 declare global {
   interface Window {
@@ -41,6 +46,7 @@ interface BookingSummaryProps {
       paymentSyncStatus?: 'synced' | 'pending' | 'failed';
       paymentSyncMessage?: string;
       backendPaymentStatus?: string;
+      metaPurchaseEventId?: string;
     }
   ) => void;
   onBack: () => void;
@@ -507,6 +513,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   onConfirm,
   onBack,
 }) => {
+  const [metaPurchaseEventId] = useState(() => createMetaEventId('purchase'));
   const eventBanner =
     (event as any)?.banner ||
     'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
@@ -962,6 +969,30 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     onlyStudentOrService,
     couponIdProof,
     couponIdProofUrl,
+  ]);
+
+  useEffect(() => {
+    if (!selectedEventId || !selectedPlanId) {
+      return;
+    }
+
+    trackMetaEvent('InitiateCheckout', {
+      content_name:
+        selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title || 'Selected Plan',
+      content_ids: [String(selectedPlanId)],
+      content_type: 'product',
+      value: Number(Math.round(pricingBreakdown.totalAmount)),
+      currency: 'INR',
+      num_items: Number(guests.length || 1),
+    });
+  }, [
+    guests.length,
+    pricingBreakdown.totalAmount,
+    selectedEventId,
+    selectedPlan?.PlanName,
+    selectedPlan?.PlanTitle,
+    selectedPlan?.title,
+    selectedPlanId,
   ]);
 
   useEffect(() => {
@@ -1596,6 +1627,8 @@ const handlePayment = async () => {
       (event as any)?.EventEndDate ||
       resolvedStartDate;
 
+    const metaAttribution = getStoredMetaAttribution();
+
     const payload = {
       eventId: selectedEventId,
       planId: selectedPlanId,
@@ -1616,6 +1649,21 @@ const handlePayment = async () => {
       guests: guestsPayload,
       bookingAddons: bookingAddonsPayload,
       stays: staysPayload,
+      attribution: {
+        source: 'meta_pixel',
+        pixelEventId: metaPurchaseEventId,
+        fbclid: metaAttribution.fbclid || null,
+        fbc: metaAttribution.fbc || null,
+        fbp: metaAttribution.fbp || null,
+        externalId: metaAttribution.externalId || null,
+        utmSource: metaAttribution.utmSource || null,
+        utmMedium: metaAttribution.utmMedium || null,
+        utmCampaign: metaAttribution.utmCampaign || null,
+        utmContent: metaAttribution.utmContent || null,
+        utmTerm: metaAttribution.utmTerm || null,
+        landingUrl: metaAttribution.landingUrl || null,
+        referrer: metaAttribution.referrer || null,
+      },
     };
 
     console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
@@ -1658,7 +1706,9 @@ const handlePayment = async () => {
       }
 
       setIsProcessing(false);
-      onConfirm(true, zeroAmountBookingId);
+      onConfirm(true, zeroAmountBookingId, {
+        metaPurchaseEventId,
+      });
       return;
     }
 
@@ -1718,6 +1768,7 @@ const handlePayment = async () => {
       paymentSyncStatus: paymentSyncResult.synced ? 'synced' : 'pending',
       paymentSyncMessage: paymentSyncResult.message || '',
       backendPaymentStatus: 'paid',
+      metaPurchaseEventId,
     });
   } catch (err: any) {
     console.error('Payment Error:', err);

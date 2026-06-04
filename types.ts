@@ -190,6 +190,7 @@ export interface BookingState {
   razorpayPaymentId?: string;
   razorpayOrderId?: string;
   razorpaySignature?: string;
+  metaPurchaseEventId?: string;
   bookingStatus?: 'CONFIRMED' | 'PENDING' | 'FAILED';
   bookingStatusLabel?: string;
   bookingStatusMessage?: string;
