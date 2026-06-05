@@ -97,7 +97,7 @@ const normalizePhoneInput = (value: string) => {
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
 const MAX_GUEST_AGE = 99;
-const MAX_GUEST_COUNT = 8;
+const MAX_GUEST_COUNT = 15;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const NAME_LETTERS_ONLY_REGEX = /[^A-Za-z]/g;
 
