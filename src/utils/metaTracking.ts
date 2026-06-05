@@ -195,12 +195,25 @@ export const initMetaPixel = () => {
   const pixelId = getMetaPixelId();
 
   if (!pixelId || typeof window === 'undefined' || typeof document === 'undefined') {
+    console.warn('[Meta Pixel] Initialization skipped', {
+      hasPixelId: Boolean(pixelId),
+      hasWindow: typeof window !== 'undefined',
+      hasDocument: typeof document !== 'undefined',
+    });
     return false;
   }
 
   if (window.fbq) {
+    console.log('[Meta Pixel] Reusing existing pixel instance', {
+      pixelId,
+      url: window.location.href,
+    });
     window.fbq('init', pixelId);
     window.fbq('track', 'PageView');
+    console.log('[Meta Pixel] PageView fired during re-init', {
+      pixelId,
+      url: window.location.href,
+    });
     return true;
   }
 
@@ -228,6 +241,10 @@ export const initMetaPixel = () => {
 
   window.fbq?.('init', pixelId);
   window.fbq?.('track', 'PageView');
+  console.log('[Meta Pixel] Initialized and fired PageView', {
+    pixelId,
+    url: window.location.href,
+  });
   return true;
 };
 
@@ -241,6 +258,13 @@ export const trackMetaEvent = (
 ) => {
   const pixelId = getMetaPixelId();
   if (!pixelId || typeof window.fbq !== 'function') {
+    console.warn('[Meta Pixel] Event skipped', {
+      eventName,
+      eventId: eventId || null,
+      hasPixelId: Boolean(pixelId),
+      hasFbq: typeof window.fbq === 'function',
+      url: typeof window !== 'undefined' ? window.location.href : '',
+    });
     return;
   }
 
@@ -250,15 +274,33 @@ export const trackMetaEvent = (
 
   if (eventName === 'PageView') {
     window.fbq('track', eventName);
+    console.log('[Meta Pixel] Event fired', {
+      eventName,
+      pixelId,
+      url: window.location.href,
+    });
     return;
   }
 
   if (eventId) {
     window.fbq('track', eventName, cleanedParams, { eventID: eventId });
+    console.log('[Meta Pixel] Event fired', {
+      eventName,
+      pixelId,
+      eventId,
+      params: cleanedParams,
+      url: window.location.href,
+    });
     return;
   }
 
   window.fbq('track', eventName, cleanedParams);
+  console.log('[Meta Pixel] Event fired', {
+    eventName,
+    pixelId,
+    params: cleanedParams,
+    url: window.location.href,
+  });
 };
 
 export const markMetaPurchaseTracked = (eventId: string) => {
