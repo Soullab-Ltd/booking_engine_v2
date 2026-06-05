@@ -239,8 +239,9 @@ export const initMetaPixel = () => {
     s?.parentNode?.insertBefore(t, s);
   })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
-  window.fbq?.('init', pixelId);
-  window.fbq?.('track', 'PageView');
+  const fbq = window.fbq;
+  fbq?.('init', pixelId);
+  fbq?.('track', 'PageView');
   console.log('[Meta Pixel] Initialized and fired PageView', {
     pixelId,
     url: window.location.href,
