@@ -190,7 +190,6 @@ const PAYMENT_STATUS_POLL_INTERVAL_MS = 3000;
 const PAYMENT_STATUS_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
-const RAZORPAY_CALLBACK_BASE_URL = 'https://bookingapi.thriive.in/bookings/razorpay/callback';
 
 const isMobileBrowser = () =>
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -558,31 +557,7 @@ if (slug) {
         bookingState.selectedPlan?.title ||
         'Selected Plan'
     ).trim();
-    const statusUrl = new URL(window.location.href);
-    statusUrl.searchParams.set('booking', String(bookingId));
-    if (data.eventData.event?.EventID || data.eventData.event?.id) {
-      statusUrl.searchParams.set(
-        'id',
-        String(data.eventData.event?.EventID || data.eventData.event?.id)
-      );
-    }
-    statusUrl.searchParams.set('view', 'payment');
-    statusUrl.searchParams.set('payment_return', '1');
-    const callbackUrl = `${RAZORPAY_CALLBACK_BASE_URL}?booking=${encodeURIComponent(String(bookingId))}`;
-
     await new Promise<void>((resolve, reject) => {
-      let settled = false;
-      const finish = () => {
-        if (settled) return;
-        settled = true;
-        resolve();
-      };
-      const fail = (error: Error) => {
-        if (settled) return;
-        settled = true;
-        reject(error);
-      };
-
       const razorpayInstance = new RazorpayCheckout({
         key,
         order_id: orderId,
@@ -590,8 +565,6 @@ if (slug) {
         currency: String(razorpay?.currency || 'INR').trim(),
         name: eventName,
         description: planTitle ? `${planTitle} booking` : `${eventName} booking`,
-        callback_url: callbackUrl,
-        redirect: true,
         prefill: {
           name: String(razorpay?.prefill?.name || bookingState.primaryGuestName || '').trim(),
           email: String(razorpay?.prefill?.email || bookingState.primaryGuestEmail || '').trim(),
@@ -604,28 +577,30 @@ if (slug) {
         },
         modal: {
           ondismiss: () => {
-            window.location.assign(statusUrl.toString());
-            finish();
+            reject(new Error('Payment was cancelled before completion.'));
           },
         },
         handler: () => {
-          window.location.assign(statusUrl.toString());
-          finish();
+          resolve();
         },
         theme: {
           color: '#0f766e',
         },
       });
 
-      razorpayInstance.on('payment.failed', () => {
-        window.location.assign(statusUrl.toString());
-        finish();
+      razorpayInstance.on('payment.failed', (paymentFailure: any) => {
+        const failureReason =
+          paymentFailure?.error?.description ||
+          paymentFailure?.error?.reason ||
+          paymentFailure?.error?.step ||
+          'Payment failed. Please try again.';
+        reject(new Error(String(failureReason)));
       });
 
       try {
         razorpayInstance.open();
       } catch (error) {
-        fail(error instanceof Error ? error : new Error('Unable to open Razorpay checkout.'));
+        reject(error instanceof Error ? error : new Error('Unable to open Razorpay checkout.'));
       }
     });
   };
