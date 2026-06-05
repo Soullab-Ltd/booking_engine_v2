@@ -188,6 +188,55 @@ const STEP_LOADING_COPY: Record<number, string> = {
 
 const PAYMENT_STATUS_POLL_INTERVAL_MS = 3000;
 const PAYMENT_STATUS_POLL_TIMEOUT_MS = 3 * 60 * 1000;
+const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
+const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+const RAZORPAY_CALLBACK_BASE_URL = 'https://bookingapi.thriive.in/bookings/razorpay/callback';
+
+const isMobileBrowser = () =>
+  typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+const loadRazorpayCheckoutScript = (): Promise<void> =>
+  new Promise((resolve, reject) => {
+    if (typeof window === 'undefined') {
+      reject(new Error('Payment checkout is only available in the browser.'));
+      return;
+    }
+
+    if ((window as any).Razorpay) {
+      resolve();
+      return;
+    }
+
+    const existingScript = document.querySelector(
+      `script[src="${RAZORPAY_CHECKOUT_SCRIPT}"]`
+    ) as HTMLScriptElement | null;
+
+    const handleScriptLoad = () => {
+      if ((window as any).Razorpay) {
+        resolve();
+        return;
+      }
+
+      reject(new Error('Razorpay checkout did not load correctly.'));
+    };
+
+    const handleScriptError = () => {
+      reject(new Error('We could not load Razorpay checkout right now.'));
+    };
+
+    if (existingScript) {
+      existingScript.addEventListener('load', handleScriptLoad, { once: true });
+      existingScript.addEventListener('error', handleScriptError, { once: true });
+      return;
+    }
+
+    const script = document.createElement('script');
+    script.src = RAZORPAY_CHECKOUT_SCRIPT;
+    script.async = true;
+    script.onload = handleScriptLoad;
+    script.onerror = handleScriptError;
+    document.body.appendChild(script);
+  });
 
 const waitForTransitionFrame = () =>
   new Promise<void>((resolve) => {
@@ -239,7 +288,6 @@ const getBookingPresentationState = (bookingData: any) => {
   const bookingStatusRaw = getStringValue(
     bookingData?.bookingConfirmationStatus,
     bookingData?.booking_confirmation_status,
-    bookingData?.status,
     bookingData?.bookingStatus,
     bookingData?.booking_status
   );
@@ -251,19 +299,20 @@ const getBookingPresentationState = (bookingData: any) => {
     bookingData?.idVerificationStatus,
     bookingData?.id_verification_status
   );
-  const paymentStatusRaw = getStringValue(
+  const backendPaymentStatusRaw = getStringValue(
     bookingData?.paymentStatus,
-    bookingData?.payment_status
+    bookingData?.payment_status,
+    bookingData?.status
   );
 
   const bookingStatus = bookingStatusRaw.toLowerCase();
   const verificationStatus = verificationStatusRaw.toLowerCase();
-  const paymentStatus = paymentStatusRaw.toLowerCase();
+  const backendPaymentStatus = backendPaymentStatusRaw.toLowerCase();
   const isFailed =
     bookingStatus.includes('cancel') ||
     bookingStatus.includes('fail') ||
-    paymentStatus.includes('fail') ||
-    paymentStatus.includes('cancel');
+    backendPaymentStatus.includes('fail') ||
+    backendPaymentStatus.includes('cancel');
 
   if (isFailed) {
     return {
@@ -272,7 +321,7 @@ const getBookingPresentationState = (bookingData: any) => {
       bookingStatusLabel: 'Payment Failed',
       bookingStatusMessage:
         'Your payment could not be completed. Please try again or contact support if the amount was debited.',
-      backendPaymentStatus: paymentStatusRaw || bookingStatusRaw,
+      backendPaymentStatus: backendPaymentStatusRaw || bookingStatusRaw,
     };
   }
 
@@ -293,8 +342,9 @@ const getBookingPresentationState = (bookingData: any) => {
     verificationStatus.includes('pending') ||
     verificationStatus.includes('review') ||
     verificationStatus.includes('verify') ||
-    paymentStatus.includes('pending') ||
-    paymentStatus.includes('processing') ||
+    backendPaymentStatus.includes('pending') ||
+    backendPaymentStatus.includes('processing') ||
+    backendPaymentStatus.includes('authorized') ||
     (hasCouponCode &&
       hasUploadedVerificationProof &&
       !bookingStatus.includes('confirm'));
@@ -306,7 +356,7 @@ const getBookingPresentationState = (bookingData: any) => {
       bookingStatusLabel: 'Pending Verification',
       bookingStatusMessage:
         'Your payment was received. Booking will be confirmed after admin confirms the verification process.',
-      backendPaymentStatus: paymentStatusRaw,
+      backendPaymentStatus: backendPaymentStatusRaw || bookingStatusRaw,
     };
   }
 
@@ -316,7 +366,7 @@ const getBookingPresentationState = (bookingData: any) => {
     bookingStatusLabel: 'Fully Confirmed',
     bookingStatusMessage:
       'Your booking is confirmed. Your confirmation, invoice, and ticket will be shared with you shortly.',
-    backendPaymentStatus: paymentStatusRaw,
+    backendPaymentStatus: backendPaymentStatusRaw || bookingStatusRaw,
   };
 };
 
@@ -356,6 +406,8 @@ const App: React.FC = () => {
   });
 
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'PENDING' | 'FAILED' | null>(null);
+  const hasAttemptedAutoPayRef = useRef(false);
+  const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
   useEffect(() => {
     captureMetaAttribution();
@@ -415,6 +467,7 @@ if (slug) {
 	            ...prev,
               currentStep: view === 'dashboard' ? 7 : 6,
 	            bookingId: bookingIdFromUrl,
+              selectedPlan: allData?.bookingData?.plan || prev.selectedPlan,
               guests: getBookingGuests(allData?.bookingData),
               primaryGuest: getBookingPrimaryGuest(allData?.bookingData),
               primaryGuestName: getBookingPrimaryGuest(allData?.bookingData).name,
@@ -442,6 +495,10 @@ if (slug) {
               bookingStatusLabel: bookingPresentation.bookingStatusLabel,
               bookingStatusMessage: bookingPresentation.bookingStatusMessage,
               backendPaymentStatus: bookingPresentation.backendPaymentStatus,
+              paymentId: getStringValue(
+                allData?.bookingData?.paymentId,
+                allData?.bookingData?.payment_id
+              ),
             additionalAssets: allData?.bookingData?.additionalAssets || [],
           }));
 
@@ -458,6 +515,148 @@ if (slug) {
 
     loadData();
   }, []);
+
+  const launchRetryCheckout = async (bookingId: string | number) => {
+    if (!data) {
+      throw new Error('Event data is still loading. Please try again.');
+    }
+
+    const responseRaw = await fetch(`${BOOKING_API_BASE_URL}/${bookingId}/razorpay/resume`, {
+      method: 'POST',
+    });
+
+    const responseText = await responseRaw.text();
+    const response = responseText ? JSON.parse(responseText) : {};
+
+    if (!responseRaw.ok) {
+      throw new Error(
+        response?.message || 'We could not reopen your payment session. Please try again.'
+      );
+    }
+
+    const razorpay = response?.razorpay || {};
+    const orderId = String(razorpay?.orderId || response?.orderId || '').trim();
+    const key = String(razorpay?.key || response?.key || '').trim();
+
+    if (!orderId || !key) {
+      throw new Error('The retry payment session is incomplete. Please try again.');
+    }
+
+    await loadRazorpayCheckoutScript();
+
+    const RazorpayCheckout = (window as any).Razorpay;
+    if (!RazorpayCheckout) {
+      throw new Error('Razorpay checkout is unavailable right now.');
+    }
+
+    const eventName = String(
+      data.eventData.event?.EventName || data.eventData.event?.title || 'Event Booking'
+    ).trim();
+    const planTitle = String(
+      bookingState.selectedPlan?.PlanTitle ||
+        bookingState.selectedPlan?.PlanName ||
+        bookingState.selectedPlan?.title ||
+        'Selected Plan'
+    ).trim();
+    const statusUrl = new URL(window.location.href);
+    statusUrl.searchParams.set('booking', String(bookingId));
+    if (data.eventData.event?.EventID || data.eventData.event?.id) {
+      statusUrl.searchParams.set(
+        'id',
+        String(data.eventData.event?.EventID || data.eventData.event?.id)
+      );
+    }
+    statusUrl.searchParams.set('view', 'payment');
+    statusUrl.searchParams.set('payment_return', '1');
+    const callbackUrl = `${RAZORPAY_CALLBACK_BASE_URL}?booking=${encodeURIComponent(String(bookingId))}`;
+
+    await new Promise<void>((resolve, reject) => {
+      let settled = false;
+      const finish = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+      const fail = (error: Error) => {
+        if (settled) return;
+        settled = true;
+        reject(error);
+      };
+
+      const razorpayInstance = new RazorpayCheckout({
+        key,
+        order_id: orderId,
+        amount: Number(razorpay?.amount || 0),
+        currency: String(razorpay?.currency || 'INR').trim(),
+        name: eventName,
+        description: planTitle ? `${planTitle} booking` : `${eventName} booking`,
+        callback_url: callbackUrl,
+        redirect: true,
+        prefill: {
+          name: String(razorpay?.prefill?.name || bookingState.primaryGuestName || '').trim(),
+          email: String(razorpay?.prefill?.email || bookingState.primaryGuestEmail || '').trim(),
+          contact: String(
+            razorpay?.prefill?.contact || bookingState.primaryGuestPhoneNumber || ''
+          ).trim(),
+        },
+        notes: {
+          booking_id: String(bookingId),
+        },
+        modal: {
+          ondismiss: () => {
+            window.location.assign(statusUrl.toString());
+            finish();
+          },
+        },
+        handler: () => {
+          window.location.assign(statusUrl.toString());
+          finish();
+        },
+        theme: {
+          color: '#0f766e',
+        },
+      });
+
+      razorpayInstance.on('payment.failed', () => {
+        window.location.assign(statusUrl.toString());
+        finish();
+      });
+
+      try {
+        razorpayInstance.open();
+      } catch (error) {
+        fail(error instanceof Error ? error : new Error('Unable to open Razorpay checkout.'));
+      }
+    });
+  };
+
+  const retryBookingPayment = async (source: 'manual' | 'autopay') => {
+    if (!bookingState.bookingId || isRetryingPayment) {
+      return;
+    }
+
+    try {
+      setIsRetryingPayment(true);
+      setBookingState((prev) => ({
+        ...prev,
+        paymentSyncStatus: 'pending',
+        paymentSyncMessage:
+          source === 'autopay'
+            ? 'Opening Razorpay checkout on your phone...'
+            : 'Reopening your payment session...',
+      }));
+      await launchRetryCheckout(bookingState.bookingId);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Payment retry failed.';
+      setBookingState((prev) => ({
+        ...prev,
+        paymentSyncStatus: 'failed',
+        paymentSyncMessage: message,
+      }));
+    } finally {
+      setIsRetryingPayment(false);
+    }
+  };
 
   useEffect(() => {
     if (
@@ -570,6 +769,34 @@ if (slug) {
       isCancelled = true;
     };
   }, [bookingState.bookingId, bookingState.currentStep, data, paymentResult]);
+
+  useEffect(() => {
+    if (
+      hasAttemptedAutoPayRef.current ||
+      bookingState.currentStep !== 6 ||
+      !bookingState.bookingId ||
+      !data ||
+      !isMobileBrowser()
+    ) {
+      return;
+    }
+
+    const url = new URL(window.location.href);
+    const shouldAutopay = url.searchParams.get('autopay') === '1';
+    const paymentStatus = String(bookingState.backendPaymentStatus || '').trim().toLowerCase();
+    if (!shouldAutopay || !['pending', 'failed'].includes(paymentStatus)) {
+      return;
+    }
+
+    hasAttemptedAutoPayRef.current = true;
+    void retryBookingPayment('autopay');
+  }, [
+    bookingState.backendPaymentStatus,
+    bookingState.bookingId,
+    bookingState.currentStep,
+    data,
+    paymentResult,
+  ]);
 
   useEffect(() => {
     const plan = bookingState.selectedPlan;
@@ -924,20 +1151,19 @@ const isPlanSelectionLoading =
         );
 
 case 6:
-        return paymentResult === 'SUCCESS' || paymentResult === 'PENDING' ? (
+        return (
           <PaymentStatus
             status={paymentResult}
             bookingState={bookingState}
-            // Inject the formatted date here
             event={{ 
               ...data.eventData.event, 
               displayDate: `${formatDisplayDate(data.eventData.event.EventStartDate)} — ${formatDisplayDate(data.eventData.event.EventEndDate)}` 
             }}
             ui={data.uiContent.bookingSummary}
             onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))}
+            onRetry={() => void retryBookingPayment('manual')}
+            isRetrying={isRetryingPayment}
           />
-        ) : (
-          <div className="text-center py-20 font-bold text-red-500">Payment Failed. Please try again.</div>
         );
 
       case 7:

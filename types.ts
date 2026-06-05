@@ -138,10 +138,15 @@ export interface EventData {
   banner: string;
 
   date: string;
+  displayDate?: string;
 
   // ✅ ADD TYPES
   startDate?: string;
   endDate?: string;
+  EventStartDate?: string;
+  EventEndDate?: string;
+  EndDate?: string;
+  eventEndDate?: string;
 
   time: string;
   venue: string;
@@ -162,7 +167,16 @@ export interface DiscountInfo {
 export interface BookingState {
   currentStep: number;
   selectedPlan: Plan | null;
+  plan?: Plan | null;
   guests: Guest[];
+  primaryGuest?: {
+    name?: string;
+    email?: string;
+    phoneNumber?: string;
+  };
+  primaryGuestName?: string;
+  primaryGuestEmail?: string;
+  primaryGuestPhoneNumber?: string;
   discounts: DiscountInfo;
   is80GRequired: boolean;
   taxInfo: {
@@ -197,4 +211,8 @@ export interface BookingState {
   backendPaymentStatus?: string;
   paymentSyncStatus?: 'synced' | 'pending' | 'failed';
   paymentSyncMessage?: string;
+  ticketUrl?: string;
+  invoiceUrl?: string;
+  completionCertificateUrl?: string;
+  additionalAssets?: any[];
 }

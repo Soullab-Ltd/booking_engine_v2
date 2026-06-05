@@ -17,6 +17,8 @@ interface PaymentStatusProps {
   event: EventData;
   ui: any;
   onDashboard: () => void;
+  onRetry?: () => void;
+  isRetrying?: boolean;
 }
 
 const PaymentStatus: React.FC<PaymentStatusProps> = ({
@@ -25,6 +27,8 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
   event,
   ui,
   onDashboard,
+  onRetry,
+  isRetrying = false,
 }) => {
   const [showConfetti, setShowConfetti] = useState(false);
 
@@ -90,10 +94,11 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
 
         <div className="flex flex-col gap-3">
           <button
-            onClick={() => window.location.reload()}
-            className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all"
+            onClick={() => (onRetry ? onRetry() : window.location.reload())}
+            disabled={isRetrying}
+            className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {statusUI.failed.cta}
+            {isRetrying ? 'Opening payment...' : statusUI.failed.cta}
           </button>
         </div>
       </div>
