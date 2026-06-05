@@ -60,6 +60,8 @@ const FRONTEND_RAZORPAY_KEY = String(
   (import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID || ''
 ).trim();
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+const BOOKING_PAYMENT_POLL_INTERVAL_MS = 5000;
+const BOOKING_PAYMENT_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -144,6 +146,35 @@ const getSourceValue = (sources: any[], keys: string[]) => {
 const getStringSourceValue = (sources: any[], keys: string[]): string => {
   const value = getSourceValue(sources, keys);
   return value === undefined || value === null ? '' : String(value).trim();
+};
+
+const isBookingMarkedPaid = (bookingData: any) => {
+  const paymentStatus = String(
+    bookingData?.paymentStatus ||
+      bookingData?.payment_status ||
+      bookingData?.backendPaymentStatus ||
+      ''
+  )
+    .trim()
+    .toLowerCase();
+  const bookingStatus = String(
+    bookingData?.bookingConfirmationStatus ||
+      bookingData?.booking_confirmation_status ||
+      bookingData?.bookingStatus ||
+      bookingData?.booking_status ||
+      bookingData?.status ||
+      ''
+  )
+    .trim()
+    .toLowerCase();
+
+  return (
+    paymentStatus === 'paid' ||
+    paymentStatus === 'captured' ||
+    paymentStatus === 'authorized' ||
+    bookingStatus === 'confirmed' ||
+    bookingStatus === 'success'
+  );
 };
 
 const getNumberSourceValue = (
@@ -1324,6 +1355,35 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     []
   );
 
+  const pollBookingPaymentStatus = useCallback(
+    async (bookingId: string | number) => {
+      const startedAt = Date.now();
+
+      while (Date.now() - startedAt < BOOKING_PAYMENT_POLL_TIMEOUT_MS) {
+        try {
+          const response = await fetch(`${BOOKING_API_BASE_URL}/${bookingId}`);
+
+          if (response.ok) {
+            const bookingData = await response.json();
+
+            if (isBookingMarkedPaid(bookingData)) {
+              return bookingData;
+            }
+          }
+        } catch (error) {
+          console.warn('Booking payment poll failed', error);
+        }
+
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, BOOKING_PAYMENT_POLL_INTERVAL_MS)
+        );
+      }
+
+      return null;
+    },
+    []
+  );
+
   const launchRazorpayCheckout = useCallback(
     async (
       response: any,
@@ -1445,6 +1505,20 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       };
 
       const paymentResult = await new Promise<any>((resolve, reject) => {
+        let settled = false;
+
+        const resolveOnce = (value: any) => {
+          if (settled) return;
+          settled = true;
+          resolve(value);
+        };
+
+        const rejectOnce = (error: Error) => {
+          if (settled) return;
+          settled = true;
+          reject(error);
+        };
+
         const razorpayOptions: Record<string, any> = {
           key: razorpayKey,
           amount,
@@ -1471,11 +1545,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           },
           modal: {
             ondismiss: () => {
-              reject(new Error('Payment was cancelled before completion.'));
+              rejectOnce(new Error('Payment was cancelled before completion.'));
             },
           },
           handler: (checkoutResponse: any) => {
-            resolve(checkoutResponse);
+            resolveOnce(checkoutResponse);
           },
         };
 
@@ -1495,19 +1569,56 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
             paymentFailure?.error?.reason ||
             paymentFailure?.error?.step ||
             'Payment failed. Please try again.';
-          reject(new Error(String(failureReason)));
+          rejectOnce(new Error(String(failureReason)));
         });
 
         razorpay.open();
+
+        if (bookingId) {
+          pollBookingPaymentStatus(bookingId)
+            .then((bookingData) => {
+              if (!bookingData) return;
+
+              resolveOnce({
+                bookingData,
+                paymentId:
+                  bookingData?.paymentId ||
+                  bookingData?.payment_id ||
+                  bookingData?.razorpayPaymentId ||
+                  bookingData?.razorpay_payment_id ||
+                  '',
+                orderId:
+                  bookingData?.razorpayOrderId ||
+                  bookingData?.razorpay_order_id ||
+                  bookingData?.orderId ||
+                  bookingData?.order_id ||
+                  '',
+                signature:
+                  bookingData?.razorpaySignature ||
+                  bookingData?.razorpay_signature ||
+                  '',
+                paymentStatus:
+                  bookingData?.paymentStatus || bookingData?.payment_status || 'paid',
+              });
+            })
+            .catch((error) => {
+              console.warn('Booking payment poll ended with error', error);
+            });
+        }
       });
 
-      const paymentSyncResult = bookingId
-        ? await syncSuccessfulPayment(response, bookingId, paymentResult)
-        : {
-            synced: false,
-            message:
-              'Payment succeeded, but the booking reference was missing while saving the payment details.',
-          };
+      const paymentSyncResult = paymentResult?.bookingData
+        ? {
+            synced: true,
+            message: '',
+          }
+        : bookingId
+          ? await syncSuccessfulPayment(response, bookingId, paymentResult)
+          : {
+              synced: false,
+              message:
+                'Payment succeeded, but the booking reference was missing while saving the payment details.',
+            };
 
       return {
         redirected: false,
@@ -1519,6 +1630,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       event,
       eventBanner,
       guests,
+      pollBookingPaymentStatus,
       pricingBreakdown.totalAmount,
       selectedEventId,
       selectedPlan,
