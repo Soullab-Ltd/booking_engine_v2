@@ -56,7 +56,9 @@ const KIDS_PLAN_PRICE = 10000;
 const MAX_GUEST_AGE = 99;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
-const FRONTEND_RAZORPAY_TEST_KEY = 'rzp_test_dAUJkW0WtsN6N7';
+const FRONTEND_RAZORPAY_KEY = String(
+  (import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID || ''
+).trim();
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
@@ -1723,7 +1725,7 @@ const handlePayment = async () => {
 
     setIsProcessing(false);
     const paymentOutcome = await launchRazorpayCheckout(checkoutResponse, bookingId, {
-      key: FRONTEND_RAZORPAY_TEST_KEY,
+      key: FRONTEND_RAZORPAY_KEY,
     });
 
     if (paymentOutcome?.redirected) {
