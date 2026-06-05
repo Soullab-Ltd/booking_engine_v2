@@ -60,6 +60,7 @@ const FRONTEND_RAZORPAY_KEY = String(
   (import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID || ''
 ).trim();
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+const RAZORPAY_CALLBACK_URL = 'https://bookingapi.thriive.in/bookings/razorpay/callback';
 const BOOKING_PAYMENT_POLL_INTERVAL_MS = 5000;
 const BOOKING_PAYMENT_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 
@@ -1532,6 +1533,8 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           currency,
           name: eventTitle,
           description: paymentDescription,
+          callback_url: RAZORPAY_CALLBACK_URL,
+          redirect: true,
           prefill: {
             name: String(
               fallbackConfig?.prefill?.name || firstGuest?.name || ''
