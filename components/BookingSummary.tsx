@@ -63,6 +63,13 @@ const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 const BOOKING_PAYMENT_POLL_INTERVAL_MS = 5000;
 const BOOKING_PAYMENT_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 
+const buildBookingStatusUrl = (bookingId: string | number) => {
+  const url = new URL(window.location.href);
+  url.searchParams.set('booking', String(bookingId));
+  url.searchParams.delete('view');
+  return url.toString();
+};
+
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
@@ -1545,10 +1552,22 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           },
           modal: {
             ondismiss: () => {
+              if (bookingId) {
+                window.location.assign(buildBookingStatusUrl(bookingId));
+                resolveOnce({ redirected: true });
+                return;
+              }
+
               rejectOnce(new Error('Payment was cancelled before completion.'));
             },
           },
           handler: (checkoutResponse: any) => {
+            if (bookingId) {
+              window.location.assign(buildBookingStatusUrl(bookingId));
+              resolveOnce({ redirected: true, paymentResult: checkoutResponse });
+              return;
+            }
+
             resolveOnce(checkoutResponse);
           },
         };
@@ -1564,6 +1583,12 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         const razorpay = new RazorpayCheckout(razorpayOptions);
 
         razorpay.on('payment.failed', (paymentFailure: any) => {
+          if (bookingId) {
+            window.location.assign(buildBookingStatusUrl(bookingId));
+            resolveOnce({ redirected: true, paymentFailure });
+            return;
+          }
+
           const failureReason =
             paymentFailure?.error?.description ||
             paymentFailure?.error?.reason ||

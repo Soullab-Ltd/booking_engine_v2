@@ -186,6 +186,9 @@ const STEP_LOADING_COPY: Record<number, string> = {
   7: 'Loading downloads dashboard...',
 };
 
+const PAYMENT_STATUS_POLL_INTERVAL_MS = 3000;
+const PAYMENT_STATUS_POLL_TIMEOUT_MS = 3 * 60 * 1000;
+
 const waitForTransitionFrame = () =>
   new Promise<void>((resolve) => {
     window.requestAnimationFrame(() => {
@@ -256,6 +259,23 @@ const getBookingPresentationState = (bookingData: any) => {
   const bookingStatus = bookingStatusRaw.toLowerCase();
   const verificationStatus = verificationStatusRaw.toLowerCase();
   const paymentStatus = paymentStatusRaw.toLowerCase();
+  const isFailed =
+    bookingStatus.includes('cancel') ||
+    bookingStatus.includes('fail') ||
+    paymentStatus.includes('fail') ||
+    paymentStatus.includes('cancel');
+
+  if (isFailed) {
+    return {
+      paymentResult: 'FAILED' as const,
+      bookingStatus: 'FAILED' as const,
+      bookingStatusLabel: 'Payment Failed',
+      bookingStatusMessage:
+        'Your payment could not be completed. Please try again or contact support if the amount was debited.',
+      backendPaymentStatus: paymentStatusRaw || bookingStatusRaw,
+    };
+  }
+
   const hasCouponCode = Boolean(
     getStringValue(bookingData?.couponCode, bookingData?.coupon_code)
   );
@@ -438,6 +458,118 @@ if (slug) {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (
+      bookingState.currentStep !== 6 ||
+      paymentResult !== 'PENDING' ||
+      !bookingState.bookingId ||
+      !data
+    ) {
+      return;
+    }
+
+    const eventId = Number(
+      data?.eventData?.event?.EventID ||
+        data?.eventData?.event?.id ||
+        new URLSearchParams(window.location.search).get('id') ||
+        0
+    );
+
+    if (!eventId) {
+      return;
+    }
+
+    let isCancelled = false;
+    const startedAt = Date.now();
+
+    const refreshBookingStatus = async () => {
+      while (!isCancelled && Date.now() - startedAt < PAYMENT_STATUS_POLL_TIMEOUT_MS) {
+        try {
+          const allData = await getAllData(String(eventId), String(bookingState.bookingId));
+          const bookingPresentation = getBookingPresentationState(allData?.bookingData);
+          const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
+          const primaryGuest = getBookingPrimaryGuest(allData?.bookingData);
+
+          if (isCancelled) {
+            return;
+          }
+
+          setPaymentResult(bookingPresentation.paymentResult);
+          setBookingState((prev) => ({
+            ...prev,
+            guests: getBookingGuests(allData?.bookingData),
+            primaryGuest,
+            primaryGuestName: primaryGuest.name,
+            primaryGuestEmail: primaryGuest.email,
+            primaryGuestPhoneNumber: primaryGuest.phoneNumber,
+            is80GRequired: bookingAtgDetails.isAtgRequested || prev.is80GRequired,
+            taxInfo: {
+              ...prev.taxInfo,
+              panNumber: bookingAtgDetails.panNumber || prev.taxInfo.panNumber,
+              aadharNumber:
+                bookingAtgDetails.aadharNumber || prev.taxInfo.aadharNumber || '',
+              panFile: bookingAtgDetails.panFileUrl || prev.taxInfo.panFile || '',
+              aadharFile:
+                bookingAtgDetails.aadharFileUrl || prev.taxInfo.aadharFile || '',
+            },
+            atgDetails: bookingAtgDetails.atgDetails || prev.atgDetails,
+            panNumber: bookingAtgDetails.panNumber || prev.panNumber || '',
+            aadharNumber: bookingAtgDetails.aadharNumber || prev.aadharNumber || '',
+            panFileUrl: bookingAtgDetails.panFileUrl || prev.panFileUrl || '',
+            aadharFileUrl: bookingAtgDetails.aadharFileUrl || prev.aadharFileUrl || '',
+            paymentId:
+              getStringValue(
+                allData?.bookingData?.paymentId,
+                allData?.bookingData?.payment_id
+              ) || prev.paymentId || '',
+            ticketUrl:
+              allData?.bookingData?.ticketUrl ||
+              allData?.bookingData?.ticket_url ||
+              prev.ticketUrl ||
+              '',
+            invoiceUrl:
+              allData?.bookingData?.invoiceUrl ||
+              allData?.bookingData?.invoice_url ||
+              prev.invoiceUrl ||
+              '',
+            completionCertificateUrl:
+              allData?.bookingData?.completionCertificateUrl ||
+              allData?.bookingData?.completion_certificate_url ||
+              prev.completionCertificateUrl ||
+              '',
+            bookingStatus: bookingPresentation.bookingStatus,
+            bookingStatusLabel: bookingPresentation.bookingStatusLabel,
+            bookingStatusMessage: bookingPresentation.bookingStatusMessage,
+            backendPaymentStatus: bookingPresentation.backendPaymentStatus,
+            additionalAssets: allData?.bookingData?.additionalAssets || [],
+            paymentSyncStatus:
+              bookingPresentation.paymentResult === 'SUCCESS' ? 'synced' : prev.paymentSyncStatus,
+            paymentSyncMessage:
+              bookingPresentation.paymentResult === 'SUCCESS'
+                ? ''
+                : prev.paymentSyncMessage || 'Waiting for live payment confirmation from Razorpay.',
+          }));
+
+          if (bookingPresentation.paymentResult !== 'PENDING') {
+            return;
+          }
+        } catch (pollError) {
+          console.warn('Booking status refresh failed:', pollError);
+        }
+
+        await new Promise((resolve) =>
+          window.setTimeout(resolve, PAYMENT_STATUS_POLL_INTERVAL_MS)
+        );
+      }
+    };
+
+    void refreshBookingStatus();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, [bookingState.bookingId, bookingState.currentStep, data, paymentResult]);
 
   useEffect(() => {
     const plan = bookingState.selectedPlan;
