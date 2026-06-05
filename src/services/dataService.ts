@@ -3,8 +3,8 @@ import { EventData, Plan } from '../../types';
 
 
 
-const serverUrl = "http://localhost:8081/";
-const frontEndUrl = "http://localhost:3000/";
+const serverUrl = "https://bookingapi.thriive.in/";
+const frontEndUrl = "https://booking-engine.thriive.in/";
 
 
 export interface UIContent {
