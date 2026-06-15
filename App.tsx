@@ -189,7 +189,7 @@ const STEP_LOADING_COPY: Record<number, string> = {
 const PAYMENT_STATUS_POLL_INTERVAL_MS = 3000;
 const PAYMENT_STATUS_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
-const BOOKING_API_BASE_URL = 'http://bookings.shreansdaga.org/bookings';
+const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 
 const isMobileBrowser = () =>
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -1080,7 +1080,7 @@ const isPlanSelectionLoading =
         return (
           <PlanDetail
             plan={bookingState.selectedPlan!}
-            onProceed={(apiGuests: unknown) => {
+            onProceed={(apiGuests) => {
               setBookingState((p) => ({
                 ...p,
                 guestsPayload: apiGuests,

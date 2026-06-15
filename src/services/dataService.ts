@@ -3,11 +3,11 @@ import { EventData, Plan } from '../../types';
 
 
 
-const serverUrl = "http://bookings.shreansdaga.org/";
+const serverUrl = "https://bookingapi.thriive.in/";
 const frontEndUrl =
   typeof window !== 'undefined'
     ? `${window.location.origin}/`
-    : 'http://bookings.shreansdaga.org/';
+    : 'https://bookngs.shreansdaga.org/';
 
 
 export interface UIContent {

@@ -59,7 +59,7 @@ const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const FRONTEND_RAZORPAY_KEY = String(
   (import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID || ''
 ).trim();
-const BOOKING_API_BASE_URL = 'http://bookings.shreansdaga.org/bookings';
+const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -698,7 +698,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `http://bookings.shreansdaga.org/coupons/applicable?${query.toString()}`
+        `https://bookingapi.thriive.in/coupons/applicable?${query.toString()}`
       );
 
       if (!res.ok) {
@@ -1059,7 +1059,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       });
 
       const res = await fetch(
-        `http://bookings.shreansdaga.org/coupons/validate?${query.toString()}`
+        `https://bookingapi.thriive.in/coupons/validate?${query.toString()}`
       );
 
       const data = await res.json().catch(() => null);
@@ -1680,7 +1680,7 @@ const handlePayment = async () => {
         formData.append('couponIdProofFile', (bookingState as any).couponIdProof);
       }
 
-      const responseRaw = await fetch('http://bookings.shreansdaga.org/bookings', {
+      const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
         method: 'POST',
         body: formData,
       });
