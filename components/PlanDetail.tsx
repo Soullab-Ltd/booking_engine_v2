@@ -27,7 +27,7 @@ import {
 
 interface PlanDetailProps {
   plan: Plan;
-  onProceed: () => void;
+  onProceed: (apiGuests?: unknown) => void;
   onBack: () => void;
 }
 
