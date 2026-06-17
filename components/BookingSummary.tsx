@@ -60,6 +60,10 @@ const FRONTEND_RAZORPAY_KEY = String(
   (import.meta as any)?.env?.VITE_RAZORPAY_KEY_ID || ''
 ).trim();
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+const LAST_BOOKING_STORAGE_PREFIX = 'booking_engine:last_booking';
+
+const getLastBookingStorageKey = (eventIdentifier: string) =>
+  `${LAST_BOOKING_STORAGE_PREFIX}:${eventIdentifier}`;
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -1355,6 +1359,20 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       ]);
 
       if (paymentLink) {
+        if (bookingId) {
+          try {
+            const eventIdentifier = String(selectedEventId || '').trim();
+            if (eventIdentifier) {
+              window.sessionStorage.setItem(
+                getLastBookingStorageKey(eventIdentifier),
+                String(bookingId)
+              );
+            }
+          } catch (error) {
+            console.warn('Unable to store session booking id before redirect:', error);
+          }
+        }
+
         window.location.assign(paymentLink);
         return { redirected: true };
       }
