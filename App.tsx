@@ -330,6 +330,8 @@ const getBookingPresentationState = (bookingData: any) => {
   const bookingStatus = bookingStatusRaw.toLowerCase();
   const verificationStatus = verificationStatusRaw.toLowerCase();
   const backendPaymentStatus = backendPaymentStatusRaw.toLowerCase();
+  const isExplicitlyConfirmed =
+    bookingStatus === 'confirmed' || bookingStatus.includes('confirm');
   const isFailed =
     bookingStatus.includes('cancel') ||
     bookingStatus.includes('fail') ||
@@ -360,6 +362,7 @@ const getBookingPresentationState = (bookingData: any) => {
   );
 
   const isPending =
+    !isExplicitlyConfirmed ||
     bookingStatus.includes('pending') ||
     verificationStatus.includes('pending') ||
     verificationStatus.includes('review') ||
@@ -367,9 +370,7 @@ const getBookingPresentationState = (bookingData: any) => {
     backendPaymentStatus.includes('pending') ||
     backendPaymentStatus.includes('processing') ||
     backendPaymentStatus.includes('authorized') ||
-    (hasCouponCode &&
-      hasUploadedVerificationProof &&
-      !bookingStatus.includes('confirm'));
+    (hasCouponCode && hasUploadedVerificationProof && !isExplicitlyConfirmed);
 
   if (isPending) {
     return {
