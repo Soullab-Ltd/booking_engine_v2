@@ -402,7 +402,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
     });
   }, [plan]);
 
-  const fallbackImage = 'https://via.placeholder.com/1200x600?text=No+Image';
+  const fallbackImage = '';
 
   const carouselImages = sortedImages.length
     ? sortedImages.map((img: any) => img.imageUrl).filter(Boolean)

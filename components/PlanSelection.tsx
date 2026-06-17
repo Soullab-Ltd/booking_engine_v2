@@ -59,14 +59,14 @@ const getPlanRecommendation = (plan: any, index: number) => {
 };
 
 const getThumbnailImage = (plan: any) => {
-  return (
+  const imageUrl =
     plan.images?.find((img: any) => Number(img.isThumbnail) === 1)?.imageUrl ||
     plan.images?.find((img: any) => Number(img.isMain) === 1)?.imageUrl ||
     plan.images?.[0]?.imageUrl ||
     plan.thumbnail ||
-    plan.bannerImage ||
-    'https://via.placeholder.com/1200x600?text=No+Image'
-  );
+    plan.bannerImage;
+
+  return typeof imageUrl === 'string' ? imageUrl.trim() : '';
 };
 
 const primePlanImage = (src: string) => {
@@ -126,10 +126,20 @@ const PlanCardImage = ({
   badge?: string;
 }) => {
   const [isReady, setIsReady] = useState(() => loadedPlanImageCache.has(src));
+  const [hasError, setHasError] = useState(false);
+  const hasImage = Boolean(src);
 
   useEffect(() => {
     let isMounted = true;
+    setHasError(false);
     setIsReady(loadedPlanImageCache.has(src));
+
+    if (!src) {
+      setIsReady(true);
+      return () => {
+        isMounted = false;
+      };
+    }
 
     primePlanImage(src).then(() => {
       if (isMounted) {
@@ -144,7 +154,7 @@ const PlanCardImage = ({
 
   return (
     <div className="w-full md:w-[13.5rem] lg:w-[14.5rem] h-44 md:h-auto overflow-hidden rounded-t-[24px] md:rounded-l-[24px] md:rounded-tr-none relative bg-stone-100">
-      {!isReady ? (
+      {!isReady && hasImage ? (
         <div className="absolute inset-0 z-20 flex items-center justify-center bg-[linear-gradient(180deg,_#f4f4f2_0%,_#ecece7_100%)]">
           <div className="flex flex-col items-center gap-2 rounded-2xl border border-stone-200 bg-white/85 px-4 py-3 shadow-sm backdrop-blur-sm">
             <Loader2 className="h-5 w-5 animate-spin text-[var(--theme)]" />
@@ -167,13 +177,30 @@ const PlanCardImage = ({
         </div>
       ) : null}
 
-      <img
-        src={src}
-        alt={alt}
-        className={`block w-full h-full object-cover transition duration-700 group-hover:scale-[1.03] ${
-          isReady ? 'opacity-100' : 'opacity-0'
-        }`}
-      />
+      {hasImage && !hasError ? (
+        <img
+          src={src}
+          alt={alt}
+          onError={() => {
+            setHasError(true);
+            setIsReady(true);
+          }}
+          className={`block w-full h-full object-cover transition duration-700 group-hover:scale-[1.03] ${
+            isReady ? 'opacity-100' : 'opacity-0'
+          }`}
+        />
+      ) : (
+        <div className="absolute inset-0 z-[5] flex items-center justify-center bg-[linear-gradient(180deg,_#ecece7_0%,_#deded8_100%)]">
+          <div className="text-center">
+            <div className="text-[10px] font-black uppercase tracking-[0.22em] text-stone-500">
+              Stay Image
+            </div>
+            <div className="mt-1 text-xs font-bold text-stone-400">
+              Coming soon
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

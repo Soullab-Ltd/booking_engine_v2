@@ -237,6 +237,29 @@ const loadRazorpayCheckoutScript = (): Promise<void> =>
     document.body.appendChild(script);
   });
 
+const clearAutopayParamsFromUrl = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  const url = new URL(window.location.href);
+  let didChange = false;
+
+  if (url.searchParams.has('autopay')) {
+    url.searchParams.delete('autopay');
+    didChange = true;
+  }
+
+  if (url.searchParams.get('view') === 'payment') {
+    url.searchParams.set('view', 'dashboard');
+    didChange = true;
+  }
+
+  if (didChange) {
+    window.history.replaceState({}, '', `${url.pathname}?${url.searchParams.toString()}`);
+  }
+};
+
 const waitForTransitionFrame = () =>
   new Promise<void>((resolve) => {
     window.requestAnimationFrame(() => {
@@ -405,6 +428,7 @@ const App: React.FC = () => {
   });
 
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'PENDING' | 'FAILED' | null>(null);
+  const hasLocalPaymentSuccessRef = useRef(false);
   const hasAttemptedAutoPayRef = useRef(false);
   const [isRetryingPayment, setIsRetryingPayment] = useState(false);
 
@@ -501,7 +525,13 @@ if (slug) {
             additionalAssets: allData?.bookingData?.additionalAssets || [],
           }));
 
-          setPaymentResult(bookingPresentation.paymentResult);
+          setPaymentResult((prev) => {
+            if (hasLocalPaymentSuccessRef.current && prev === 'SUCCESS') {
+              return 'SUCCESS';
+            }
+
+            return bookingPresentation.paymentResult;
+          });
         }
       } catch (err) {
         console.error('❌ Error fetching data:', err);
@@ -759,7 +789,12 @@ if (slug) {
     const url = new URL(window.location.href);
     const shouldAutopay = url.searchParams.get('autopay') === '1';
     const paymentStatus = String(bookingState.backendPaymentStatus || '').trim().toLowerCase();
-    if (!shouldAutopay || !['pending', 'failed'].includes(paymentStatus)) {
+    if (
+      !shouldAutopay ||
+      hasLocalPaymentSuccessRef.current ||
+      paymentResult === 'SUCCESS' ||
+      !['pending', 'failed'].includes(paymentStatus)
+    ) {
       return;
     }
 
@@ -883,6 +918,8 @@ if (slug) {
   paymentDetails?: PaymentConfirmationDetails
  ) => {
  if (success) {
+    hasLocalPaymentSuccessRef.current = true;
+    clearAutopayParamsFromUrl();
     setStepLoadingMessage(STEP_LOADING_COPY[6]);
     setPaymentResult('SUCCESS');
     setBookingState((prev) => ({
@@ -922,7 +959,13 @@ if (slug) {
         String(bookingId)
       );
       const bookingPresentation = getBookingPresentationState(allData?.bookingData);
-      setPaymentResult(bookingPresentation.paymentResult);
+      setPaymentResult((prev) => {
+        if (hasLocalPaymentSuccessRef.current && prev === 'SUCCESS') {
+          return 'SUCCESS';
+        }
+
+        return bookingPresentation.paymentResult;
+      });
 
       const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
 
@@ -988,6 +1031,7 @@ if (slug) {
       }));
     }
   } else {
+    hasLocalPaymentSuccessRef.current = false;
     setPaymentResult('FAILED');
     setBookingState((prev) => ({ ...prev, currentStep: 5 }));
     setStepLoadingMessage('');
