@@ -190,9 +190,41 @@ const PAYMENT_STATUS_POLL_INTERVAL_MS = 3000;
 const PAYMENT_STATUS_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
+const LAST_BOOKING_STORAGE_PREFIX = 'booking_engine:last_booking';
 
 const isMobileBrowser = () =>
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+const getLastBookingStorageKey = (eventIdentifier: string) =>
+  `${LAST_BOOKING_STORAGE_PREFIX}:${eventIdentifier}`;
+
+const getStoredBookingId = (eventIdentifier: string) => {
+  if (typeof window === 'undefined' || !eventIdentifier) {
+    return '';
+  }
+
+  try {
+    return window.sessionStorage.getItem(getLastBookingStorageKey(eventIdentifier)) || '';
+  } catch (error) {
+    console.warn('Unable to read session booking id:', error);
+    return '';
+  }
+};
+
+const storeBookingId = (eventIdentifier: string, bookingId: string | number) => {
+  if (typeof window === 'undefined' || !eventIdentifier || !bookingId) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(
+      getLastBookingStorageKey(eventIdentifier),
+      String(bookingId)
+    );
+  } catch (error) {
+    console.warn('Unable to store session booking id:', error);
+  }
+};
 
 const loadRazorpayCheckoutScript = (): Promise<void> =>
   new Promise((resolve, reject) => {
@@ -443,19 +475,24 @@ const App: React.FC = () => {
       try {
         console.log('🚀 Starting data fetch...');
 
-       const urlParams = new URLSearchParams(window.location.search);
-const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');
-const eventId = urlParams.get('id');
-const bookingIdFromUrl = urlParams.get('booking');
-const view = urlParams.get('view');
+        const urlParams = new URLSearchParams(window.location.search);
+        const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');
+        const eventId = urlParams.get('id');
+        const bookingIdFromUrl = urlParams.get('booking');
+        const view = urlParams.get('view');
+        const eventIdentifier = slug || eventId || '44';
+        const sessionBookingId = bookingIdFromUrl
+          ? ''
+          : getStoredBookingId(eventIdentifier);
+        const effectiveBookingId = bookingIdFromUrl || sessionBookingId || null;
 
-let allData;
+        let allData;
 
-if (slug) {
-  allData = await getAllDataBySlug(slug, bookingIdFromUrl);
-} else {
-  allData = await getAllData(eventId || '44', bookingIdFromUrl);
-}
+        if (slug) {
+          allData = await getAllDataBySlug(slug, effectiveBookingId);
+        } else {
+          allData = await getAllData(eventId || '44', effectiveBookingId);
+        }
         console.log('✅ API Response:', allData);
 
         // --- BUG FIX: SCHEDULE SAFETY CHECK ---
@@ -485,12 +522,13 @@ if (slug) {
 
           const bookingAtgDetails = getBookingAtgDetails(allData?.bookingData);
 
-	        if (bookingIdFromUrl) {
+	        if (effectiveBookingId) {
             const bookingPresentation = getBookingPresentationState(allData?.bookingData);
+            storeBookingId(eventIdentifier, effectiveBookingId);
 	          setBookingState((prev) => ({
 	            ...prev,
-              currentStep: view === 'dashboard' ? 7 : 6,
-	            bookingId: bookingIdFromUrl,
+              currentStep: view === 'payment' ? 6 : 7,
+	            bookingId: effectiveBookingId,
               selectedPlan: allData?.bookingData?.plan || prev.selectedPlan,
               guests: getBookingGuests(allData?.bookingData),
               primaryGuest: getBookingPrimaryGuest(allData?.bookingData),
@@ -953,6 +991,8 @@ if (slug) {
     if (!bookingId) {
       return;
     }
+
+    storeBookingId(selectedEventId.toString(), bookingId);
 
     try {
       const allData = await getAllData(
