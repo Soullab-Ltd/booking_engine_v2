@@ -481,12 +481,7 @@ const App: React.FC = () => {
         const bookingIdFromUrl = urlParams.get('booking');
         const view = urlParams.get('view');
         const eventIdentifier = slug || eventId || '44';
-        const sessionBookingId = bookingIdFromUrl
-          ? ''
-          : getStoredBookingId(eventIdentifier);
-        const effectiveBookingId = bookingIdFromUrl || sessionBookingId || null;
-        const isRecoveredBookingSession =
-          Boolean(sessionBookingId) && !bookingIdFromUrl;
+        const effectiveBookingId = bookingIdFromUrl || null;
 
         let allData;
 
@@ -529,12 +524,7 @@ const App: React.FC = () => {
             storeBookingId(eventIdentifier, effectiveBookingId);
 	          setBookingState((prev) => ({
 	            ...prev,
-              currentStep:
-                view === 'dashboard'
-                  ? 7
-                  : view === 'payment' || isRecoveredBookingSession
-                  ? 6
-                  : 7,
+              currentStep: view === 'payment' ? 6 : 7,
 	            bookingId: effectiveBookingId,
               selectedPlan: allData?.bookingData?.plan || prev.selectedPlan,
               guests: getBookingGuests(allData?.bookingData),
