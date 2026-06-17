@@ -226,6 +226,34 @@ const storeBookingId = (eventIdentifier: string, bookingId: string | number) => 
   }
 };
 
+const buildDashboardUrl = ({
+  eventId,
+  slug,
+  bookingId,
+}: {
+  eventId?: string | number | null;
+  slug?: string | null;
+  bookingId?: string | number | null;
+}) => {
+  if (typeof window === 'undefined' || !bookingId) {
+    return '';
+  }
+
+  const baseUrl = new URL(window.location.origin);
+  const normalizedSlug = String(slug || '').trim().replace(/^\/+|\/+$/g, '');
+
+  baseUrl.pathname = normalizedSlug ? `/${normalizedSlug}` : '/';
+
+  if (eventId) {
+    baseUrl.searchParams.set('id', String(eventId));
+  }
+
+  baseUrl.searchParams.set('booking', String(bookingId));
+  baseUrl.searchParams.set('view', 'dashboard');
+
+  return `${baseUrl.pathname}?${baseUrl.searchParams.toString()}`;
+};
+
 const loadRazorpayCheckoutScript = (): Promise<void> =>
   new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
@@ -1217,7 +1245,20 @@ case 6:
               displayDate: `${formatDisplayDate(data.eventData.event.EventStartDate)} — ${formatDisplayDate(data.eventData.event.EventEndDate)}` 
             }}
             ui={data.uiContent.bookingSummary}
-            onDashboard={() => setBookingState(prev => ({ ...prev, currentStep: 7 }))}
+            onDashboard={() => {
+              const dashboardUrl = buildDashboardUrl({
+                eventId: data.eventData.event?.EventID || data.eventData.event?.id,
+                slug: data.eventData.event?.slug,
+                bookingId: bookingState.bookingId,
+              });
+
+              if (dashboardUrl) {
+                window.location.assign(dashboardUrl);
+                return;
+              }
+
+              setBookingState(prev => ({ ...prev, currentStep: 7 }));
+            }}
             onRetry={() => void retryBookingPayment('manual')}
             isRetrying={isRetryingPayment}
           />

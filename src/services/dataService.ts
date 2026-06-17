@@ -394,6 +394,60 @@ export const fetchData = async <T>(path: string): Promise<T> => {
   return response.json();
 };
 
+const normalizeDownloadableAsset = (asset: any, index: number) => {
+  if (!asset || typeof asset !== 'object') {
+    return null;
+  }
+
+  const url = String(
+    asset.url ??
+      asset.downloadUrl ??
+      asset.download_url ??
+      asset.link ??
+      asset.fileUrl ??
+      asset.file_url ??
+      ''
+  ).trim();
+
+  if (!url) {
+    return null;
+  }
+
+  return {
+    title: String(
+      asset.title ??
+        asset.displayLabel ??
+        asset.display_label ??
+        asset.label ??
+        asset.name ??
+        asset.assetType ??
+        asset.asset_type ??
+        `Document ${index + 1}`
+    ).trim(),
+    status: String(asset.status ?? 'Ready').trim() || 'Ready',
+    size: String(asset.size ?? asset.fileSize ?? asset.file_size ?? '--').trim() || '--',
+    description: String(
+      asset.description ?? asset.desc ?? asset.assetType ?? asset.asset_type ?? ''
+    ).trim(),
+    url,
+  };
+};
+
+const getEventAdditionalAssets = (apiData: any) => {
+  const rawAssets = [
+    ...(Array.isArray(apiData?.additionalAssets) ? apiData.additionalAssets : []),
+    ...(Array.isArray(apiData?.downloadableAssets) ? apiData.downloadableAssets : []),
+    ...(Array.isArray(apiData?.downloadable_assets) ? apiData.downloadable_assets : []),
+    ...(Array.isArray(apiData?.downloadableDocuments) ? apiData.downloadableDocuments : []),
+    ...(Array.isArray(apiData?.downloadable_documents) ? apiData.downloadable_documents : []),
+    ...(Array.isArray(apiData?.assets) ? apiData.assets : []),
+  ];
+
+  return rawAssets
+    .map((asset, index) => normalizeDownloadableAsset(asset, index))
+    .filter(Boolean);
+};
+
 export const getAllData = async (
   eventId: string | number,
   bookingId?: string | null
@@ -484,6 +538,8 @@ console.log(
     isVisible: addon.isVisible ?? true,
   }));
 
+  const eventAdditionalAssets = getEventAdditionalAssets(apiData);
+
  const eventData: EventResponse = {
   event: {
     id: apiData.EventID,
@@ -503,6 +559,7 @@ console.log(
     time: apiData.time || "06:00 AM",
     venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
     description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
+    additionalAssets: eventAdditionalAssets,
     schedules: apiData.schedules || [],
     plans: mappedPlans || [],
     addons: mappedAddons || [],
@@ -616,6 +673,8 @@ export const getAllDataBySlug = async (
     isVisible: addon.isVisible ?? true,
   }));
 
+  const eventAdditionalAssets = getEventAdditionalAssets(apiData);
+
   const eventData: EventResponse = {
     event: {
       id: apiData.EventID,
@@ -632,6 +691,7 @@ export const getAllDataBySlug = async (
       time: apiData.time || "06:00 AM",
       venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
       description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
+      additionalAssets: eventAdditionalAssets,
       schedules: apiData.schedules || [],
       plans: mappedPlans || [],
       addons: mappedAddons || [],

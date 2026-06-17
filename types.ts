@@ -151,6 +151,8 @@ export interface EventData {
   time: string;
   venue: string;
   description: string;
+  additionalAssets?: any[];
+  otherInfoLinks?: any[];
 
   schedules?: any[];
   plans?: any[];
