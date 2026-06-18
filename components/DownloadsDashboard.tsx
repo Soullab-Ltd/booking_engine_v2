@@ -119,6 +119,7 @@ interface DashboardEventData extends EventData {
   eventDate?: string;
   location?: string;
   Venue?: string;
+  additionalAssets?: DashboardAsset[];
   otherInfoLinks?: DashboardLinkSource[];
   additionalLinks?: DashboardLinkSource[];
   termsUrl?: string;
@@ -284,14 +285,25 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
 
   const documents = useMemo<DashboardDocument[]>(() => {
     const items: DashboardDocument[] = [];
+    const seen = new Set<string>();
     const ticketUrl = booking.ticketUrl || booking.ticket_url;
     const invoiceUrl = booking.invoiceUrl || booking.invoice_url;
     const certificateUrl =
       booking.completionCertificateUrl ||
       booking.completion_certificate_url;
 
+    const pushDocument = (document: DashboardDocument) => {
+      const key = `${document.title}::${document.url}`;
+      if (!document.url || document.url === '#' || seen.has(key)) {
+        return;
+      }
+
+      seen.add(key);
+      items.push(document);
+    };
+
     if (ticketUrl) {
-      items.push({
+      pushDocument({
         title: 'Confirmed Ticket PDF',
         icon: Ticket,
         status: 'Ready',
@@ -302,7 +314,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
     }
 
     if (invoiceUrl) {
-      items.push({
+      pushDocument({
         title: 'Invoice PDF',
         icon: FileText,
         status: 'Ready',
@@ -313,7 +325,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
     }
 
     if (certificateUrl) {
-      items.push({
+      pushDocument({
         title: 'Completion Certificate',
         icon: FileText,
         status: 'Ready',
@@ -323,16 +335,18 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
       });
     }
 
-    (booking.additionalAssets || []).forEach((asset) => {
-      items.push({
-        title: asset.title || 'Untitled Document',
-        icon: FileText,
-        status: asset.status || 'Ready',
-        size: asset.size || '--',
-        desc: asset.description || '',
-        url: asset.url || '#',
-      });
-    });
+    [...(eventData.additionalAssets || []), ...(booking.additionalAssets || [])].forEach(
+      (asset) => {
+        pushDocument({
+          title: asset.title || 'Untitled Document',
+          icon: FileText,
+          status: asset.status || 'Ready',
+          size: asset.size || '--',
+          desc: asset.description || '',
+          url: asset.url || '#',
+        });
+      }
+    );
 
     return items;
   }, [
@@ -343,6 +357,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
     booking.invoice_url,
     booking.ticketUrl,
     booking.ticket_url,
+    eventData.additionalAssets,
   ]);
 
   const otherInfoLinks = useMemo(() => {
