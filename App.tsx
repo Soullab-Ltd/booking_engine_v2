@@ -429,7 +429,6 @@ const getBookingPresentationState = (bookingData: any) => {
     verificationStatus.includes('verify') ||
     backendPaymentStatus.includes('pending') ||
     backendPaymentStatus.includes('processing') ||
-    backendPaymentStatus.includes('authorized') ||
     (hasCouponCode && hasUploadedVerificationProof && !isExplicitlyConfirmed);
 
   if (isPending) {

@@ -1256,6 +1256,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       };
 
       const requestCandidates = [
+        {
+          url: `${BOOKING_API_BASE_URL}/${bookingId}/payment`,
+          method: 'POST',
+          body: confirmationPayload,
+        },
         verifyUrl
           ? {
               url: verifyUrl,
@@ -1263,11 +1268,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
               body: verificationPayload,
             }
           : null,
-        {
-          url: `${BOOKING_API_BASE_URL}/${bookingId}/payment`,
-          method: 'POST',
-          body: confirmationPayload,
-        },
         {
           url: `${BOOKING_API_BASE_URL}/${bookingId}/verify-payment`,
           method: 'POST',
