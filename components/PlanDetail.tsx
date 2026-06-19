@@ -41,6 +41,75 @@ const PLAN_FEATURE_KEYS = [
   'features',
 ] as const;
 
+const FEATURE_LABEL_KEYS = [
+  'label',
+  'Label',
+  'title',
+  'Title',
+  'name',
+  'Name',
+  'feature',
+  'Feature',
+  'featureName',
+  'FeatureName',
+  'feature_name',
+  'displayLabel',
+  'display_label',
+  'heading',
+  'Heading',
+] as const;
+
+const FEATURE_VALUE_KEYS = [
+  'value',
+  'Value',
+  'description',
+  'Description',
+  'desc',
+  'Desc',
+  'featureValue',
+  'FeatureValue',
+  'feature_value',
+  'displayValue',
+  'display_value',
+  'count',
+  'Count',
+  'quantity',
+  'Quantity',
+  'qty',
+  'Qty',
+] as const;
+
+const FEATURE_ICON_KEYS = [
+  'icon',
+  'Icon',
+  'iconName',
+  'IconName',
+  'icon_name',
+  'iconKey',
+  'IconKey',
+  'type',
+  'Type',
+] as const;
+
+const getFirstFeatureValue = (feature: any, keys: readonly string[]): string => {
+  for (const key of keys) {
+    const value = feature?.[key];
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  return '';
+};
+
+const looksLikePlanFeature = (value: any): boolean => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  return [...FEATURE_LABEL_KEYS, ...FEATURE_VALUE_KEYS, ...FEATURE_ICON_KEYS].some(
+    (key) => value?.[key] !== undefined && value?.[key] !== null && String(value[key]).trim()
+  );
+};
+
 const getPriceTypeLabel = (priceType?: string) => {
   const normalized = String(priceType || '').trim().toLowerCase();
   const raw = String(priceType || '').trim();
@@ -330,6 +399,10 @@ const parseFeatureCollection = (rawValue: any): any[] => {
         continue;
       }
 
+      if (looksLikePlanFeature(parsedValue)) {
+        return [parsedValue];
+      }
+
       return Object.values(parsedValue);
     }
 
@@ -337,7 +410,9 @@ const parseFeatureCollection = (rawValue: any): any[] => {
   }
 
   if (Array.isArray(parsedValue)) return parsedValue;
-  if (parsedValue && typeof parsedValue === 'object') return Object.values(parsedValue);
+  if (parsedValue && typeof parsedValue === 'object') {
+    return looksLikePlanFeature(parsedValue) ? [parsedValue] : Object.values(parsedValue);
+  }
 
   return [];
 };
@@ -372,16 +447,20 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
       }
     }
 
-    return featureList.filter(
-      (feature: any) =>
-        feature?.label ||
-        feature?.Label ||
-        feature?.title ||
-        feature?.Title ||
-        feature?.value ||
-        feature?.Value ||
-        feature?.description
-    );
+    return featureList
+      .map((feature: any, index: number) => ({
+        ...feature,
+        id:
+          feature?.id ||
+          feature?.ID ||
+          feature?.featureId ||
+          feature?.FeatureID ||
+          `feature-${index}`,
+        label: getFirstFeatureValue(feature, FEATURE_LABEL_KEYS),
+        value: getFirstFeatureValue(feature, FEATURE_VALUE_KEYS),
+        icon: getFirstFeatureValue(feature, FEATURE_ICON_KEYS) || 'check',
+      }))
+      .filter((feature: any) => feature?.label || feature?.value);
   }, [plan]);
 
   const sortedImages = useMemo(() => {
@@ -442,13 +521,66 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
   const amenityList = (plan.amenities || plan.icons || []).slice(0, 6);
 
   const displayFeatures = useMemo(() => {
+    if (planFeatures.length > 0) {
+      return planFeatures;
+    }
+
     const overriddenFeatures = getPlanFeatureOverrides(plan);
     if (overriddenFeatures?.length) {
       return overriddenFeatures;
     }
 
-    return planFeatures;
+    const fallbackFeatures: Array<{
+      id: string;
+      label: string;
+      value: string;
+      icon: string;
+    }> = [];
+
+    const bathroomCount = getPlanBathroomCount(plan);
+    if (bathroomCount) {
+      fallbackFeatures.push({
+        id: 'bathroom-count',
+        label: bathroomCount === '1' ? 'bathroom' : 'bathrooms',
+        value: bathroomCount,
+        icon: 'bath',
+      });
+    }
+
+    const area = getPlanArea(plan);
+    if (area) {
+      fallbackFeatures.push({
+        id: 'room-area',
+        label: 'sq. ft.',
+        value: area,
+        icon: 'area',
+      });
+    }
+
+    const bedCount = getPlanBedCount(plan);
+    if (bedCount) {
+      fallbackFeatures.push({
+        id: 'bed-count',
+        label: Number(bedCount) === 1 ? 'bed' : 'beds',
+        value: bedCount,
+        icon: 'bed',
+      });
+    }
+
+    const guestCapacity = getPlanGuestCapacity(plan);
+    if (guestCapacity) {
+      fallbackFeatures.push({
+        id: 'guest-capacity',
+        label: 'guests',
+        value: `Up to ${guestCapacity}`,
+        icon: 'guest',
+      });
+    }
+
+    return fallbackFeatures.slice(0, 4);
   }, [plan, planFeatures]);
+
+  const hasDisplayFeatures = displayFeatures.length > 0;
 
   const gstLabel =
     (plan as any).gstType === 'exclusive' && Number((plan as any).gstRate || 0) > 0
@@ -635,7 +767,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
           </section>
 
           <section className="rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.05)]">
-            {displayFeatures.length > 0 ? (
+            {hasDisplayFeatures ? (
               <>
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
