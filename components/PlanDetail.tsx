@@ -442,12 +442,63 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
   const amenityList = (plan.amenities || plan.icons || []).slice(0, 6);
 
   const displayFeatures = useMemo(() => {
+    if (planFeatures.length > 0) {
+      return planFeatures;
+    }
+
     const overriddenFeatures = getPlanFeatureOverrides(plan);
     if (overriddenFeatures?.length) {
       return overriddenFeatures;
     }
 
-    return planFeatures;
+    const fallbackFeatures: Array<{
+      id: string;
+      label: string;
+      value: string;
+      icon: string;
+    }> = [];
+
+    const bathroomCount = getPlanBathroomCount(plan);
+    if (bathroomCount) {
+      fallbackFeatures.push({
+        id: 'bathroom-count',
+        label: bathroomCount === '1' ? 'bathroom' : 'bathrooms',
+        value: bathroomCount,
+        icon: 'bath',
+      });
+    }
+
+    const area = getPlanArea(plan);
+    if (area) {
+      fallbackFeatures.push({
+        id: 'room-area',
+        label: 'sq. ft.',
+        value: area,
+        icon: 'area',
+      });
+    }
+
+    const bedCount = getPlanBedCount(plan);
+    if (bedCount) {
+      fallbackFeatures.push({
+        id: 'bed-count',
+        label: Number(bedCount) === 1 ? 'bed' : 'beds',
+        value: bedCount,
+        icon: 'bed',
+      });
+    }
+
+    const guestCapacity = getPlanGuestCapacity(plan);
+    if (guestCapacity) {
+      fallbackFeatures.push({
+        id: 'guest-capacity',
+        label: 'guests',
+        value: `Up to ${guestCapacity}`,
+        icon: 'guest',
+      });
+    }
+
+    return fallbackFeatures.slice(0, 4);
   }, [plan, planFeatures]);
 
   const gstLabel =

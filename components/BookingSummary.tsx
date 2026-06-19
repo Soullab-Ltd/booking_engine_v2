@@ -203,10 +203,20 @@ const getCouponGuestRange = (
   coupon: any
 ): { minGuests: number; maxGuests: number } | null => {
   const minGuests = parseCouponNumber(
-    coupon?.minGuestCount ?? coupon?.min_guest_count
+    coupon?.minGuestCount ??
+      coupon?.min_guest_count ??
+      coupon?.minGuests ??
+      coupon?.minimumGuests ??
+      coupon?.minimumGuestCount ??
+      coupon?.minimum_guest_count
   );
   const maxGuests = parseCouponNumber(
-    coupon?.maxGuestCount ?? coupon?.max_guest_count
+    coupon?.maxGuestCount ??
+      coupon?.max_guest_count ??
+      coupon?.maxGuests ??
+      coupon?.maximumGuests ??
+      coupon?.maximumGuestCount ??
+      coupon?.maximum_guest_count
   );
 
   if (minGuests === null || maxGuests === null) {
@@ -753,8 +763,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   }, [availableCoupons, guests, guestCount, couponIdProof, couponIdProofUrl]);
 
   useEffect(() => {
-  if (availableCoupons.length === 0) return;
-
   const currentCoupon = appliedCoupon
     ? availableCoupons.find(
         (coupon) => getCouponKey(coupon) === getCouponKey(appliedCoupon)
@@ -935,7 +943,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
     let discountAmount = 0;
 
-    if (appliedCoupon) {
+    if (appliedCoupon && isCouponEligibleForGuests(appliedCoupon, guests)) {
       const uploadedFile = couponIdProof;
       const uploadedUrl = couponIdProofUrl;
 
