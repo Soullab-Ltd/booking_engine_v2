@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Plan } from '../types';
-import { sanitizeRichText, stripHtml } from '../src/utils/richText';
+import { sanitizeEnglishRichText, stripHtml } from '../src/utils/richText';
 import {
   CheckCircle,
   ArrowRight,
@@ -357,7 +357,7 @@ const isPlanSoldOut = (plan: any) => {
 
 const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
   const safeFullDescription = useMemo(
-    () => sanitizeRichText(plan.fullDescription || plan.PlanDescription),
+    () => sanitizeEnglishRichText(plan.fullDescription || plan.PlanDescription),
     [plan.PlanDescription, plan.fullDescription]
   );
 
@@ -447,58 +447,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
       return overriddenFeatures;
     }
 
-    if (planFeatures.length > 0) {
-      return planFeatures;
-    }
-
-    const fallbackFeatures: Array<{
-      id: string;
-      label: string;
-      value: string;
-      icon: string;
-    }> = [];
-
-    const bathroomCount = getPlanBathroomCount(plan);
-    if (bathroomCount) {
-      fallbackFeatures.push({
-        id: 'bathroom-count',
-        label: bathroomCount === '1' ? 'bathroom' : 'bathrooms',
-        value: bathroomCount,
-        icon: 'bath',
-      });
-    }
-
-    const area = getPlanArea(plan);
-    if (area) {
-      fallbackFeatures.push({
-        id: 'room-area',
-        label: 'sq. ft.',
-        value: area,
-        icon: 'area',
-      });
-    }
-
-    const bedCount = getPlanBedCount(plan);
-    if (bedCount) {
-      fallbackFeatures.push({
-        id: 'bed-count',
-        label: Number(bedCount) === 1 ? 'bed' : 'beds',
-        value: bedCount,
-        icon: 'bed',
-      });
-    }
-
-    const guestCapacity = getPlanGuestCapacity(plan);
-    if (guestCapacity) {
-      fallbackFeatures.push({
-        id: 'guest-capacity',
-        label: 'guests',
-        value: `Up to ${guestCapacity}`,
-        icon: 'guest',
-      });
-    }
-
-    return fallbackFeatures.slice(0, 4);
+    return planFeatures;
   }, [plan, planFeatures]);
 
   const gstLabel =
@@ -532,6 +481,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
             <button
               onClick={goPrev}
               className="absolute left-6 top-1/2 -translate-y-1/2 z-20 bg-black/25 hover:bg-black/40 text-white p-3 rounded-full backdrop-blur-md transition"
+              aria-label="Show previous plan image"
+              title="Previous image"
             >
               <ChevronLeft className="w-5 h-5" />
             </button>
@@ -539,6 +490,8 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
             <button
               onClick={goNext}
               className="absolute right-6 top-1/2 -translate-y-1/2 z-20 bg-black/25 hover:bg-black/40 text-white p-3 rounded-full backdrop-blur-md transition"
+              aria-label="Show next plan image"
+              title="Next image"
             >
               <ChevronRight className="w-5 h-5" />
             </button>

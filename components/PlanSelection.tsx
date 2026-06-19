@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plan } from '../types';
-import { sanitizeRichText } from '../src/utils/richText';
+import { sanitizeEnglishRichText } from '../src/utils/richText';
 import {
   Loader2,
   ArrowRight,
@@ -30,11 +30,6 @@ const getPriceTypeLabel = (priceType?: string) => {
   if (raw) return raw.replace(/_/g, ' ');
 
   return 'per person';
-};
-
-const getNightlyDisplayPrice = (plan: any) => {
-  const nightlyPrice = Number(plan?.pricePerNight || 0);
-  return Number.isFinite(nightlyPrice) && nightlyPrice > 0 ? nightlyPrice : 0;
 };
 
 const getPlanCapacityLabel = (plan: any) => {
@@ -282,20 +277,14 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
             plan.plan_description ||
             plan.PlanDesc ||
             '';
-          const safePlanDescription = sanitizeRichText(planDescription);
+          const safePlanDescription = sanitizeEnglishRichText(planDescription);
           const soldOut = isPlanSoldOut(plan);
           const finalPrice = Number(plan.finalPrice || plan.PlanPrice || 0);
           const rawOfferPrice = Number(plan.OfferPrice || 0);
           const displayPrice = Number(
             plan.discountedPrice || (rawOfferPrice > 0 ? rawOfferPrice : finalPrice || plan.PlanPrice || 0)
           );
-          const nightlyDisplayPrice = getNightlyDisplayPrice(plan);
           const hasValidOffer = rawOfferPrice > 0 && rawOfferPrice < finalPrice;
-          const rawPriceTypeLabel = getPriceTypeLabel(plan.priceType);
-          const nightlyPriceTypeLabel =
-            rawPriceTypeLabel.includes('night') && nightlyDisplayPrice <= 0
-              ? ''
-              : rawPriceTypeLabel;
           const isFeatured = index === 0;
           const recommendation = getPlanRecommendation(plan, index);
           const capacityLabel = getPlanCapacityLabel(plan);
@@ -371,32 +360,25 @@ const PlanSelection: React.FC<PlanSelectionProps> = ({
                     />
                   </div>
 
-                  <div className="w-full rounded-[20px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fafaf8_100%)] px-4 py-4 sm:max-w-[220px] sm:min-w-[200px] shadow-[0_10px_26px_rgba(15,23,42,0.05)] shadow-[0_8px_24px_rgba(15,23,42,0.04)]">
+                  <div className="w-full rounded-[18px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#fafaf8_100%)] px-3.5 py-3 sm:max-w-[188px] sm:min-w-[176px] shadow-[0_8px_22px_rgba(15,23,42,0.05)]">
                     <p className="text-[9px] font-black uppercase tracking-[0.22em] text-stone-400">
                       {hasValidOffer ? 'Now Booking At' : 'Price'}
                     </p>
 
                     <div className="mt-2 flex flex-wrap items-end gap-2">
-                      <span className="text-lg md:text-xl font-black text-stone-900">
+                      <span className="text-base md:text-lg font-black text-stone-900">
                         ₹{displayPrice.toLocaleString()}
                       </span>
 
                       {hasValidOffer ? (
-                        <span className="text-[11px] font-bold text-stone-400 line-through">
+                        <span className="text-[10px] font-bold text-stone-400 line-through">
                           ₹{finalPrice.toLocaleString()}
                         </span>
                       ) : null}
                     </div>
 
-                    {nightlyDisplayPrice > 0 ? (
-                      <p className="mt-1.5 text-[11px] font-semibold text-stone-600 leading-snug">
-                        Per Day: ₹{nightlyDisplayPrice.toLocaleString()}
-                        {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
-                      </p>
-                    ) : null}
-
                     {gstLabel ? (
-                      <p className="mt-2 text-[9px] font-black uppercase tracking-[0.14em] text-[var(--theme)]">
+                      <p className="mt-1.5 text-[9px] font-black uppercase tracking-[0.14em] text-[var(--theme)]">
                         {gstLabel}
                       </p>
                     ) : null}

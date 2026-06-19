@@ -70,3 +70,38 @@ export const sanitizeRichText = (value: unknown): string => {
   sanitizeHtmlDocument(doc.body);
   return doc.body.innerHTML.trim();
 };
+
+const stripNonLatinText = (value: string): string => {
+  try {
+    return value
+      .replace(/[^\p{Script=Latin}\p{Number}\p{Punctuation}\p{Separator}\p{Symbol}]/gu, '')
+      .replace(/\s+([,.;:!?])/g, '$1')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+  } catch {
+    return value.trim();
+  }
+};
+
+export const sanitizeEnglishRichText = (value: unknown): string => {
+  const html = String(value || '').trim();
+  if (!html) return '';
+
+  if (typeof window === 'undefined') {
+    return stripNonLatinText(html);
+  }
+
+  const parser = new window.DOMParser();
+  const doc = parser.parseFromString(html, 'text/html');
+  sanitizeHtmlDocument(doc.body);
+
+  const walker = document.createTreeWalker(doc.body, NodeFilter.SHOW_TEXT);
+  let currentNode = walker.nextNode();
+
+  while (currentNode) {
+    currentNode.textContent = stripNonLatinText(currentNode.textContent || '');
+    currentNode = walker.nextNode();
+  }
+
+  return doc.body.innerHTML.trim();
+};

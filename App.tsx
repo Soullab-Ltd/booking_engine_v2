@@ -1307,7 +1307,12 @@ case 6:
         <header className="bg-white border-b sticky top-0 z-50">
           <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
             {bookingState.currentStep > 2 ? (
-              <button onClick={prevStep} className="p-2 hover:bg-gray-100 rounded-full">
+              <button
+                onClick={prevStep}
+                className="p-2 hover:bg-gray-100 rounded-full"
+                aria-label="Go back to previous booking step"
+                title="Go back"
+              >
                 <ChevronLeft className="w-6 h-6 text-gray-600" />
               </button>
             ) : <div className="w-10" />}

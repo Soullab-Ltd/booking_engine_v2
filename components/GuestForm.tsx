@@ -324,6 +324,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   onBack,
 }) => {
   const [showAddOnInfo, setShowAddOnInfo] = useState<string | null>(null);
+  const [isAddonInfoImageLoading, setIsAddonInfoImageLoading] = useState(false);
   const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
   const [customIndianStateGuests, setCustomIndianStateGuests] = useState<Record<string, boolean>>({});
@@ -803,6 +804,21 @@ const getStayEndDate = (startDate: string, days: number) => {
     );
   };
 
+  const getGuestAddonSubtotal = (guest: any) => {
+    const selectedAddonsTotal = (guest.addOns?.selectedAddons || []).reduce(
+      (sum: number, addon: any) =>
+        sum + Number(addon.price || 0) * Number(addon.quantity || 1),
+      0
+    );
+
+    const extraStay = guest.addOns?.extraStay;
+    const extraStayTotal = extraStay?.enabled
+      ? Number(extraStay.price || 0) * Number(extraStay.days || 1)
+      : 0;
+
+    return selectedAddonsTotal + extraStayTotal;
+  };
+
   const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
     const guest = guests.find((item: any) => String(item.id) === String(guestId));
     if (!guest) return;
@@ -938,6 +954,19 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     return null;
   };
+
+  const currentAddOnInfo = useMemo(() => {
+    return showAddOnInfo ? getInfoContent(showAddOnInfo) : null;
+  }, [showAddOnInfo, addons, ui, stayAddonFromDb, stayAddonTitle]);
+
+  useEffect(() => {
+    if (currentAddOnInfo?.img) {
+      setIsAddonInfoImageLoading(true);
+      return;
+    }
+
+    setIsAddonInfoImageLoading(false);
+  }, [currentAddOnInfo]);
 
   const handleProceedClick = () => {
     setTouched(true);
@@ -1379,6 +1408,22 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
                       );
                     })}
                   </div>
+
+                  <div className="mt-3 rounded-2xl border border-teal-100 bg-teal-50/60 px-4 py-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-[var(--theme)]">
+                          Add-on subtotal
+                        </p>
+                        <p className="mt-1 text-xs font-semibold text-stone-600">
+                          Updates instantly as you toggle add-ons and extra stay.
+                        </p>
+                      </div>
+                      <p className="shrink-0 text-sm font-black text-stone-900">
+                        ₹{getGuestAddonSubtotal(guest).toLocaleString('en-IN')}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
@@ -1657,28 +1702,43 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
           <div className="w-full max-w-md overflow-hidden rounded-3xl bg-white shadow-2xl max-h-[calc(100dvh-2rem)]">
             <div className="flex items-center justify-between border-b border-stone-100 px-5 py-4">
               <h3 className="text-sm font-black text-stone-900">
-                {getInfoContent(showAddOnInfo)?.title || 'Add-on Info'}
+                {currentAddOnInfo?.title || 'Add-on Info'}
               </h3>
               <button
                 type="button"
                 onClick={() => setShowAddOnInfo(null)}
                 className="rounded-lg p-2 hover:bg-stone-100"
+                aria-label="Close add-on information"
               >
                 <X className="h-4 w-4 text-stone-500" />
               </button>
             </div>
 
-            {getInfoContent(showAddOnInfo)?.img && (
-              <img
-                src={getInfoContent(showAddOnInfo)?.img}
-                alt={getInfoContent(showAddOnInfo)?.title}
-                className="h-44 w-full object-cover"
-              />
-            )}
+            {currentAddOnInfo?.img ? (
+              <div className="relative aspect-[16/9] w-full overflow-hidden bg-stone-100">
+                {isAddonInfoImageLoading ? (
+                  <div className="absolute inset-0 flex animate-pulse items-center justify-center bg-gradient-to-br from-stone-100 via-stone-200 to-stone-100">
+                    <div className="rounded-full border border-stone-300 bg-white/80 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-stone-500">
+                      Loading image
+                    </div>
+                  </div>
+                ) : null}
+
+                <img
+                  src={currentAddOnInfo.img}
+                  alt={currentAddOnInfo.title}
+                  onLoad={() => setIsAddonInfoImageLoading(false)}
+                  onError={() => setIsAddonInfoImageLoading(false)}
+                  className={`h-full w-full object-cover transition-opacity duration-300 ${
+                    isAddonInfoImageLoading ? 'opacity-0' : 'opacity-100'
+                  }`}
+                />
+              </div>
+            ) : null}
 
             <div className="max-h-[calc(100dvh-14rem)] overflow-y-auto px-5 py-4 sm:max-h-[24rem]">
               <p className="whitespace-pre-line text-sm leading-6 text-stone-700">
-                {getInfoContent(showAddOnInfo)?.desc || 'No details available.'}
+                {currentAddOnInfo?.desc || 'No details available.'}
               </p>
             </div>
           </div>
