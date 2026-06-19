@@ -7,7 +7,7 @@ const serverUrl = "https://bookingapi.thriive.in/";
 const frontEndUrl =
   typeof window !== 'undefined'
     ? `${window.location.origin}/`
-    : 'https://bookngs.shreansdaga.org/';
+    : 'https://ocalhost:3001/' ;
 
 
 export interface UIContent {

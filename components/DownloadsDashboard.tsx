@@ -61,52 +61,9 @@ interface DashboardDocument {
   url: string;
 }
 
-interface DashboardBookingState extends BookingState {
-  event?: {
-    title?: string;
-    EventName?: string;
-  } | null;
-  plan?: {
-    title?: string;
-    PlanTitle?: string;
-    PlanName?: string;
-  } | null;
-  ticketUrl?: string;
-  ticket_url?: string;
-  invoiceUrl?: string;
-  invoice_url?: string;
-  completionCertificateUrl?: string;
-  completion_certificate_url?: string;
-  additionalAssets?: DashboardAsset[];
-  otherInfoLinks?: DashboardLinkSource[];
-  termsUrl?: string;
-  refundPolicyUrl?: string;
-  faqsUrl?: string;
-  codeOfConductUrl?: string;
-  primaryGuest?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    phoneNumber?: string;
-  } | null;
-  primary_guest?: {
-    name?: string;
-    email?: string;
-    phone?: string;
-    phoneNumber?: string;
-  } | null;
-  contactName?: string;
-  contact_name?: string;
-  fullName?: string;
-  full_name?: string;
+interface DashboardGuest {
   name?: string;
-  guestName?: string;
-  guest_name?: string;
   email?: string;
-  Email?: string;
-  contactEmail?: string;
-  contact_email?: string;
-  emailAddress?: string;
   phone?: string;
   phoneNumber?: string;
   phone_number?: string;
@@ -115,8 +72,78 @@ interface DashboardBookingState extends BookingState {
   mobile_number?: string;
 }
 
-interface DashboardEventData extends EventData {
+type DashboardBookingState = BookingState & {
+  guests?: DashboardGuest[];
+
+  event?: {
+    title?: string;
+    EventName?: string;
+  } | null;
+
+  plan?: {
+    title?: string;
+    PlanTitle?: string;
+    PlanName?: string;
+  } | null;
+
+  selectedPlan?: {
+    title?: string;
+    PlanTitle?: string;
+    PlanName?: string;
+  } | null;
+
+  ticketUrl?: string;
+  ticket_url?: string;
+
+  invoiceUrl?: string;
+  invoice_url?: string;
+
+  completionCertificateUrl?: string;
+  completion_certificate_url?: string;
+
+  additionalAssets?: DashboardAsset[];
+  otherInfoLinks?: DashboardLinkSource[];
+
+  termsUrl?: string;
+  refundPolicyUrl?: string;
+  faqsUrl?: string;
+  codeOfConductUrl?: string;
+
+  primaryGuest?: DashboardGuest | null;
+  primary_guest?: DashboardGuest | null;
+
+  contactName?: string;
+  contact_name?: string;
+  fullName?: string;
+  full_name?: string;
+  name?: string;
+  guestName?: string;
+  guest_name?: string;
+
+  email?: string;
+  Email?: string;
+  contactEmail?: string;
+  contact_email?: string;
+  emailAddress?: string;
+
+  phone?: string;
+  phoneNumber?: string;
+  phone_number?: string;
+  contactPhone?: string;
+  contact_phone?: string;
+  mobile?: string;
+  mobileNumber?: string;
+  mobile_number?: string;
+
+  bookingId?: string | number;
+}
+
+type DashboardEventData = EventData & {
+  EventName?: string;
+  date?: string;
   eventDate?: string;
+  startDate?: string;
+  venue?: string;
   location?: string;
   Venue?: string;
   additionalAssets?: DashboardAsset[];
@@ -126,7 +153,7 @@ interface DashboardEventData extends EventData {
   refundPolicyUrl?: string;
   faqsUrl?: string;
   codeOfConductUrl?: string;
-}
+};
 
 const getOrdinal = (day: number) => {
   if (day > 3 && day < 21) return 'th';
@@ -208,7 +235,8 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
 
   const primaryGuest = useMemo(() => {
     const firstGuest = booking.guests?.[0] || null;
-    const bookingPrimaryGuest = booking.primaryGuest || booking.primary_guest || null;
+    const bookingPrimaryGuest =
+      booking.primaryGuest || booking.primary_guest || null;
 
     return {
       ...(bookingPrimaryGuest || {}),
@@ -236,8 +264,16 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
       phone:
         firstGuest?.phone ||
         firstGuest?.phoneNumber ||
+        firstGuest?.phone_number ||
+        firstGuest?.mobile ||
+        firstGuest?.mobileNumber ||
+        firstGuest?.mobile_number ||
         bookingPrimaryGuest?.phone ||
         bookingPrimaryGuest?.phoneNumber ||
+        bookingPrimaryGuest?.phone_number ||
+        bookingPrimaryGuest?.mobile ||
+        bookingPrimaryGuest?.mobileNumber ||
+        bookingPrimaryGuest?.mobile_number ||
         booking.contactPhone ||
         booking.contact_phone ||
         booking.phone ||
@@ -268,11 +304,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
       : formatFullDate(rawRange);
   }, [eventData.date, eventData.eventDate, eventData.startDate]);
 
-  const venue =
-    eventData.venue ||
-    eventData.location ||
-    eventData.Venue ||
-    '';
+  const venue = eventData.venue || eventData.location || eventData.Venue || '';
 
   const planName =
     booking.plan?.title ||
@@ -286,6 +318,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
   const documents = useMemo<DashboardDocument[]>(() => {
     const items: DashboardDocument[] = [];
     const seen = new Set<string>();
+
     const ticketUrl = booking.ticketUrl || booking.ticket_url;
     const invoiceUrl = booking.invoiceUrl || booking.invoice_url;
     const certificateUrl =
@@ -294,6 +327,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
 
     const pushDocument = (document: DashboardDocument) => {
       const key = `${document.title}::${document.url}`;
+
       if (!document.url || document.url === '#' || seen.has(key)) {
         return;
       }
@@ -335,18 +369,19 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
       });
     }
 
-    [...(eventData.additionalAssets || []), ...(booking.additionalAssets || [])].forEach(
-      (asset) => {
-        pushDocument({
-          title: asset.title || 'Untitled Document',
-          icon: FileText,
-          status: asset.status || 'Ready',
-          size: asset.size || '--',
-          desc: asset.description || '',
-          url: asset.url || '#',
-        });
-      }
-    );
+    [
+      ...(eventData.additionalAssets || []),
+      ...(booking.additionalAssets || []),
+    ].forEach((asset) => {
+      pushDocument({
+        title: asset.title || 'Untitled Document',
+        icon: FileText,
+        status: asset.status || 'Ready',
+        size: asset.size || '--',
+        desc: asset.description || '',
+        url: asset.url || '#',
+      });
+    });
 
     return items;
   }, [
@@ -390,17 +425,11 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
       },
       {
         title: 'FAQs',
-        url:
-          eventData.faqsUrl ||
-          booking.faqsUrl ||
-          '#',
+        url: eventData.faqsUrl || booking.faqsUrl || '#',
       },
       {
         title: 'Code of Conduct',
-        url:
-          eventData.codeOfConductUrl ||
-          booking.codeOfConductUrl ||
-          '#',
+        url: eventData.codeOfConductUrl || booking.codeOfConductUrl || '#',
       },
     ].filter((item): item is DashboardLink => item.url !== '#');
 
@@ -427,6 +456,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
         <h2 className="text-5xl font-black text-stone-900 mb-3 tracking-tighter">
           {dashboardUi?.dashboard?.title || 'Your Booking Dashboard'}
         </h2>
+
         <p className="text-stone-500 font-medium text-lg max-w-2xl leading-relaxed">
           {dashboardUi?.dashboard?.desc ||
             'Everything you need for your booking is here.'}
@@ -442,7 +472,8 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
               <div className="flex flex-col md:flex-row justify-between items-start gap-8 mb-12">
                 <div className="space-y-4">
                   <div className="inline-flex items-center gap-2 bg-teal-50 text-[var(--theme)] px-4 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-widest border border-teal-100/50">
-                    <ShieldCheck className="w-3.5 h-3.5" /> Booking Confirmed
+                    <ShieldCheck className="w-3.5 h-3.5" />
+                    Booking Confirmed
                   </div>
 
                   <h3 className="text-4xl font-black tracking-tighter text-stone-900">
@@ -452,12 +483,15 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                   <div className="flex flex-wrap items-center gap-x-6 gap-y-2">
                     {eventDate && (
                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight">
-                        <Calendar className="w-4 h-4 text-[var(--theme)]" /> {eventDate}
+                        <Calendar className="w-4 h-4 text-[var(--theme)]" />
+                        {eventDate}
                       </span>
                     )}
+
                     {venue && (
                       <span className="flex items-center gap-2 text-stone-400 font-bold text-xs uppercase tracking-tight">
-                        <MapPin className="w-4 h-4 text-[var(--theme)]" /> {venue}
+                        <MapPin className="w-4 h-4 text-[var(--theme)]" />
+                        {venue}
                       </span>
                     )}
                   </div>
@@ -467,6 +501,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                   <p className="text-[10px] font-black text-stone-300 uppercase tracking-widest mb-1">
                     Booking ID
                   </p>
+
                   <p className="text-xl font-mono font-black text-stone-900">
                     #{booking.bookingId || '-'}
                   </p>
@@ -479,22 +514,24 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       Primary Guest
                     </span>
+
                     <div className="bg-stone-50 rounded-[24px] p-5 border border-stone-100">
                       <div className="flex items-start gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-white flex items-center justify-center shadow-sm shrink-0">
                           <User className="w-5 h-5 text-[var(--theme)]" />
                         </div>
+
                         <div className="min-w-0 space-y-2">
                           <p className="text-lg font-black text-stone-900 break-words">
-                            {primaryGuest?.name || '-'}
+                            {primaryGuest.name || '-'}
                           </p>
+
                           <p className="text-sm text-stone-500 break-all">
-                            {primaryGuest?.email || '-'}
+                            {primaryGuest.email || '-'}
                           </p>
+
                           <p className="text-sm text-stone-500">
-                            {primaryGuest?.phone ||
-                              primaryGuest?.phoneNumber ||
-                              '-'}
+                            {primaryGuest.phone || '-'}
                           </p>
                         </div>
                       </div>
@@ -505,6 +542,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       Event Name
                     </span>
+
                     <span className="text-xl font-black text-stone-900">
                       {eventName}
                     </span>
@@ -514,6 +552,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       Plan Name
                     </span>
+
                     <span className="text-xl font-black text-stone-900">
                       {planName}
                     </span>
@@ -525,6 +564,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       No. of Guests
                     </span>
+
                     <span className="text-xl font-black text-stone-900">
                       {booking.guests?.length || 0}
                     </span>
@@ -534,6 +574,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       Booking Date
                     </span>
+
                     <span className="text-xl font-black text-stone-900">
                       {bookingDate}
                     </span>
@@ -543,8 +584,10 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       Status
                     </span>
+
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse"></div>
+
                       <span className="text-xl font-black text-stone-900">
                         Active
                       </span>
@@ -555,6 +598,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-[10px] font-black text-stone-400 uppercase tracking-widest block mb-2">
                       Venue
                     </span>
+
                     <span className="text-base font-black text-stone-900">
                       {venue || '-'}
                     </span>
@@ -567,7 +611,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
           <section>
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-8">
               <h3 className="text-2xl font-black text-stone-900 flex items-center gap-3">
-                <FileText className="w-7 h-7 text-[var(--theme)]" />{' '}
+                <FileText className="w-7 h-7 text-[var(--theme)]" />
                 {dashboardUi?.dashboard?.downloads?.title || 'Documents'}
               </h3>
             </div>
@@ -580,9 +624,11 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                 return (
                   <div
                     key={`${doc.title}-${doc.url}-${idx}`}
-                    onClick={() =>
-                      doc.url && doc.url !== '#' && window.open(doc.url, '_blank')
-                    }
+                    onClick={() => {
+                      if (doc.url && doc.url !== '#') {
+                        window.open(doc.url, '_blank');
+                      }
+                    }}
                     className={`group bg-white p-6 rounded-[32px] border-2 border-stone-50 shadow-sm hover:shadow-xl hover:border-teal-100/50 transition-all cursor-pointer flex items-center justify-between relative overflow-hidden ${
                       isPending ? 'opacity-70 grayscale' : ''
                     }`}
@@ -596,9 +642,11 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                         <h4 className="text-sm font-black text-stone-900 truncate pr-4">
                           {doc.title}
                         </h4>
+
                         <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight mt-0.5 line-clamp-1">
                           {doc.desc}
                         </p>
+
                         <div className="flex items-center gap-2 mt-2">
                           <span
                             className={`text-[9px] font-black px-2 py-0.5 rounded-lg uppercase tracking-widest ${
@@ -609,6 +657,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                           >
                             {doc.status}
                           </span>
+
                           {doc.size !== '--' && (
                             <span className="text-[9px] font-bold text-stone-300">
                               {doc.size}
@@ -635,7 +684,8 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
             <div className="absolute top-0 right-0 -m-12 w-48 h-48 bg-[var(--theme)]/20 rounded-full blur-3xl"></div>
 
             <h4 className="text-xl font-black mb-8 flex items-center gap-3">
-              <Compass className="w-6 h-6 text-teal-400" /> Contact & Support
+              <Compass className="w-6 h-6 text-teal-400" />
+              Contact & Support
             </h4>
 
             <div className="space-y-8 relative z-10">
@@ -643,10 +693,12 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
                   <Phone className="w-5 h-5 text-teal-400" />
                 </div>
+
                 <div>
                   <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">
                     Contact us / Whatsapp
                   </p>
+
                   <a
                     href="tel:+919867666444"
                     className="font-bold text-sm hover:text-teal-300 transition-colors"
@@ -660,10 +712,12 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
                   <Mail className="w-5 h-5 text-teal-400" />
                 </div>
+
                 <div>
                   <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">
                     Email us
                   </p>
+
                   <a
                     href="mailto:info@shreansdaga.org"
                     className="font-bold text-sm break-all hover:text-teal-300 transition-colors"
@@ -677,11 +731,14 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                 <div className="w-12 h-12 rounded-2xl bg-white/5 flex items-center justify-center shrink-0">
                   <Wind className="w-5 h-5 text-teal-400" />
                 </div>
+
                 <div>
                   <p className="text-[10px] font-black text-stone-400 uppercase tracking-widest mb-1">
                     Weather Notice
                   </p>
+
                   <p className="font-bold text-sm">Expect Cool Evenings</p>
+
                   <p className="text-[10px] text-stone-500 mt-1">
                     Carry suitable clothing for the evening.
                   </p>
@@ -695,8 +752,12 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
               <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm">
                 <Flower2 className="w-6 h-6 text-[var(--theme)]" />
               </div>
+
               <div>
-                <h5 className="text-sm font-black text-stone-900">Other Info</h5>
+                <h5 className="text-sm font-black text-stone-900">
+                  Other Info
+                </h5>
+
                 <p className="text-[10px] text-stone-400 font-bold uppercase tracking-tight">
                   Important links
                 </p>
@@ -716,6 +777,7 @@ const DownloadsDashboard: React.FC<DownloadsDashboardProps> = ({
                     <span className="text-sm font-bold text-stone-700">
                       {item.title}
                     </span>
+
                     <span className="text-xs font-black uppercase tracking-widest text-[var(--theme)]">
                       Open
                     </span>

@@ -515,7 +515,7 @@ const App: React.FC = () => {
         if (slug) {
           allData = await getAllDataBySlug(slug, effectiveBookingId);
         } else {
-          allData = await getAllData(eventId || '44', effectiveBookingId);
+          allData = await getAllData(eventId || '2', effectiveBookingId);
         }
         console.log('✅ API Response:', allData);
 
@@ -1189,11 +1189,7 @@ const isPlanSelectionLoading =
         return (
           <PlanDetail
             plan={bookingState.selectedPlan!}
-            onProceed={(apiGuests) => {
-              setBookingState((p) => ({
-                ...p,
-                guestsPayload: apiGuests,
-              }));
+            onProceed={() => {
               nextStep();
             }}
             onBack={prevStep}

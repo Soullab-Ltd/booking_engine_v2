@@ -544,7 +544,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                   </div>
                 ) : null}
 
-                {nightlyDisplayPrice > 0 ? (
+             {/*    {nightlyDisplayPrice > 0 ? (
                   <div>
                     <p className="text-[10px] font-black uppercase tracking-[0.28em] text-white/60">
                       Per Day
@@ -554,7 +554,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                       {nightlyPriceTypeLabel ? ` / ${nightlyPriceTypeLabel}` : ''}
                     </p>
                   </div>
-                ) : null}
+                ) : null} */}
               </div>
 
               {gstLabel ? (
@@ -635,7 +635,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
           </section>
 
           <section className="rounded-[32px] border border-stone-200/80 bg-white p-8 md:p-10 shadow-[0_24px_80px_rgba(15,23,42,0.05)]">
-            {displayFeatures.length > 0 ? (
+           {/*  {displayFeatures.length > 0 ? (
               <>
                 <div className="flex items-center gap-3 mb-8">
                   <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
@@ -663,7 +663,7 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
                   ))}
                 </div>
               </>
-            ) : null}
+            ) : null} */}
 
             <div className="flex items-center gap-3 mb-8">
               <div className="w-12 h-1 rounded-full bg-[var(--theme)]"></div>
