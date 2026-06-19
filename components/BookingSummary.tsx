@@ -241,6 +241,10 @@ const getCouponGuestThreshold = (coupon: any): number => {
     'requiredGuestCount',
     'minimumGuestCount',
     'groupGuestCount',
+    'guestCount',
+    'GuestCount',
+    'count',
+    'Count',
   ];
 
   for (const key of candidateKeys) {
