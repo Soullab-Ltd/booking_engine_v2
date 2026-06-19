@@ -173,6 +173,75 @@ const PLAN_FEATURE_KEYS = [
   'features',
 ] as const;
 
+const FEATURE_LABEL_KEYS = [
+  'label',
+  'Label',
+  'title',
+  'Title',
+  'name',
+  'Name',
+  'feature',
+  'Feature',
+  'featureName',
+  'FeatureName',
+  'feature_name',
+  'displayLabel',
+  'display_label',
+  'heading',
+  'Heading',
+] as const;
+
+const FEATURE_VALUE_KEYS = [
+  'value',
+  'Value',
+  'description',
+  'Description',
+  'desc',
+  'Desc',
+  'featureValue',
+  'FeatureValue',
+  'feature_value',
+  'displayValue',
+  'display_value',
+  'count',
+  'Count',
+  'quantity',
+  'Quantity',
+  'qty',
+  'Qty',
+] as const;
+
+const FEATURE_ICON_KEYS = [
+  'icon',
+  'Icon',
+  'iconName',
+  'IconName',
+  'icon_name',
+  'iconKey',
+  'IconKey',
+  'type',
+  'Type',
+] as const;
+
+const getFirstFeatureValue = (feature: any, keys: readonly string[]): string => {
+  for (const key of keys) {
+    const value = feature?.[key];
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  return '';
+};
+
+const looksLikePlanFeature = (value: any): boolean => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  return [...FEATURE_LABEL_KEYS, ...FEATURE_VALUE_KEYS, ...FEATURE_ICON_KEYS].some(
+    (key) => value?.[key] !== undefined && value?.[key] !== null && String(value[key]).trim()
+  );
+};
+
 const parseFeatureCollection = (rawValue: any): any[] => {
   let parsedValue = rawValue;
 
@@ -199,6 +268,10 @@ const parseFeatureCollection = (rawValue: any): any[] => {
         continue;
       }
 
+      if (looksLikePlanFeature(parsedValue)) {
+        return [parsedValue];
+      }
+
       return Object.values(parsedValue);
     }
 
@@ -210,7 +283,7 @@ const parseFeatureCollection = (rawValue: any): any[] => {
   }
 
   if (parsedValue && typeof parsedValue === 'object') {
-    return Object.values(parsedValue);
+    return looksLikePlanFeature(parsedValue) ? [parsedValue] : Object.values(parsedValue);
   }
 
   return [];
@@ -375,10 +448,16 @@ const normalizePlan = (plan: any, currentEventId?: string | number): Plan => {
     })),
     planFeatures: getRawPlanFeatures(plan)
       .map((feature: any, index: number) => ({
-          id: String(feature?.id || `feature-${plan.planID || plan.PlanID || 'plan'}-${index}`),
-          label: normalizeOptionalText(feature?.label || feature?.Label || feature?.title || feature?.Title || ''),
-          value: normalizeOptionalText(feature?.value || feature?.Value || feature?.description || ''),
-          icon: normalizeOptionalText(feature?.icon || feature?.Icon || feature?.iconName || 'check'),
+          id: String(
+            feature?.id ||
+              feature?.ID ||
+              feature?.featureId ||
+              feature?.FeatureID ||
+              `feature-${plan.planID || plan.PlanID || 'plan'}-${index}`
+          ),
+          label: normalizeOptionalText(getFirstFeatureValue(feature, FEATURE_LABEL_KEYS)),
+          value: normalizeOptionalText(getFirstFeatureValue(feature, FEATURE_VALUE_KEYS)),
+          icon: normalizeOptionalText(getFirstFeatureValue(feature, FEATURE_ICON_KEYS) || 'check'),
         }))
       .filter((feature: any) => feature?.label || feature?.value),
     images: Array.isArray(plan.images) ? plan.images : [],

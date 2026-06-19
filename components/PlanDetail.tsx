@@ -41,6 +41,75 @@ const PLAN_FEATURE_KEYS = [
   'features',
 ] as const;
 
+const FEATURE_LABEL_KEYS = [
+  'label',
+  'Label',
+  'title',
+  'Title',
+  'name',
+  'Name',
+  'feature',
+  'Feature',
+  'featureName',
+  'FeatureName',
+  'feature_name',
+  'displayLabel',
+  'display_label',
+  'heading',
+  'Heading',
+] as const;
+
+const FEATURE_VALUE_KEYS = [
+  'value',
+  'Value',
+  'description',
+  'Description',
+  'desc',
+  'Desc',
+  'featureValue',
+  'FeatureValue',
+  'feature_value',
+  'displayValue',
+  'display_value',
+  'count',
+  'Count',
+  'quantity',
+  'Quantity',
+  'qty',
+  'Qty',
+] as const;
+
+const FEATURE_ICON_KEYS = [
+  'icon',
+  'Icon',
+  'iconName',
+  'IconName',
+  'icon_name',
+  'iconKey',
+  'IconKey',
+  'type',
+  'Type',
+] as const;
+
+const getFirstFeatureValue = (feature: any, keys: readonly string[]): string => {
+  for (const key of keys) {
+    const value = feature?.[key];
+    if (value !== undefined && value !== null && String(value).trim()) {
+      return String(value).trim();
+    }
+  }
+
+  return '';
+};
+
+const looksLikePlanFeature = (value: any): boolean => {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return false;
+
+  return [...FEATURE_LABEL_KEYS, ...FEATURE_VALUE_KEYS, ...FEATURE_ICON_KEYS].some(
+    (key) => value?.[key] !== undefined && value?.[key] !== null && String(value[key]).trim()
+  );
+};
+
 const getPriceTypeLabel = (priceType?: string) => {
   const normalized = String(priceType || '').trim().toLowerCase();
   const raw = String(priceType || '').trim();
@@ -330,6 +399,10 @@ const parseFeatureCollection = (rawValue: any): any[] => {
         continue;
       }
 
+      if (looksLikePlanFeature(parsedValue)) {
+        return [parsedValue];
+      }
+
       return Object.values(parsedValue);
     }
 
@@ -337,7 +410,9 @@ const parseFeatureCollection = (rawValue: any): any[] => {
   }
 
   if (Array.isArray(parsedValue)) return parsedValue;
-  if (parsedValue && typeof parsedValue === 'object') return Object.values(parsedValue);
+  if (parsedValue && typeof parsedValue === 'object') {
+    return looksLikePlanFeature(parsedValue) ? [parsedValue] : Object.values(parsedValue);
+  }
 
   return [];
 };
@@ -372,16 +447,20 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
       }
     }
 
-    return featureList.filter(
-      (feature: any) =>
-        feature?.label ||
-        feature?.Label ||
-        feature?.title ||
-        feature?.Title ||
-        feature?.value ||
-        feature?.Value ||
-        feature?.description
-    );
+    return featureList
+      .map((feature: any, index: number) => ({
+        ...feature,
+        id:
+          feature?.id ||
+          feature?.ID ||
+          feature?.featureId ||
+          feature?.FeatureID ||
+          `feature-${index}`,
+        label: getFirstFeatureValue(feature, FEATURE_LABEL_KEYS),
+        value: getFirstFeatureValue(feature, FEATURE_VALUE_KEYS),
+        icon: getFirstFeatureValue(feature, FEATURE_ICON_KEYS) || 'check',
+      }))
+      .filter((feature: any) => feature?.label || feature?.value);
   }, [plan]);
 
   const sortedImages = useMemo(() => {
