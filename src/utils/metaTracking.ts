@@ -304,6 +304,44 @@ export const trackMetaEvent = (
   });
 };
 
+export const trackMetaCustomEvent = (
+  eventName: string,
+  params: MetaEventParams = {},
+  eventId?: string
+) => {
+  const normalizedEventName = String(eventName || '').trim();
+  const pixelId = getMetaPixelId();
+
+  if (!normalizedEventName || !pixelId || typeof window.fbq !== 'function') {
+    console.warn('[Meta Pixel] Custom event skipped', {
+      eventName: normalizedEventName || null,
+      eventId: eventId || null,
+      hasPixelId: Boolean(pixelId),
+      hasFbq: typeof window.fbq === 'function',
+      url: typeof window !== 'undefined' ? window.location.href : '',
+    });
+    return;
+  }
+
+  const cleanedParams = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
+  );
+
+  if (eventId) {
+    window.fbq('trackCustom', normalizedEventName, cleanedParams, { eventID: eventId });
+  } else {
+    window.fbq('trackCustom', normalizedEventName, cleanedParams);
+  }
+
+  console.log('[Meta Pixel] Custom event fired', {
+    eventName: normalizedEventName,
+    pixelId,
+    eventId: eventId || null,
+    params: cleanedParams,
+    url: window.location.href,
+  });
+};
+
 export const markMetaPurchaseTracked = (eventId: string) => {
   if (!eventId) return;
   window.sessionStorage.setItem(META_PURCHASE_EVENT_STORAGE_KEY, eventId);

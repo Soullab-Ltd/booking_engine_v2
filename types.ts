@@ -217,4 +217,5 @@ export interface BookingState {
   invoiceUrl?: string;
   completionCertificateUrl?: string;
   additionalAssets?: any[];
+  bounceTrackedStages?: string[];
 }

@@ -18,6 +18,7 @@ import {
 import {
   createMetaEventId,
   getStoredMetaAttribution,
+  trackMetaCustomEvent,
   trackMetaEvent,
 } from '../src/utils/metaTracking';
 
@@ -61,9 +62,30 @@ const FRONTEND_RAZORPAY_KEY = String(
 ).trim();
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 const LAST_BOOKING_STORAGE_PREFIX = 'booking_engine:last_booking';
+const BOUNCE_API_URL = '/api/analytics/bounce';
+const BOUNCE_SESSION_STORAGE_KEY = 'booking_engine:bounce_session_id';
 
 const getLastBookingStorageKey = (eventIdentifier: string) =>
   `${LAST_BOOKING_STORAGE_PREFIX}:${eventIdentifier}`;
+
+const getBounceSessionId = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const existing = window.sessionStorage.getItem(BOUNCE_SESSION_STORAGE_KEY);
+    if (existing) {
+      return existing;
+    }
+
+    const generated = `bounce_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    window.sessionStorage.setItem(BOUNCE_SESSION_STORAGE_KEY, generated);
+    return generated;
+  } catch {
+    return `bounce_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+};
 
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
@@ -590,6 +612,75 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
   const selectedPlan = useMemo(
     () => (bookingState as any)?.selectedPlan || (bookingState as any)?.plan || {},
     [bookingState]
+  );
+
+  const reportBounce = useCallback(
+    async (
+      reason: 'payment_cancelled' | 'payment_failed',
+      bookingId?: string | number | null,
+      message?: string
+    ) => {
+      const attribution = getStoredMetaAttribution();
+      const resolvedPlanId = selectedPlanId ? String(selectedPlanId) : '';
+      const planName =
+        selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title || null;
+      const eventId = createMetaEventId('bounce_payment');
+      const payload = {
+        sessionId: getBounceSessionId(),
+        eventId,
+        stage: 'payment',
+        reason,
+        currentStep: 5,
+        bookingId: bookingId ? String(bookingId) : null,
+        paymentId: null,
+        planId: resolvedPlanId || null,
+        planName,
+        guestCount: Number(guestCount || 0),
+        paymentResult: null,
+        paymentStatus: null,
+        primaryGuestName: guests?.[0]?.name || null,
+        primaryGuestEmail: guests?.[0]?.email || null,
+        primaryGuestPhone: guests?.[0]?.phone || null,
+        eventSourceUrl: typeof window !== 'undefined' ? window.location.href : '',
+        occurredAt: new Date().toISOString(),
+        attribution,
+        metadata: {
+          message: message || null,
+          source: 'booking_summary',
+        },
+      };
+
+      trackMetaCustomEvent(
+        'CheckoutBounce',
+        {
+          stage: 'payment',
+          reason,
+          content_name: planName || 'Selected Plan',
+          content_ids: resolvedPlanId ? [resolvedPlanId] : undefined,
+          content_type: 'product',
+          booking_id: payload.bookingId || '',
+          value: Number(
+            Math.round(
+              selectedPlan?.OfferPrice || selectedPlan?.discountedPrice || selectedPlan?.PlanPrice || 0
+            )
+          ),
+          currency: 'INR',
+          guest_count: payload.guestCount,
+        },
+        eventId
+      );
+
+      try {
+        await fetch(BOUNCE_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      } catch (error) {
+        console.warn('Unable to store booking summary bounce event:', error);
+      }
+    },
+    [selectedPlanId, selectedPlan, guestCount, guests]
   );
 
   const existingAtgPanFileUrl =
@@ -1804,8 +1895,21 @@ const handlePayment = async () => {
     });
   } catch (err: any) {
     console.error('Payment Error:', err);
+    const errorMessage = err?.message || 'We could not submit your booking. Please try again.';
+    const normalizedMessage = String(errorMessage).toLowerCase();
+
+    if (normalizedMessage.includes('cancelled')) {
+      void reportBounce('payment_cancelled', bookingState?.bookingId || null, errorMessage);
+    } else if (
+      normalizedMessage.includes('payment') ||
+      normalizedMessage.includes('razorpay') ||
+      normalizedMessage.includes('checkout')
+    ) {
+      void reportBounce('payment_failed', bookingState?.bookingId || null, errorMessage);
+    }
+
     setCouponError(
-      err?.message || 'We could not submit your booking. Please try again.'
+      errorMessage
     );
     setIsProcessing(false);
   }

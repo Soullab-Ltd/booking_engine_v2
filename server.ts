@@ -14,6 +14,32 @@ const PORT = 3000;
 app.use(cors());
 app.use(express.json());
 
+type BounceEventRecord = {
+  id: string;
+  sessionId: string | null;
+  eventId: string | null;
+  stage: string | null;
+  reason: string | null;
+  currentStep: number | null;
+  bookingId: string | null;
+  paymentId: string | null;
+  planId: string | null;
+  planName: string | null;
+  guestCount: number | null;
+  paymentResult: string | null;
+  paymentStatus: string | null;
+  primaryGuestName: string | null;
+  primaryGuestEmail: string | null;
+  primaryGuestPhone: string | null;
+  eventSourceUrl: string | null;
+  occurredAt: string;
+  attribution: Record<string, any>;
+  metadata: Record<string, any>;
+  createdAt: string;
+};
+
+const bounceEvents: BounceEventRecord[] = [];
+
 // Database connection pool
 const pool = mysql.createPool({
   host: process.env.DB_HOST || 'localhost',
@@ -51,6 +77,70 @@ const MOCK_DB = {
 };
 
 // API Routes
+app.post('/api/analytics/bounce', (req, res) => {
+  const body = req.body || {};
+  const record: BounceEventRecord = {
+    id: `bounce_row_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+    sessionId: body.sessionId ? String(body.sessionId) : null,
+    eventId: body.eventId ? String(body.eventId) : null,
+    stage: body.stage ? String(body.stage) : null,
+    reason: body.reason ? String(body.reason) : null,
+    currentStep: Number.isFinite(Number(body.currentStep)) ? Number(body.currentStep) : null,
+    bookingId: body.bookingId ? String(body.bookingId) : null,
+    paymentId: body.paymentId ? String(body.paymentId) : null,
+    planId: body.planId ? String(body.planId) : null,
+    planName: body.planName ? String(body.planName) : null,
+    guestCount: Number.isFinite(Number(body.guestCount)) ? Number(body.guestCount) : null,
+    paymentResult: body.paymentResult ? String(body.paymentResult) : null,
+    paymentStatus: body.paymentStatus ? String(body.paymentStatus) : null,
+    primaryGuestName: body.primaryGuestName ? String(body.primaryGuestName) : null,
+    primaryGuestEmail: body.primaryGuestEmail ? String(body.primaryGuestEmail) : null,
+    primaryGuestPhone: body.primaryGuestPhone ? String(body.primaryGuestPhone) : null,
+    eventSourceUrl: body.eventSourceUrl ? String(body.eventSourceUrl) : null,
+    occurredAt: body.occurredAt ? String(body.occurredAt) : new Date().toISOString(),
+    attribution:
+      body.attribution && typeof body.attribution === 'object' ? body.attribution : {},
+    metadata: body.metadata && typeof body.metadata === 'object' ? body.metadata : {},
+    createdAt: new Date().toISOString(),
+  };
+
+  bounceEvents.unshift(record);
+  if (bounceEvents.length > 500) {
+    bounceEvents.length = 500;
+  }
+
+  res.status(201).json({ success: true, record });
+});
+
+app.get('/api/admin/bounce-events', (_req, res) => {
+  res.json({
+    total: bounceEvents.length,
+    events: bounceEvents,
+  });
+});
+
+app.get('/api/admin/bounced-customers', (_req, res) => {
+  const grouped = new Map<string, BounceEventRecord>();
+
+  for (const event of bounceEvents) {
+    const key =
+      event.bookingId ||
+      event.primaryGuestEmail ||
+      event.primaryGuestPhone ||
+      event.sessionId ||
+      event.id;
+
+    if (!grouped.has(key)) {
+      grouped.set(key, event);
+    }
+  }
+
+  res.json({
+    total: grouped.size,
+    customers: Array.from(grouped.values()),
+  });
+});
+
 app.get('/api/event/:id', async (req, res) => {
   const eventId = parseInt(req.params.id);
   try {

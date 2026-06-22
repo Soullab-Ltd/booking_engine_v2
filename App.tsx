@@ -24,6 +24,7 @@ import {
   hasTrackedMetaPurchase,
   initMetaPixel,
   markMetaPurchaseTracked,
+  trackMetaCustomEvent,
   trackMetaEvent,
 } from './src/utils/metaTracking';
 
@@ -191,6 +192,8 @@ const PAYMENT_STATUS_POLL_TIMEOUT_MS = 3 * 60 * 1000;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 const LAST_BOOKING_STORAGE_PREFIX = 'booking_engine:last_booking';
+const BOUNCE_SESSION_STORAGE_KEY = 'booking_engine:bounce_session_id';
+const BOUNCE_API_URL = '/api/analytics/bounce';
 
 const isMobileBrowser = () =>
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -335,6 +338,26 @@ const scrollViewportToTop = () => {
   });
 };
 
+const getBounceSessionId = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    const existing = window.sessionStorage.getItem(BOUNCE_SESSION_STORAGE_KEY);
+    if (existing) {
+      return existing;
+    }
+
+    const generated = `bounce_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+    window.sessionStorage.setItem(BOUNCE_SESSION_STORAGE_KEY, generated);
+    return generated;
+  } catch (error) {
+    console.warn('Unable to get bounce session id:', error);
+    return `bounce_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  }
+};
+
 const getBookingAtgDetails = (bookingData: any) => {
   const atgDetails = bookingData?.atgDetails || bookingData?.atg_details || null;
 
@@ -463,6 +486,9 @@ type PaymentConfirmationDetails = {
   metaPurchaseEventId?: string;
 };
 
+type BounceStage = 'booking_summary' | 'payment';
+type BounceReason = 'step_back' | 'page_exit' | 'payment_cancelled' | 'payment_failed';
+
 const App: React.FC = () => {
   const hasTrackedViewContentRef = useRef<string>('');
   const [data, setData] = useState<{
@@ -490,12 +516,108 @@ const App: React.FC = () => {
   const [paymentResult, setPaymentResult] = useState<'SUCCESS' | 'PENDING' | 'FAILED' | null>(null);
   const hasLocalPaymentSuccessRef = useRef(false);
   const hasAttemptedAutoPayRef = useRef(false);
+  const latestBookingStateRef = useRef<BookingState>(bookingState);
+  const latestPaymentResultRef = useRef<typeof paymentResult>(paymentResult);
   const [isRetryingPayment, setIsRetryingPayment] = useState(false);
+
+  const trackBounce = (
+    stage: BounceStage,
+    reason: BounceReason,
+    metadata: Record<string, string | number | boolean | null | undefined> = {},
+    options: { useBeacon?: boolean } = {}
+  ) => {
+    const state = latestBookingStateRef.current;
+    const currentPaymentResult = latestPaymentResultRef.current;
+    const alreadyTracked = Array.isArray(state.bounceTrackedStages)
+      ? state.bounceTrackedStages.includes(stage)
+      : false;
+
+    if (alreadyTracked || currentPaymentResult === 'SUCCESS') {
+      return;
+    }
+
+    const attribution = getStoredMetaAttribution();
+    const planId = String(
+      state.selectedPlan?.planID || state.selectedPlan?.PlanID || state.selectedPlan?.id || ''
+    ).trim();
+    const primaryGuest = state.guests?.[0];
+    const sessionId = getBounceSessionId();
+    const eventId = createMetaEventId(`bounce_${stage}`);
+    const payload = {
+      sessionId,
+      eventId,
+      stage,
+      reason,
+      currentStep: state.currentStep,
+      bookingId: state.bookingId ? String(state.bookingId) : null,
+      paymentId: state.paymentId || null,
+      planId: planId || null,
+      planName:
+        state.selectedPlan?.PlanTitle || state.selectedPlan?.PlanName || state.selectedPlan?.title || null,
+      guestCount: Number(state.guests?.length || 0),
+      paymentResult: currentPaymentResult || null,
+      paymentStatus: state.backendPaymentStatus || null,
+      primaryGuestName: primaryGuest?.name || state.primaryGuestName || null,
+      primaryGuestEmail: primaryGuest?.email || state.primaryGuestEmail || null,
+      primaryGuestPhone: primaryGuest?.phone || state.primaryGuestPhoneNumber || null,
+      eventSourceUrl: typeof window !== 'undefined' ? window.location.href : '',
+      occurredAt: new Date().toISOString(),
+      attribution,
+      metadata,
+    };
+
+    trackMetaCustomEvent('CheckoutBounce', {
+      stage,
+      reason,
+      content_name: payload.planName || 'Selected Plan',
+      content_ids: planId ? [planId] : undefined,
+      content_type: 'product',
+      booking_id: payload.bookingId || '',
+      value: Number(
+        state.selectedPlan?.OfferPrice || state.selectedPlan?.discountedPrice || state.selectedPlan?.PlanPrice || 0
+      ),
+      currency: 'INR',
+      guest_count: payload.guestCount,
+    }, eventId);
+
+    try {
+      if (
+        options.useBeacon &&
+        typeof navigator !== 'undefined' &&
+        typeof navigator.sendBeacon === 'function'
+      ) {
+        const blob = new Blob([JSON.stringify(payload)], { type: 'application/json' });
+        navigator.sendBeacon(BOUNCE_API_URL, blob);
+      } else {
+        void fetch(BOUNCE_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          keepalive: Boolean(options.useBeacon),
+        });
+      }
+    } catch (error) {
+      console.warn('Unable to persist bounce event:', error);
+    }
+
+    setBookingState((prev) => ({
+      ...prev,
+      bounceTrackedStages: [...new Set([...(prev.bounceTrackedStages || []), stage])],
+    }));
+  };
 
   useEffect(() => {
     captureMetaAttribution();
     initMetaPixel();
   }, []);
+
+  useEffect(() => {
+    latestBookingStateRef.current = bookingState;
+  }, [bookingState]);
+
+  useEffect(() => {
+    latestPaymentResultRef.current = paymentResult;
+  }, [paymentResult]);
   
   useEffect(() => {
     const loadData = async () => {
@@ -716,6 +838,20 @@ const App: React.FC = () => {
       await launchRetryCheckout(bookingState.bookingId);
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Payment retry failed.';
+      const normalizedMessage = message.toLowerCase();
+
+      if (normalizedMessage.includes('cancelled')) {
+        trackBounce('payment', 'payment_cancelled', {
+          source,
+          message,
+        });
+      } else {
+        trackBounce('payment', 'payment_failed', {
+          source,
+          message,
+        });
+      }
+
       setBookingState((prev) => ({
         ...prev,
         paymentSyncStatus: 'failed',
@@ -951,7 +1087,50 @@ const App: React.FC = () => {
     }
   }, [bookingState, paymentResult]);
 
+  useEffect(() => {
+    if (paymentResult === 'SUCCESS') {
+      setBookingState((prev) =>
+        prev.bounceTrackedStages?.length
+          ? { ...prev, bounceTrackedStages: [] }
+          : prev
+      );
+    }
+  }, [paymentResult]);
+
+  useEffect(() => {
+    const handlePageExit = () => {
+      const state = latestBookingStateRef.current;
+      const currentPaymentResult = latestPaymentResultRef.current;
+
+      if (currentPaymentResult === 'SUCCESS') {
+        return;
+      }
+
+      if (state.currentStep === 5) {
+        trackBounce('booking_summary', 'page_exit', { trigger: 'pagehide' }, { useBeacon: true });
+      } else if (state.currentStep === 6) {
+        trackBounce('payment', 'page_exit', { trigger: 'pagehide' }, { useBeacon: true });
+      }
+    };
+
+    window.addEventListener('pagehide', handlePageExit);
+    return () => {
+      window.removeEventListener('pagehide', handlePageExit);
+    };
+  }, []);
+
   const moveToStep = async (nextStepValue: number) => {
+    if (nextStepValue < bookingState.currentStep) {
+      if (bookingState.currentStep === 6) {
+        trackBounce('payment', 'step_back', { toStep: nextStepValue, fromStep: bookingState.currentStep });
+      } else if (bookingState.currentStep === 5) {
+        trackBounce('booking_summary', 'step_back', {
+          toStep: nextStepValue,
+          fromStep: bookingState.currentStep,
+        });
+      }
+    }
+
     setStepLoadingMessage(STEP_LOADING_COPY[nextStepValue] || 'Loading...');
     await waitForTransitionFrame();
     setBookingState((prev) => ({ ...prev, currentStep: nextStepValue }));
