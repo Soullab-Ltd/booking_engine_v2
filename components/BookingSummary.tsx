@@ -1753,6 +1753,7 @@ const handlePayment = async () => {
     const metaAttribution = getStoredMetaAttribution();
 
     const payload = {
+      source: 'Website',
       eventId: selectedEventId,
       planId: selectedPlanId,
       startDate: getIsoDateString(resolvedStartDate, 'Start date'),
