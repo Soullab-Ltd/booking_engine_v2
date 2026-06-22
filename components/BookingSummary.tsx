@@ -62,7 +62,7 @@ const FRONTEND_RAZORPAY_KEY = String(
 ).trim();
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 const LAST_BOOKING_STORAGE_PREFIX = 'booking_engine:last_booking';
-const BOUNCE_API_URL = '/api/analytics/bounce';
+const BOUNCE_API_URL = `${BOOKING_API_BASE_URL}/analytics/bounce`;
 const BOUNCE_SESSION_STORAGE_KEY = 'booking_engine:bounce_session_id';
 
 const getLastBookingStorageKey = (eventIdentifier: string) =>

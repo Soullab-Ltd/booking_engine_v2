@@ -193,7 +193,7 @@ const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
 const BOOKING_API_BASE_URL = 'https://bookingapi.thriive.in/bookings';
 const LAST_BOOKING_STORAGE_PREFIX = 'booking_engine:last_booking';
 const BOUNCE_SESSION_STORAGE_KEY = 'booking_engine:bounce_session_id';
-const BOUNCE_API_URL = '/api/analytics/bounce';
+const BOUNCE_API_URL = `${BOOKING_API_BASE_URL}/analytics/bounce`;
 
 const isMobileBrowser = () =>
   typeof navigator !== 'undefined' && /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
