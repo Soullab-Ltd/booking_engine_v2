@@ -94,6 +94,20 @@
           var params = url.searchParams;
           var existing = readStoredAttribution();
           var fbclid = params.get('fbclid') || existing.fbclid || null;
+          var currentReferrer = String(document.referrer || '').trim();
+          var currentUtmSource = String(params.get('utm_source') || '').trim();
+          var currentUtmMedium = String(params.get('utm_medium') || '').trim();
+          var currentUtmCampaign = String(params.get('utm_campaign') || '').trim();
+          var currentUtmContent = String(params.get('utm_content') || '').trim();
+          var currentUtmTerm = String(params.get('utm_term') || '').trim();
+          var hasCurrentCampaignSignal = Boolean(
+            currentUtmSource ||
+              currentUtmMedium ||
+              currentUtmCampaign ||
+              currentUtmContent ||
+              currentUtmTerm ||
+              currentReferrer
+          );
 
           var attribution = {
             source: 'meta_pixel',
@@ -109,14 +123,14 @@
               existing.fbp ||
               null,
             externalId: params.get('external_id') || existing.externalId || null,
-            utmSource: params.get('utm_source') || existing.utmSource || null,
-            utmMedium: params.get('utm_medium') || existing.utmMedium || null,
-            utmCampaign: params.get('utm_campaign') || existing.utmCampaign || null,
-            utmContent: params.get('utm_content') || existing.utmContent || null,
-            utmTerm: params.get('utm_term') || existing.utmTerm || null,
-            landingUrl: existing.landingUrl || window.location.href,
-            referrer: existing.referrer || document.referrer || null,
-            capturedAt: existing.capturedAt || new Date().toISOString()
+            utmSource: currentUtmSource || null,
+            utmMedium: currentUtmMedium || null,
+            utmCampaign: currentUtmCampaign || null,
+            utmContent: currentUtmContent || null,
+            utmTerm: currentUtmTerm || null,
+            landingUrl: hasCurrentCampaignSignal ? window.location.href : null,
+            referrer: currentReferrer || null,
+            capturedAt: new Date().toISOString()
           };
 
           persistAttribution(attribution);

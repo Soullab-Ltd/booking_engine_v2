@@ -155,6 +155,20 @@ export const captureMetaAttribution = () => {
   const url = new URL(window.location.href);
   const params = url.searchParams;
   const existing = getStoredMetaAttribution();
+  const currentReferrer = String(document.referrer || '').trim();
+  const currentUtmSource = String(params.get('utm_source') || '').trim();
+  const currentUtmMedium = String(params.get('utm_medium') || '').trim();
+  const currentUtmCampaign = String(params.get('utm_campaign') || '').trim();
+  const currentUtmContent = String(params.get('utm_content') || '').trim();
+  const currentUtmTerm = String(params.get('utm_term') || '').trim();
+  const hasCurrentCampaignSignal = Boolean(
+    currentUtmSource ||
+      currentUtmMedium ||
+      currentUtmCampaign ||
+      currentUtmContent ||
+      currentUtmTerm ||
+      currentReferrer
+  );
 
   const fbclid = params.get('fbclid') || existing.fbclid || bootstrapAttribution.fbclid || '';
   const fbc =
@@ -179,15 +193,14 @@ export const captureMetaAttribution = () => {
     fbc,
     fbp,
     externalId,
-    utmSource: params.get('utm_source') || existing.utmSource || bootstrapAttribution.utmSource,
-    utmMedium: params.get('utm_medium') || existing.utmMedium || bootstrapAttribution.utmMedium,
-    utmCampaign:
-      params.get('utm_campaign') || existing.utmCampaign || bootstrapAttribution.utmCampaign,
-    utmContent: params.get('utm_content') || existing.utmContent || bootstrapAttribution.utmContent,
-    utmTerm: params.get('utm_term') || existing.utmTerm || bootstrapAttribution.utmTerm,
-    landingUrl: existing.landingUrl || bootstrapAttribution.landingUrl || window.location.href,
-    referrer: existing.referrer || bootstrapAttribution.referrer || document.referrer,
-    capturedAt: existing.capturedAt || bootstrapAttribution.capturedAt || new Date().toISOString(),
+    utmSource: currentUtmSource,
+    utmMedium: currentUtmMedium,
+    utmCampaign: currentUtmCampaign,
+    utmContent: currentUtmContent,
+    utmTerm: currentUtmTerm,
+    landingUrl: hasCurrentCampaignSignal ? window.location.href : '',
+    referrer: currentReferrer,
+    capturedAt: new Date().toISOString(),
   });
 };
 
