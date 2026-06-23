@@ -1693,7 +1693,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           },
           modal: {
             ondismiss: () => {
-              reject(new Error('Payment was cancelled before completion.'));
+              resolve({
+                pending_external_confirmation: true,
+              });
             },
           },
           handler: (checkoutResponse: any) => {
@@ -1723,18 +1725,29 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         razorpay.open();
       });
 
-      const paymentSyncResult = bookingId
-        ? await syncSuccessfulPayment(response, bookingId, paymentResult)
-        : {
+      const isPendingExternalConfirmation = Boolean(
+        paymentResult?.pending_external_confirmation
+      );
+
+      const paymentSyncResult = isPendingExternalConfirmation
+        ? {
             synced: false,
             message:
-              'Payment succeeded, but the booking reference was missing while saving the payment details.',
-          };
+              'Payment confirmation is pending. Please wait while we verify the transaction with Razorpay.',
+          }
+        : bookingId
+          ? await syncSuccessfulPayment(response, bookingId, paymentResult)
+          : {
+              synced: false,
+              message:
+                'Payment succeeded, but the booking reference was missing while saving the payment details.',
+            };
 
       return {
         redirected: false,
         paymentResult,
         paymentSyncResult,
+        pendingExternalConfirmation: isPendingExternalConfirmation,
       };
     },
     [
@@ -1992,7 +2005,8 @@ const handlePayment = async () => {
       razorpaySignature: resolvedSignature || '',
       paymentSyncStatus: paymentSyncResult.synced ? 'synced' : 'pending',
       paymentSyncMessage: paymentSyncResult.message || '',
-      backendPaymentStatus: 'paid',
+      backendPaymentStatus: paymentOutcome?.pendingExternalConfirmation ? 'pending' : 'paid',
+      paymentResult: paymentOutcome?.pendingExternalConfirmation ? 'PENDING' : 'SUCCESS',
       metaPurchaseEventId,
     });
   } catch (err: any) {

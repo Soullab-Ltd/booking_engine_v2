@@ -484,6 +484,7 @@ type PaymentConfirmationDetails = {
   paymentSyncMessage?: string;
   backendPaymentStatus?: string;
   metaPurchaseEventId?: string;
+  paymentResult?: 'SUCCESS' | 'PENDING' | 'FAILED';
 };
 
 type BounceStage = 'booking_summary' | 'payment';
@@ -1160,10 +1161,11 @@ const App: React.FC = () => {
   paymentDetails?: PaymentConfirmationDetails
  ) => {
  if (success) {
-    hasLocalPaymentSuccessRef.current = true;
+    const isPendingVerification = paymentDetails?.paymentResult === 'PENDING';
+    hasLocalPaymentSuccessRef.current = !isPendingVerification;
     clearAutopayParamsFromUrl();
     setStepLoadingMessage(STEP_LOADING_COPY[6]);
-    setPaymentResult('SUCCESS');
+    setPaymentResult(isPendingVerification ? 'PENDING' : 'SUCCESS');
     setBookingState((prev) => ({
       ...prev,
       bookingId: bookingId ?? prev.bookingId,
@@ -1179,14 +1181,21 @@ const App: React.FC = () => {
       paymentSyncMessage:
         paymentDetails?.paymentSyncMessage || prev.paymentSyncMessage || '',
       backendPaymentStatus:
-        paymentDetails?.backendPaymentStatus || prev.backendPaymentStatus || 'paid',
+        paymentDetails?.backendPaymentStatus ||
+        prev.backendPaymentStatus ||
+        (isPendingVerification ? 'pending' : 'paid'),
       metaPurchaseEventId:
         paymentDetails?.metaPurchaseEventId || prev.metaPurchaseEventId || '',
-      bookingStatus: prev.bookingStatus || 'CONFIRMED',
-      bookingStatusLabel: prev.bookingStatusLabel || 'Payment Received',
+      bookingStatus:
+        prev.bookingStatus || (isPendingVerification ? 'PENDING' : 'CONFIRMED'),
+      bookingStatusLabel:
+        prev.bookingStatusLabel ||
+        (isPendingVerification ? 'Verifying Payment' : 'Payment Received'),
       bookingStatusMessage:
         prev.bookingStatusMessage ||
-        'Your Razorpay payment was successful. We are finalizing your booking details.',
+        (isPendingVerification
+          ? 'Please wait while we verify your payment confirmation from Razorpay.'
+          : 'Your Razorpay payment was successful. We are finalizing your booking details.'),
       currentStep: 6,
     }));
     window.setTimeout(() => setStepLoadingMessage(''), 220);
