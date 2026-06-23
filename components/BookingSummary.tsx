@@ -87,6 +87,15 @@ const getBounceSessionId = () => {
   }
 };
 
+const getSafeTrimmedString = (value: unknown): string => {
+  return typeof value === 'string' ? value.trim() : '';
+};
+
+const toBooleanOrUndefined = (value: unknown): boolean | undefined => {
+  if (value === undefined || value === null) return undefined;
+  return Boolean(value);
+};
+
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
@@ -614,9 +623,53 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     [bookingState]
   );
 
+  const getBounceFilledDetails = useCallback(() => {
+    const primaryGuest = guests?.[0];
+    const selectedCouponCode =
+      getSafeTrimmedString(appliedCoupon ? getCouponCode(appliedCoupon) : '') ||
+      getSafeTrimmedString((bookingState as any)?.discounts?.couponCode);
+
+    return {
+      name:
+        getSafeTrimmedString(primaryGuest?.name) ||
+        getSafeTrimmedString((bookingState as any)?.primaryGuestName) ||
+        undefined,
+      email:
+        getSafeTrimmedString(primaryGuest?.email) ||
+        getSafeTrimmedString((bookingState as any)?.primaryGuestEmail) ||
+        undefined,
+      phone:
+        getSafeTrimmedString(primaryGuest?.phone) ||
+        getSafeTrimmedString((bookingState as any)?.primaryGuestPhoneNumber) ||
+        undefined,
+      city: getSafeTrimmedString(primaryGuest?.city) || undefined,
+      state: getSafeTrimmedString(primaryGuest?.state) || undefined,
+      country: getSafeTrimmedString(primaryGuest?.country) || undefined,
+      couponCode: selectedCouponCode || undefined,
+      interest:
+        getSafeTrimmedString(
+          selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title
+        ) || undefined,
+      guestsCount: Number(guestCount || 0),
+      roomCount: 1,
+      remarks: getSafeTrimmedString(primaryGuest?.remark) || undefined,
+      hasTravelAssistance: toBooleanOrUndefined(primaryGuest?.travelAssistance),
+      isAtgRequested: toBooleanOrUndefined(is80GRequired),
+      extra: {
+        selectedAddons: guests
+          .flatMap((guest) => guest?.addOns?.selectedAddons || [])
+          .map((addon) => addon?.title)
+          .filter(Boolean),
+        foodPreferences: guests
+          .map((guest) => guest?.foodPreference)
+          .filter(Boolean),
+      },
+    };
+  }, [appliedCoupon, bookingState, selectedPlan, guestCount, guests, is80GRequired]);
+
   const reportBounce = useCallback(
     async (
-      reason: 'payment_cancelled' | 'payment_failed',
+      reason: 'payment_cancelled' | 'payment_failed' | 'step_back' | 'page_exit',
       bookingId?: string | number | null,
       message?: string
     ) => {
@@ -625,10 +678,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       const planName =
         selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title || null;
       const eventId = createMetaEventId('bounce_payment');
+      const filledDetails = getBounceFilledDetails();
       const payload = {
         sessionId: getBounceSessionId(),
         eventId,
-        stage: 'payment',
+        stage: reason === 'step_back' || reason === 'page_exit' ? 'booking_summary' : 'payment',
         reason,
         currentStep: 5,
         bookingId: bookingId ? String(bookingId) : null,
@@ -644,9 +698,12 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         eventSourceUrl: typeof window !== 'undefined' ? window.location.href : '',
         occurredAt: new Date().toISOString(),
         attribution,
+        filledDetails,
         metadata: {
           message: message || null,
           source: 'booking_summary',
+          selectedPlanTitle: planName,
+          selectedPlanId: resolvedPlanId || null,
         },
       };
 
@@ -671,17 +728,61 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       );
 
       try {
+        const body = JSON.stringify(payload);
+
+        if (
+          reason === 'page_exit' &&
+          typeof navigator !== 'undefined' &&
+          typeof navigator.sendBeacon === 'function'
+        ) {
+          const blob = new Blob([body], { type: 'application/json' });
+          navigator.sendBeacon(BOUNCE_API_URL, blob);
+          return;
+        }
+
         await fetch(BOUNCE_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+          body,
+          keepalive: reason === 'page_exit',
         });
       } catch (error) {
         console.warn('Unable to store booking summary bounce event:', error);
       }
     },
-    [selectedPlanId, selectedPlan, guestCount, guests]
+    [selectedPlanId, selectedPlan, guestCount, guests, getBounceFilledDetails, is80GRequired]
   );
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return;
+    }
+
+    let hasReportedPageExit = false;
+
+    const handlePageExit = () => {
+      if (hasReportedPageExit || isProcessing) {
+        return;
+      }
+
+      hasReportedPageExit = true;
+      void reportBounce('page_exit', bookingState?.bookingId || null, 'Exited from booking summary before payment completion.');
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        handlePageExit();
+      }
+    };
+
+    window.addEventListener('pagehide', handlePageExit);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      window.removeEventListener('pagehide', handlePageExit);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
+  }, [bookingState?.bookingId, isProcessing, reportBounce]);
 
   const existingAtgPanFileUrl =
     String(
@@ -2700,7 +2801,14 @@ const handlePayment = async () => {
       </div>
 
       <button
-        onClick={onBack}
+        onClick={() => {
+          void reportBounce(
+            'step_back',
+            bookingState?.bookingId || null,
+            'User navigated back from booking summary to guest details.'
+          );
+          onBack();
+        }}
         className="mt-12 flex items-center gap-2 text-stone-400 hover:text-stone-900 font-black text-xs uppercase tracking-widest transition-colors"
       >
         <ChevronLeft className="w-5 h-5" /> Back
