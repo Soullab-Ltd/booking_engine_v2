@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { BookingState, Guest, EventData } from '../types';
 import {
   CreditCard,
@@ -574,6 +574,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   const [couponError, setCouponError] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
+  const hasPaymentFlowStartedRef = useRef(false);
 
   const [customCodeInput, setCustomCodeInput] = useState('');
   const [isCheckingCode, setIsCheckingCode] = useState(false);
@@ -761,7 +762,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     let hasReportedPageExit = false;
 
     const handlePageExit = () => {
-      if (hasReportedPageExit || isProcessing) {
+      if (hasReportedPageExit || isProcessing || hasPaymentFlowStartedRef.current) {
         return;
       }
 
@@ -1943,7 +1944,7 @@ const handlePayment = async () => {
         );
       }
 
-      setIsProcessing(false);
+      hasPaymentFlowStartedRef.current = true;
       onConfirm(true, zeroAmountBookingId, {
         metaPurchaseEventId,
       });
@@ -1959,7 +1960,7 @@ const handlePayment = async () => {
       );
     }
 
-    setIsProcessing(false);
+    hasPaymentFlowStartedRef.current = true;
     const paymentOutcome = await launchRazorpayCheckout(checkoutResponse, bookingId, {
       key: FRONTEND_RAZORPAY_KEY,
     });
@@ -2010,6 +2011,7 @@ const handlePayment = async () => {
       metaPurchaseEventId,
     });
   } catch (err: any) {
+    hasPaymentFlowStartedRef.current = false;
     console.error('Payment Error:', err);
     const errorMessage = err?.message || 'We could not submit your booking. Please try again.';
     const normalizedMessage = String(errorMessage).toLowerCase();
