@@ -933,9 +933,9 @@ const PlanDetail: React.FC<PlanDetailProps> = ({ plan, onProceed }) => {
       </div>
 
       <div className="pt-6">
-        <p className="text-sm leading-relaxed text-stone-600 mb-5">
-          A शांत, comfortable stay designed to support your retreat experience.
-        </p>
+          <p className="text-sm leading-relaxed text-stone-600 mb-5">
+            A peaceful, comfortable stay designed to support your retreat experience.
+          </p>
 
        <button
   onClick={() => {
