@@ -1242,6 +1242,40 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
                 <div className="space-y-1">
                   <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
+                    {ui.guestCard.fields.travel}
+                  </label>
+                  <div className="flex gap-2">
+                    {[
+                      { label: 'Yes', value: true },
+                      { label: 'No', value: false },
+                    ].map((option) => (
+                      <label
+                        key={option.label}
+                        className={`flex h-[42px] flex-1 cursor-pointer items-center justify-center rounded-xl border-2 p-2 text-[11px] font-bold transition-all ${
+                          guest.travelAssistance === option.value
+                            ? 'border-[var(--theme)] bg-[var(--theme)] text-white shadow-sm'
+                            : 'border-stone-100 bg-stone-100 text-stone-600 hover:border-stone-300'
+                        }`}
+                      >
+                        <input
+                          type="radio"
+                          name={`travel-${guest.id}`}
+                          checked={guest.travelAssistance === option.value}
+                          onChange={() =>
+                            updateGuest(guest.id, {
+                              travelAssistance: option.value,
+                            })
+                          }
+                          className="hidden"
+                        />
+                        {option.label}
+                      </label>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="ml-0.5 text-[10px] font-black uppercase tracking-widest text-stone-700">
                     Country
                     {isPrimaryGuest ? (
                       <span className="ml-0.5 font-black text-[var(--theme)]">*</span>
