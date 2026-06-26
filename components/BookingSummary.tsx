@@ -108,6 +108,26 @@ const toBooleanOrUndefined = (value: unknown): boolean | undefined => {
   return Boolean(value);
 };
 
+const normalizeMetaUserField = (value: unknown): string => {
+  return String(value || '').trim().toLowerCase();
+};
+
+const normalizeMetaPhone = (value: unknown): string => {
+  return String(value || '').replace(/\D/g, '');
+};
+
+const sha256Hex = async (value: string): Promise<string | null> => {
+  if (!value || typeof window === 'undefined' || !window.crypto?.subtle) {
+    return null;
+  }
+
+  const encoded = new TextEncoder().encode(value);
+  const digest = await window.crypto.subtle.digest('SHA-256', encoded);
+  const bytes = Array.from(new Uint8Array(digest));
+
+  return bytes.map((byte) => byte.toString(16).padStart(2, '0')).join('');
+};
+
 const loadRazorpayCheckoutScript = (): Promise<void> => {
   return new Promise((resolve, reject) => {
     if (typeof window === 'undefined') {
@@ -1911,6 +1931,48 @@ const handlePayment = async () => {
       resolvedStartDate;
 
     const metaAttribution = getStoredMetaAttribution();
+    const primaryGuest = guestsPayload[0] || null;
+    const normalizedMetaEmail = normalizeMetaUserField(primaryGuest?.email || '');
+    const normalizedMetaPhone = normalizeMetaPhone(primaryGuest?.phoneNumber || '');
+    const hashedMetaEmail = await sha256Hex(normalizedMetaEmail);
+    const hashedMetaPhone = await sha256Hex(normalizedMetaPhone);
+    const purchaseEventTime = Math.floor(Date.now() / 1000);
+    const roundedPurchaseValue = Number(
+      (Math.round(pricingBreakdown.totalAmount * 100) / 100).toFixed(2)
+    );
+    const metaConversionApiPayload = {
+      data: [
+        {
+          event_name: 'Purchase',
+          event_time: purchaseEventTime,
+          action_source: 'website',
+          event_id: metaPurchaseEventId,
+          user_data: {
+            em: hashedMetaEmail ? [hashedMetaEmail] : [],
+            ph: hashedMetaPhone ? [hashedMetaPhone] : [],
+            fbc: metaAttribution.fbc || undefined,
+            fbp: metaAttribution.fbp || undefined,
+            external_id: metaAttribution.externalId || undefined,
+          },
+          attribution_data: {
+            attribution_share: '0.3',
+          },
+          custom_data: {
+            currency: 'INR',
+            value: roundedPurchaseValue.toFixed(2),
+            booking_id: metaPurchaseEventId,
+            content_name:
+              selectedPlan?.PlanTitle || selectedPlan?.PlanName || selectedPlan?.title || 'Selected Plan',
+            content_ids: selectedPlanId ? [String(selectedPlanId)] : [],
+            num_items: Number(guestsPayload.length || 1),
+          },
+          original_event_data: {
+            event_name: 'Purchase',
+            event_time: purchaseEventTime,
+          },
+        },
+      ],
+    };
 
     const payload = {
       source: 'Website',
@@ -1948,6 +2010,7 @@ const handlePayment = async () => {
         landingUrl: metaAttribution.landingUrl || null,
         referrer: metaAttribution.referrer || null,
       },
+      conversionApiPayload: metaConversionApiPayload,
     };
 
     console.log('🚀 FINAL BOOKING PAYLOAD:', JSON.stringify(payload, null, 2));
