@@ -98,7 +98,7 @@ const normalizePhoneInput = (value: string) => {
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
 const MAX_GUEST_AGE = 99;
-const MIN_GUEST_AGE = 7;
+const MIN_GUEST_AGE = 8;
 const DEFAULT_KIDS_PLAN_MIN_AGE = 8;
 const DEFAULT_KIDS_PLAN_MAX_AGE = 17;
 const KIDS_POPUP_FALLBACK_IMAGE =
@@ -1816,71 +1816,70 @@ const getStayEndDate = (startDate: string, days: number) => {
 
       {showKidsModal && (
         <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
-          <div className="w-full max-w-md overflow-hidden rounded-[32px] border border-amber-200 bg-[linear-gradient(180deg,_#fff7ec_0%,_#fffdf9_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.22)]">
-            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9f2e_100%)] px-5 py-4 text-center">
-              <h3 className="text-lg font-black text-stone-900">Important Note for Parents</h3>
+          <div
+            onClick={(event) => event.stopPropagation()}
+            className="w-full max-w-[35rem] overflow-hidden rounded-[24px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
+          >
+            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-5 py-7 text-center">
+              <h3 className="text-[1.05rem] font-medium tracking-[0.01em] text-stone-900 sm:text-[1.15rem]">
+                Important Note for Parents
+              </h3>
             </div>
 
-            <div className="max-h-[calc(100dvh-16rem)] overflow-y-auto px-5 py-5">
+            <div className="max-h-[calc(100dvh-16rem)] overflow-y-auto">
               {kidsPopupImage ? (
-                <div className="mb-4 overflow-hidden rounded-[24px] border border-amber-100 bg-white shadow-sm">
+                <div className="overflow-hidden">
                   <img
                     src={kidsPopupImage}
                     alt="Children enjoying the Valley Pods stay experience"
-                    className="h-56 w-full object-cover"
+                    className="h-[21rem] w-full object-cover sm:h-[24rem]"
                   />
                 </div>
               ) : null}
 
-              <div className="rounded-[24px] border border-amber-100 bg-white px-4 py-4 shadow-sm">
-                <p className="whitespace-pre-line text-sm leading-7 text-stone-700">
+              <div className="px-4 pb-3 pt-2 sm:px-5">
+                <p className="whitespace-pre-line text-[1rem] leading-[1.7] text-stone-800 sm:text-[1.05rem]">
                   {kidsPopupMessage}
                 </p>
-              </div>
-
-              <div className="mt-4 rounded-[20px] border border-amber-100 bg-amber-50 px-4 py-3">
-                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-700">
-                  Pricing Rule
-                </p>
-                <p className="mt-1 text-sm font-semibold text-stone-700">
-                  If you select <span className="text-stone-900">I Love It</span>, the kids price will be ₹10,000. If you select <span className="text-stone-900">Not Interested</span>, the regular plan price will apply.
+                <p className="mt-5 text-[1rem] leading-[1.7] text-stone-800 sm:text-[1.05rem]">
+                  If you select <span className="font-semibold text-stone-900">I Love It</span>, the
+                  kids price will be Rs. 10,000. If you select{' '}
+                  <span className="font-semibold text-stone-900">Not Interested</span>, the regular
+                  plan price will apply.
                 </p>
               </div>
 
-              <div className="mt-4 flex items-center justify-between gap-3 rounded-[20px] border border-stone-200 bg-white px-4 py-3">
-                <div>
-                  <p className="text-sm font-black text-stone-900">Have questions about this?</p>
-                  <p className="text-xs text-stone-500">
-                    {supportNumber ? `Call us on ${supportNumber}` : 'Call us'}
-                  </p>
+              <div className="mx-4 mb-5 mt-2 flex items-center justify-between gap-3 bg-[#f4d7c0] px-5 py-4 sm:mx-5">
+                <div className="text-sm font-black text-[#2f3171] sm:text-[1.05rem]">
+                  Have questions about this?
                 </div>
                 {supportNumber ? (
                   <a
                     href={`tel:${supportNumber}`}
-                    className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white transition hover:bg-black"
+                    className="inline-flex items-center gap-2 rounded-[16px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#242656]"
                   >
-                    <Phone className="h-3.5 w-3.5" /> Call Us
+                    Call Us <Phone className="h-3.5 w-3.5" />
                   </a>
                 ) : (
-                  <span className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white">
-                    <Phone className="h-3.5 w-3.5" /> Call Us
+                  <span className="inline-flex items-center gap-2 rounded-[16px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white">
+                    Call Us <Phone className="h-3.5 w-3.5" />
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 border-t border-stone-200 bg-white px-5 py-4">
+            <div className="grid grid-cols-2 gap-4 px-5 pb-5 pt-0">
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(false)}
-                className="rounded-2xl bg-[#2f3171] px-4 py-3 text-xs font-black text-white transition hover:bg-[#242656]"
+                className="rounded-[14px] bg-[#2f3171] px-4 py-3.5 text-sm font-black text-white transition hover:bg-[#242656]"
               >
                 Not Interested
               </button>
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(true)}
-                className="rounded-2xl bg-[#7ec242] px-4 py-3 text-xs font-black text-white transition hover:bg-[#6dad37]"
+                className="rounded-[14px] bg-[#7ec242] px-4 py-3.5 text-sm font-black text-[#1f2a0f] transition hover:bg-[#6dad37]"
               >
                 I Love It
               </button>
