@@ -101,6 +101,8 @@ const MAX_GUEST_AGE = 99;
 const MIN_GUEST_AGE = 7;
 const DEFAULT_KIDS_PLAN_MIN_AGE = 8;
 const DEFAULT_KIDS_PLAN_MAX_AGE = 17;
+const KIDS_POPUP_FALLBACK_IMAGE =
+  'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80';
 
 const isFoodPassAddon = (addon: AddonItem | any) => {
   const title = String(addon?.title ?? addon?.AddonTitle ?? '').trim().toLowerCase();
@@ -713,6 +715,9 @@ const getStayEndDate = (startDate: string, days: number) => {
     };
   }, [roomTypes, selectedPlanId]);
   const supportNumber = String(ui?.supportNumber || '').trim();
+  const kidsPopupImage = String(
+    ui?.kidsPopupImage || ui?.guestCard?.kidsPopupImage || KIDS_POPUP_FALLBACK_IMAGE
+  ).trim();
   const kidsPopupMessage =
     "We've planned something special for the children!\n\nTo make sure they have the best time possible:\n\nWe encourage all children to stay together in the Valley Pods, offering a camp-like experience filled with fun and bonding.\nThis arrangement encourages social activities and helps them make new friends in their age group.\n\nRest assured, the Valley Pods are safe, well-supervised, and designed for their comfort. It's all about creating joyful memories they'll cherish forever!";
 
@@ -806,14 +811,23 @@ const getStayEndDate = (startDate: string, days: number) => {
     setGuests(guests.filter((guest: any) => String(guest.id) !== String(id)));
   };
 
-  const toggleKidsPlan = (guestId: string, opted: boolean) => {
-    setGuests(
-      guests.map((guest: any) =>
-        String(guest.id) === String(guestId)
-          ? { ...guest, isKidsPlanOpted: opted }
-          : guest
-      )
+  const proceedWithKidsPlanSelection = (opted: boolean) => {
+    const eligibleKidIds = new Set(
+      eligibleKids.map((guest: any) => String(guest.id))
     );
+
+    const updatedGuests = guests.map((guest: any) =>
+      eligibleKidIds.has(String(guest.id))
+        ? { ...guest, isKidsPlanOpted: opted }
+        : guest
+    );
+
+    setGuests(updatedGuests);
+    setShowKidsModal(false);
+
+    window.setTimeout(() => {
+      onProceed();
+    }, 0);
   };
 
   const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
@@ -1001,23 +1015,6 @@ const getStayEndDate = (startDate: string, days: number) => {
 
   const handleProceedClick = () => {
     setTouched(true);
-
-
-console.log('--- GUEST FORM SUBMISSION DEBUG ---');
-    console.log('Total Guests:', guests.length);
-    console.log('Full Guests Data:', JSON.stringify(guests, null, 2));
-    
-    // Check specifically for age types
-    guests.forEach((g, i) => {
-      console.log(`Guest ${i + 1} ("${g.name}"):`, {
-        ageValue: g.age,
-        ageType: typeof g.age,
-        isAgeValid: !isNaN(Number(g.age)) && g.age !== null
-      });
-    });
-
-
-
 
       if (!allGuestsValid) {
         return; // ✅ already exists
@@ -1818,6 +1815,16 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
             </div>
 
             <div className="max-h-[calc(100dvh-16rem)] overflow-y-auto px-5 py-5">
+              {kidsPopupImage ? (
+                <div className="mb-4 overflow-hidden rounded-[24px] border border-amber-100 bg-white shadow-sm">
+                  <img
+                    src={kidsPopupImage}
+                    alt="Children enjoying the Valley Pods stay experience"
+                    className="h-56 w-full object-cover"
+                  />
+                </div>
+              ) : null}
+
               <div className="rounded-[24px] border border-amber-100 bg-white px-4 py-4 shadow-sm">
                 <p className="whitespace-pre-line text-sm leading-7 text-stone-700">
                   {kidsPopupMessage}
@@ -1858,22 +1865,14 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
             <div className="grid grid-cols-2 gap-3 border-t border-stone-200 bg-white px-5 py-4">
               <button
                 type="button"
-                onClick={() => {
-                  eligibleKids.forEach((guest: any) => toggleKidsPlan(String(guest.id), false));
-                  setShowKidsModal(false);
-                  onProceed();
-                }}
+                onClick={() => proceedWithKidsPlanSelection(false)}
                 className="rounded-2xl bg-[#2f3171] px-4 py-3 text-xs font-black text-white transition hover:bg-[#242656]"
               >
                 Not Interested
               </button>
               <button
                 type="button"
-                onClick={() => {
-                  eligibleKids.forEach((guest: any) => toggleKidsPlan(String(guest.id), true));
-                  setShowKidsModal(false);
-                  onProceed();
-                }}
+                onClick={() => proceedWithKidsPlanSelection(true)}
                 className="rounded-2xl bg-[#7ec242] px-4 py-3 text-xs font-black text-white transition hover:bg-[#6dad37]"
               >
                 I Love It
