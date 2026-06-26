@@ -101,8 +101,6 @@ const MAX_GUEST_AGE = 99;
 const MIN_GUEST_AGE = 8;
 const DEFAULT_KIDS_PLAN_MIN_AGE = 8;
 const DEFAULT_KIDS_PLAN_MAX_AGE = 17;
-const KIDS_POPUP_FALLBACK_IMAGE =
-  'https://images.unsplash.com/photo-1513694203232-719a280e022f?auto=format&fit=crop&w=1200&q=80';
 
 const isFoodPassAddon = (addon: AddonItem | any) => {
   const title = String(addon?.title ?? addon?.AddonTitle ?? '').trim().toLowerCase();
@@ -718,7 +716,7 @@ const getStayEndDate = (startDate: string, days: number) => {
   const supportNumber = String(ui?.supportNumber || '').trim();
   const whatsappNumber = supportNumber.replace(/\D/g, '');
   const kidsPopupImage = String(
-    ui?.guestCard?.kidsPopupImage || ui?.kidsPopupImage || KIDS_POPUP_FALLBACK_IMAGE
+    ui?.guestCard?.kidsPopupImage || ui?.kidsPopupImage || ''
   ).trim();
   const kidsPopupMessage =
     "We've planned something special for the children!\n\nTo make sure they have the best time possible:\n\nWe encourage all children to stay together in the Valley Pods, offering a camp-like experience filled with fun and bonding.\nThis arrangement encourages social activities and helps them make new friends in their age group.\n\nRest assured, the Valley Pods are safe, well-supervised, and designed for their comfort. It's all about creating joyful memories they'll cherish forever!";
@@ -1839,30 +1837,44 @@ const getStayEndDate = (startDate: string, days: number) => {
         <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[35rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:rounded-[24px]"
+            className="w-full max-w-[39rem] overflow-hidden rounded-[24px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:rounded-[28px]"
           >
-            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-5 text-center sm:px-5 sm:py-7">
-              <h3 className="text-[0.95rem] font-medium tracking-[0.01em] text-stone-900 sm:text-[1.15rem]">
+            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-5 text-center sm:px-6 sm:py-7">
+              <h3 className="text-[1.05rem] font-semibold tracking-[0.01em] text-stone-900 sm:text-[1.2rem]">
                 Important Note for Parents
               </h3>
             </div>
 
             <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto sm:max-h-[calc(100dvh-16rem)]">
               {kidsPopupImage ? (
-                <div className="overflow-hidden">
+                <div className="overflow-hidden border-b border-[#eadfce] bg-white">
                   <img
                     src={kidsPopupImage}
                     alt="Children enjoying the Valley Pods stay experience"
-                    className="h-48 w-full object-cover sm:h-[24rem]"
+                    className="h-52 w-full object-cover sm:h-[20rem]"
                   />
                 </div>
-              ) : null}
+              ) : (
+                <div className="border-b border-[#eadfce] bg-[radial-gradient(circle_at_top,_#fff7ed_0%,_#f4ede8_55%,_#efe7f4_100%)] px-6 py-8 text-center sm:px-10 sm:py-10">
+                  <div className="mx-auto max-w-[24rem]">
+                    <div className="text-xs font-black uppercase tracking-[0.28em] text-[#b66a14]">
+                      Valley Pods
+                    </div>
+                    <div className="mt-3 text-lg font-semibold text-stone-900 sm:text-[1.45rem]">
+                      A joyful stay experience for children
+                    </div>
+                    <p className="mt-3 text-sm leading-6 text-stone-600 sm:text-[0.98rem]">
+                      Please add the popup image from the admin panel to match the intended visual.
+                    </p>
+                  </div>
+                </div>
+              )}
 
-              <div className="px-4 pb-3 pt-3 sm:px-5">
-                <p className="whitespace-pre-line text-[0.92rem] leading-[1.6] text-stone-800 sm:text-[1.05rem] sm:leading-[1.7]">
+              <div className="px-5 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
+                <p className="whitespace-pre-line text-[0.96rem] leading-7 text-stone-800 sm:text-[1.06rem] sm:leading-8">
                   {kidsPopupMessage}
                 </p>
-                <p className="mt-4 text-[0.92rem] leading-[1.6] text-stone-800 sm:mt-5 sm:text-[1.05rem] sm:leading-[1.7]">
+                <p className="mt-4 rounded-[18px] bg-white/70 px-4 py-3 text-[0.92rem] leading-7 text-stone-700 ring-1 ring-[#eadfce] sm:mt-5 sm:text-[1rem]">
                   If you select <span className="font-semibold text-stone-900">I Love It</span>, the
                   kids price will be Rs. 10,000. If you select{' '}
                   <span className="font-semibold text-stone-900">Not Interested</span>, the regular
@@ -1870,8 +1882,8 @@ const getStayEndDate = (startDate: string, days: number) => {
                 </p>
               </div>
 
-              <div className="mx-4 mb-4 mt-2 flex flex-col items-start gap-3 bg-[#f4d7c0] px-4 py-3 sm:mx-5 sm:mb-5 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
-                <div className="text-sm font-black text-[#2f3171] sm:text-[1.05rem]">
+              <div className="mx-5 mb-5 mt-1 flex flex-col items-start gap-3 rounded-[18px] bg-[#f4d7c0] px-4 py-3 sm:mx-6 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
+                <div className="text-sm font-black text-[#2f3171] sm:text-[1.02rem]">
                   Have questions about this?
                 </div>
                 {whatsappNumber ? (
@@ -1891,18 +1903,18 @@ const getStayEndDate = (startDate: string, days: number) => {
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 px-4 pb-4 pt-0 sm:gap-4 sm:px-5 sm:pb-5">
+            <div className="grid grid-cols-2 gap-3 bg-[#f5f0f7] px-5 pb-5 pt-0 sm:gap-4 sm:px-6 sm:pb-6">
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(false)}
-                className="rounded-[14px] bg-[#2f3171] px-3 py-3 text-[0.95rem] font-black text-white transition hover:bg-[#242656] sm:px-4 sm:py-3.5 sm:text-sm"
+                className="rounded-[16px] bg-[#2f3171] px-3 py-3 text-[0.95rem] font-black text-white transition hover:bg-[#242656] sm:px-4 sm:py-3.5 sm:text-base"
               >
                 Not Interested
               </button>
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(true)}
-                className="rounded-[14px] bg-[#7ec242] px-3 py-3 text-[0.95rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37] sm:px-4 sm:py-3.5 sm:text-sm"
+                className="rounded-[16px] bg-[#7ec242] px-3 py-3 text-[0.95rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37] sm:px-4 sm:py-3.5 sm:text-base"
               >
                 I Love It
               </button>
