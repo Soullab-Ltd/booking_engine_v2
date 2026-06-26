@@ -213,6 +213,7 @@ interface GuestFormProps {
   selectedPlanId?: number;
   eventEndDate?: string; // pass event last day here
   onProceed: () => void;
+  onProceedWithGuests?: (guests: Guest[]) => void;
   onBack: () => void;
 }
 
@@ -336,6 +337,7 @@ const GuestForm: React.FC<GuestFormProps> = ({
   selectedPlanId = 0,
   eventEndDate = '',
   onProceed,
+  onProceedWithGuests,
   onBack,
 }) => {
   const [showAddOnInfo, setShowAddOnInfo] = useState<string | null>(null);
@@ -824,6 +826,11 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     setGuests(updatedGuests);
     setShowKidsModal(false);
+
+    if (onProceedWithGuests) {
+      onProceedWithGuests(updatedGuests);
+      return;
+    }
 
     window.setTimeout(() => {
       onProceed();

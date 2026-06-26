@@ -1402,6 +1402,13 @@ const isPlanSelectionLoading =
     ''
   }
   onProceed={nextStep}
+  onProceedWithGuests={(guests) =>
+    setBookingState((prev) => ({
+      ...prev,
+      guests,
+      currentStep: 5,
+    }))
+  }
   onBack={prevStep}
 />
         );

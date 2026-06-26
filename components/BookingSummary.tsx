@@ -1049,38 +1049,6 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     guestCount === 1 ? '1 Guest Selected' : `${guestCount} Guests Selected`;
   const kidsAgeRange = getKidsAgeRange(bookingState?.selectedPlan);
 
-  const fireMetaPurchaseEvent = useCallback(
-    (resolvedBookingId?: string | number, paymentStatus: 'SUCCESS' | 'PENDING' = 'SUCCESS') => {
-      if (hasTrackedMetaPurchase(metaPurchaseEventId)) {
-        return;
-      }
-
-      trackMetaEvent(
-        'Purchase',
-        {
-          content_name: selectedPlanTitle,
-          content_ids: selectedPlanId ? [String(selectedPlanId)] : undefined,
-          content_type: 'product',
-          value: Number(Math.round(pricingBreakdown.totalAmount)),
-          currency: 'INR',
-          num_items: Number(guests.length || 1),
-          booking_id: resolvedBookingId ? String(resolvedBookingId) : undefined,
-          payment_status: paymentStatus,
-        },
-        metaPurchaseEventId
-      );
-
-      markMetaPurchaseTracked(metaPurchaseEventId);
-    },
-    [
-      guests.length,
-      metaPurchaseEventId,
-      pricingBreakdown.totalAmount,
-      selectedPlanId,
-      selectedPlanTitle,
-    ]
-  );
-
   const getGuestBasePrice = (guest: Guest | any, planPrice: number) => {
     const age = Number(guest?.age || 0);
     const isKidsPlanOpted = Boolean(guest?.isKidsPlanOpted);
@@ -1226,6 +1194,38 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     couponIdProof,
     couponIdProofUrl,
   ]);
+
+  const fireMetaPurchaseEvent = useCallback(
+    (resolvedBookingId?: string | number, paymentStatus: 'SUCCESS' | 'PENDING' = 'SUCCESS') => {
+      if (hasTrackedMetaPurchase(metaPurchaseEventId)) {
+        return;
+      }
+
+      trackMetaEvent(
+        'Purchase',
+        {
+          content_name: selectedPlanTitle,
+          content_ids: selectedPlanId ? [String(selectedPlanId)] : undefined,
+          content_type: 'product',
+          value: Number(Math.round(pricingBreakdown.totalAmount)),
+          currency: 'INR',
+          num_items: Number(guests.length || 1),
+          booking_id: resolvedBookingId ? String(resolvedBookingId) : undefined,
+          payment_status: paymentStatus,
+        },
+        metaPurchaseEventId
+      );
+
+      markMetaPurchaseTracked(metaPurchaseEventId);
+    },
+    [
+      guests.length,
+      metaPurchaseEventId,
+      pricingBreakdown.totalAmount,
+      selectedPlanId,
+      selectedPlanTitle,
+    ]
+  );
 
   useEffect(() => {
     if (!selectedEventId || !selectedPlanId) {
