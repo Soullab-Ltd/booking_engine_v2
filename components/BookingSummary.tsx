@@ -18,6 +18,8 @@ import {
 import {
   createMetaEventId,
   getStoredMetaAttribution,
+  hasTrackedMetaPurchase,
+  markMetaPurchaseTracked,
   trackMetaCustomEvent,
   trackMetaEvent,
 } from '../src/utils/metaTracking';
@@ -89,6 +91,16 @@ const getBounceSessionId = () => {
 
 const getSafeTrimmedString = (value: unknown): string => {
   return typeof value === 'string' ? value.trim() : '';
+};
+
+const getKidsAgeRange = (plan: any) => {
+  const minAge = Number(plan?.ageRangeMin);
+  const maxAge = Number(plan?.ageRangeMax);
+
+  return {
+    min: Number.isFinite(minAge) ? minAge : 8,
+    max: Number.isFinite(maxAge) ? maxAge : 17,
+  };
 };
 
 const toBooleanOrUndefined = (value: unknown): boolean | undefined => {
@@ -1035,15 +1047,48 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       : '';
   const selectedPlanGuestLabel =
     guestCount === 1 ? '1 Guest Selected' : `${guestCount} Guests Selected`;
+  const kidsAgeRange = getKidsAgeRange(bookingState?.selectedPlan);
+
+  const fireMetaPurchaseEvent = useCallback(
+    (resolvedBookingId?: string | number, paymentStatus: 'SUCCESS' | 'PENDING' = 'SUCCESS') => {
+      if (hasTrackedMetaPurchase(metaPurchaseEventId)) {
+        return;
+      }
+
+      trackMetaEvent(
+        'Purchase',
+        {
+          content_name: selectedPlanTitle,
+          content_ids: selectedPlanId ? [String(selectedPlanId)] : undefined,
+          content_type: 'product',
+          value: Number(Math.round(pricingBreakdown.totalAmount)),
+          currency: 'INR',
+          num_items: Number(guests.length || 1),
+          booking_id: resolvedBookingId ? String(resolvedBookingId) : undefined,
+          payment_status: paymentStatus,
+        },
+        metaPurchaseEventId
+      );
+
+      markMetaPurchaseTracked(metaPurchaseEventId);
+    },
+    [
+      guests.length,
+      metaPurchaseEventId,
+      pricingBreakdown.totalAmount,
+      selectedPlanId,
+      selectedPlanTitle,
+    ]
+  );
 
   const getGuestBasePrice = (guest: Guest | any, planPrice: number) => {
     const age = Number(guest?.age || 0);
     const isKidsPlanOpted = Boolean(guest?.isKidsPlanOpted);
 
     if (age <= 0) return 0;
-    if (age <= 3) return 0;
-    if (age >= 4 && age <= 7) return KIDS_PLAN_PRICE;
-    if (age >= 8 && age <= 17 && isKidsPlanOpted) return KIDS_PLAN_PRICE;
+    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max && isKidsPlanOpted) {
+      return KIDS_PLAN_PRICE;
+    }
 
     return planPrice;
   };
@@ -1053,10 +1098,10 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     const isKidsPlanOpted = Boolean(guest?.isKidsPlanOpted);
 
     if (age <= 0) return 'Not selected';
-    if (age <= 3) return 'Infant (Free)';
-    if (age >= 4 && age <= 7) return 'Kids Explorer Plan';
-    if (age >= 8 && age <= 17 && isKidsPlanOpted) return 'Kids Explorer Plan';
-    if (age >= 8 && age <= 17) return 'Regular Plan';
+    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max && isKidsPlanOpted) {
+      return 'Kids Explorer Plan';
+    }
+    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max) return 'Regular Plan';
     return 'Regular Plan';
   };
 
@@ -1945,6 +1990,7 @@ const handlePayment = async () => {
       }
 
       hasPaymentFlowStartedRef.current = true;
+      fireMetaPurchaseEvent(zeroAmountBookingId, 'SUCCESS');
       onConfirm(true, zeroAmountBookingId, {
         metaPurchaseEventId,
       });
@@ -1999,6 +2045,10 @@ const handlePayment = async () => {
     }));
 
     setIsProcessing(false);
+    fireMetaPurchaseEvent(
+      bookingId,
+      paymentOutcome?.pendingExternalConfirmation ? 'PENDING' : 'SUCCESS'
+    );
     onConfirm(true, bookingId, {
       paymentId: resolvedPaymentId || '',
       razorpayPaymentId: resolvedPaymentId || '',

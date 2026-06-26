@@ -94,6 +94,8 @@ export interface Plan {
   planID: number;
   PlanID?: number;
   PlanName?: string;
+  ageRangeMin?: number;
+  ageRangeMax?: number;
   priceType?: string;
   remainingInventory?: number;
   title?: string;

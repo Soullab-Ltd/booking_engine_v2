@@ -161,15 +161,6 @@ export const captureMetaAttribution = () => {
   const currentUtmCampaign = String(params.get('utm_campaign') || '').trim();
   const currentUtmContent = String(params.get('utm_content') || '').trim();
   const currentUtmTerm = String(params.get('utm_term') || '').trim();
-  const hasCurrentCampaignSignal = Boolean(
-    currentUtmSource ||
-      currentUtmMedium ||
-      currentUtmCampaign ||
-      currentUtmContent ||
-      currentUtmTerm ||
-      currentReferrer
-  );
-
   const fbclid = params.get('fbclid') || existing.fbclid || bootstrapAttribution.fbclid || '';
   const fbc =
     params.get('fbc') ||
@@ -198,7 +189,7 @@ export const captureMetaAttribution = () => {
     utmCampaign: currentUtmCampaign,
     utmContent: currentUtmContent,
     utmTerm: currentUtmTerm,
-    landingUrl: hasCurrentCampaignSignal ? window.location.href : '',
+    landingUrl: window.location.href,
     referrer: currentReferrer,
     capturedAt: new Date().toISOString(),
   });

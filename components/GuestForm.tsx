@@ -21,6 +21,7 @@ import {
   Flower2,
   Utensils,
   AlertCircle,
+  Phone,
 } from 'lucide-react';
 
 const INDIAN_STATES = [
@@ -97,6 +98,16 @@ const normalizePhoneInput = (value: string) => {
 const getPhoneDigits = (value: string) => String(value || '').replace(/\D/g, '');
 const OTHER_STATE_OPTION = '__OTHER_STATE__';
 const MAX_GUEST_AGE = 99;
+const MIN_GUEST_AGE = 7;
+const DEFAULT_KIDS_PLAN_MIN_AGE = 8;
+const DEFAULT_KIDS_PLAN_MAX_AGE = 17;
+
+const isFoodPassAddon = (addon: AddonItem | any) => {
+  const title = String(addon?.title ?? addon?.AddonTitle ?? '').trim().toLowerCase();
+  const type = String(addon?.type ?? '').trim().toLowerCase();
+
+  return title.includes('food pass') || type.includes('food');
+};
 const MAX_GUEST_COUNT = 15;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const NAME_LETTERS_ONLY_REGEX = /[^A-Za-z]/g;
@@ -161,6 +172,8 @@ interface StayPlan {
   id?: number | string;
   planID?: number | string;
   PlanID?: number | string;
+  ageRangeMin?: number;
+  ageRangeMax?: number;
   name?: string;
   PlanName?: string;
   PlanTitle?: string;
@@ -611,7 +624,8 @@ const getStayEndDate = (startDate: string, days: number) => {
         planMatch &&
         addon.isVisible !== false &&
         Number(addon.isActive ?? 1) !== 0 &&
-        String(addon.type || '').trim().toLowerCase() !== 'stay'
+        String(addon.type || '').trim().toLowerCase() !== 'stay' &&
+        !isFoodPassAddon(addon)
       );
     });
   }, [addons, selectedEventId, selectedPlanId]);
@@ -659,8 +673,8 @@ const getStayEndDate = (startDate: string, days: number) => {
       errors.age = 'Age is required';
     } else if (isNaN(age)) {
       errors.age = 'Please enter a valid number';
-    } else if (age < 1) {
-      errors.age = 'Age must be at least 1';
+    } else if (age < MIN_GUEST_AGE) {
+      errors.age = `Age must be at least ${MIN_GUEST_AGE}`;
     } else if (age > MAX_GUEST_AGE) {
       errors.age = `Age cannot exceed ${MAX_GUEST_AGE} years`;
     }
@@ -685,12 +699,29 @@ const getStayEndDate = (startDate: string, days: number) => {
     });
   }, [guests]);
 
+  const kidsAgeRange = useMemo(() => {
+    const selectedPlan = roomTypes.find((plan) => {
+      const planId = Number(plan.planID ?? plan.PlanID ?? plan.id ?? 0);
+      return planId === Number(selectedPlanId);
+    });
+    const minAge = Number(selectedPlan?.ageRangeMin);
+    const maxAge = Number(selectedPlan?.ageRangeMax);
+
+    return {
+      min: Number.isFinite(minAge) ? minAge : DEFAULT_KIDS_PLAN_MIN_AGE,
+      max: Number.isFinite(maxAge) ? maxAge : DEFAULT_KIDS_PLAN_MAX_AGE,
+    };
+  }, [roomTypes, selectedPlanId]);
+  const supportNumber = String(ui?.supportNumber || '').trim();
+  const kidsPopupMessage =
+    "We've planned something special for the children!\n\nTo make sure they have the best time possible:\n\nWe encourage all children to stay together in the Valley Pods, offering a camp-like experience filled with fun and bonding.\nThis arrangement encourages social activities and helps them make new friends in their age group.\n\nRest assured, the Valley Pods are safe, well-supervised, and designed for their comfort. It's all about creating joyful memories they'll cherish forever!";
+
   const eligibleKids = useMemo(() => {
     return guests.filter((guest: any) => {
       const age = Number(guest.age);
-      return age >= 4 && age <= 17;
+      return age >= kidsAgeRange.min && age <= kidsAgeRange.max;
     });
-  }, [guests]);
+  }, [guests, kidsAgeRange]);
 
   const updateGuest = (id: string, updates: any) => {
     const normalizedUpdates = { ...updates };
@@ -1781,94 +1812,72 @@ console.log('--- GUEST FORM SUBMISSION DEBUG ---');
 
       {showKidsModal && (
         <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
-          <div className="w-full max-w-xl overflow-hidden rounded-[32px] border border-stone-200 bg-[linear-gradient(180deg,_#ffffff_0%,_#f9f8f5_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.18)] max-h-[calc(100dvh-2rem)]">
-            <div className="border-b border-stone-200 bg-[radial-gradient(circle_at_top,_rgba(15,118,110,0.14),_transparent_42%),linear-gradient(180deg,_#ffffff_0%,_#f7f7f4_100%)] px-6 py-6 md:px-7">
-              <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[var(--theme)]">
-                Quick Confirmation
-              </p>
-              <h3 className="mt-2 text-2xl font-black tracking-[-0.03em] text-stone-900">
-                Kids Plan Confirmation
-              </h3>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-stone-600">
-                We found guest(s) aged between 4 and 17. Please confirm whether they should be included under the kids plan before you continue.
-              </p>
+          <div className="w-full max-w-md overflow-hidden rounded-[32px] border border-amber-200 bg-[linear-gradient(180deg,_#fff7ec_0%,_#fffdf9_100%)] shadow-[0_30px_90px_rgba(15,23,42,0.22)]">
+            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9f2e_100%)] px-5 py-4 text-center">
+              <h3 className="text-lg font-black text-stone-900">Important Note for Parents</h3>
             </div>
 
-            <div className="overflow-y-auto px-6 py-6 md:px-7">
-              <div className="mb-4 rounded-2xl border border-stone-200 bg-white px-4 py-4">
-                <p className="text-[11px] font-black uppercase tracking-[0.22em] text-stone-400">
-                  Eligible Guests
-                </p>
-                <p className="mt-2 text-sm font-semibold text-stone-700">
-                  Select <span className="text-stone-900">Yes</span> for guests who should be counted in the kids plan.
+            <div className="max-h-[calc(100dvh-16rem)] overflow-y-auto px-5 py-5">
+              <div className="rounded-[24px] border border-amber-100 bg-white px-4 py-4 shadow-sm">
+                <p className="whitespace-pre-line text-sm leading-7 text-stone-700">
+                  {kidsPopupMessage}
                 </p>
               </div>
 
-              <div className="space-y-3">
-              {eligibleKids.map((guest: any) => (
-                <div
-                  key={guest.id}
-                  className="flex flex-col gap-4 rounded-[24px] border border-stone-200 bg-white p-4 shadow-sm md:flex-row md:items-center md:justify-between"
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--theme-light)] text-sm font-black text-[var(--theme)]">
-                      {(guest.name || 'G').trim().charAt(0).toUpperCase()}
-                    </div>
-                    <div>
-                      <p className="text-sm font-black text-stone-900">{guest.name || 'Guest'}</p>
-                      <p className="text-xs font-medium uppercase tracking-[0.16em] text-stone-400">
-                        Age {guest.age}
-                      </p>
-                    </div>
-                  </div>
+              <div className="mt-4 rounded-[20px] border border-amber-100 bg-amber-50 px-4 py-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.24em] text-amber-700">
+                  Pricing Rule
+                </p>
+                <p className="mt-1 text-sm font-semibold text-stone-700">
+                  If you select <span className="text-stone-900">I Love It</span>, the kids price will be ₹10,000. If you select <span className="text-stone-900">Not Interested</span>, the regular plan price will apply.
+                </p>
+              </div>
 
-                  <div className="grid grid-cols-2 gap-2 md:min-w-[220px]">
-                    <button
-                      type="button"
-                      onClick={() => toggleKidsPlan(String(guest.id), true)}
-                      className={`rounded-2xl px-4 py-3 text-xs font-black transition-all ${
-                        guest.isKidsPlanOpted
-                          ? 'bg-[var(--theme)] text-white shadow-[0_12px_28px_rgba(15,118,110,0.22)]'
-                          : 'border border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
-                      }`}
-                    >
-                      Yes
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => toggleKidsPlan(String(guest.id), false)}
-                      className={`rounded-2xl px-4 py-3 text-xs font-black transition-all ${
-                        guest.isKidsPlanOpted === false
-                          ? 'bg-stone-900 text-white shadow-[0_12px_28px_rgba(28,25,23,0.18)]'
-                          : 'border border-stone-200 bg-stone-50 text-stone-700 hover:border-stone-300'
-                      }`}
-                    >
-                      No
-                    </button>
-                  </div>
+              <div className="mt-4 flex items-center justify-between gap-3 rounded-[20px] border border-stone-200 bg-white px-4 py-3">
+                <div>
+                  <p className="text-sm font-black text-stone-900">Have questions about this?</p>
+                  <p className="text-xs text-stone-500">
+                    {supportNumber ? `Call us on ${supportNumber}` : 'Call us'}
+                  </p>
                 </div>
-              ))}
+                {supportNumber ? (
+                  <a
+                    href={`tel:${supportNumber}`}
+                    className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white transition hover:bg-black"
+                  >
+                    <Phone className="h-3.5 w-3.5" /> Call Us
+                  </a>
+                ) : (
+                  <span className="inline-flex items-center gap-2 rounded-xl bg-stone-900 px-4 py-2 text-xs font-black text-white">
+                    <Phone className="h-3.5 w-3.5" /> Call Us
+                  </span>
+                )}
+              </div>
             </div>
 
-              <div className="mt-6 flex flex-col-reverse gap-3 border-t border-stone-200 pt-5 pb-[env(safe-area-inset-bottom)] sm:flex-row sm:justify-end">
-                <button
-                  type="button"
-                  onClick={() => setShowKidsModal(false)}
-                  className="w-full rounded-2xl border border-stone-200 bg-white px-5 py-3 text-xs font-black text-stone-700 transition hover:bg-stone-50 sm:w-auto"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowKidsModal(false);
-                    onProceed();
-                  }}
-                  className="w-full rounded-2xl bg-[var(--theme)] px-5 py-3 text-xs font-black text-white shadow-[0_14px_32px_rgba(15,118,110,0.24)] transition hover:bg-[var(--theme-dark)] sm:w-auto"
-                >
-                  Continue
-                </button>
-              </div>
+            <div className="grid grid-cols-2 gap-3 border-t border-stone-200 bg-white px-5 py-4">
+              <button
+                type="button"
+                onClick={() => {
+                  eligibleKids.forEach((guest: any) => toggleKidsPlan(String(guest.id), false));
+                  setShowKidsModal(false);
+                  onProceed();
+                }}
+                className="rounded-2xl bg-[#2f3171] px-4 py-3 text-xs font-black text-white transition hover:bg-[#242656]"
+              >
+                Not Interested
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  eligibleKids.forEach((guest: any) => toggleKidsPlan(String(guest.id), true));
+                  setShowKidsModal(false);
+                  onProceed();
+                }}
+                className="rounded-2xl bg-[#7ec242] px-4 py-3 text-xs font-black text-white transition hover:bg-[#6dad37]"
+              >
+                I Love It
+              </button>
             </div>
           </div>
         </div>
