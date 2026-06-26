@@ -628,8 +628,7 @@ const getStayEndDate = (startDate: string, days: number) => {
         planMatch &&
         addon.isVisible !== false &&
         Number(addon.isActive ?? 1) !== 0 &&
-        String(addon.type || '').trim().toLowerCase() !== 'stay' &&
-        !isFoodPassAddon(addon)
+        String(addon.type || '').trim().toLowerCase() !== 'stay'
       );
     });
   }, [addons, selectedEventId, selectedPlanId]);
@@ -874,6 +873,12 @@ const getStayEndDate = (startDate: string, days: number) => {
   const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
     const guest = guests.find((item: any) => String(item.id) === String(guestId));
     if (!guest) return;
+
+    const age = Number(guest?.age || 0);
+    const isFoodPassBlocked =
+      isFoodPassAddon(addon) && age >= kidsAgeRange.min && age <= kidsAgeRange.max;
+
+    if (isFoodPassBlocked) return;
 
     const currentSelections = guest.addOns?.selectedAddons || [];
     const addonId = String(addon.id ?? addon.AddonID ?? '');
@@ -1437,12 +1442,21 @@ const getStayEndDate = (startDate: string, days: number) => {
                       const isSelected = guestSelections.some(
                         (item: any) => String(item.addonId) === addonId
                       );
+                      const guestAge = Number(guest?.age || 0);
+                      const isFoodPassBlocked =
+                        isFoodPassAddon(addon) &&
+                        guestAge >= kidsAgeRange.min &&
+                        guestAge <= kidsAgeRange.max;
                       const guestPrice = getAddonPriceForGuest(addon, guest);
 
                       return (
                         <label
                           key={addonId}
-                          className={`flex cursor-pointer items-center gap-3 rounded-xl border-2 p-3 transition-all ${
+                          className={`flex items-center gap-3 rounded-xl border-2 p-3 transition-all ${
+                            isFoodPassBlocked
+                              ? 'cursor-not-allowed border-stone-200 bg-stone-100 opacity-70'
+                              : 'cursor-pointer'
+                          } ${
                             isSelected
                               ? 'border-[var(--theme)] bg-teal-50'
                               : 'border-stone-100 bg-white hover:border-teal-100'
@@ -1451,6 +1465,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                           <input
                             type="checkbox"
                             checked={isSelected}
+                            disabled={isFoodPassBlocked}
                             onChange={() => toggleGuestAddon(String(guest.id), addon)}
                             className="h-4 w-4 rounded-md accent-[var(--theme)]"
                           />
@@ -1472,6 +1487,11 @@ const getStayEndDate = (startDate: string, days: number) => {
                             <p className="text-[9px] font-bold uppercase text-emerald-600">
                               ₹{guestPrice} per person
                             </p>
+                            {isFoodPassBlocked ? (
+                              <p className="mt-1 text-[9px] font-bold uppercase text-stone-500">
+                                Disabled for ages {kidsAgeRange.min} to {kidsAgeRange.max}
+                              </p>
+                            ) : null}
                           </div>
                         </label>
                       );
