@@ -27,6 +27,7 @@ import {
   trackMetaCustomEvent,
   trackMetaEvent,
 } from './src/utils/metaTracking';
+import { resolveSupportAttributionFromUrl } from './src/utils/supportAttribution';
 
 
 const formatDisplayDate = (dateStr: any) => {
@@ -624,6 +625,7 @@ const App: React.FC = () => {
     const loadData = async () => {
       try {
         console.log('🚀 Starting data fetch...');
+        await resolveSupportAttributionFromUrl();
 
         const urlParams = new URLSearchParams(window.location.search);
         const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');

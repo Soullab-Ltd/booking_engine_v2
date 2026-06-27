@@ -22,6 +22,8 @@ export interface MetaAttributionData {
   utmCampaign: string;
   utmContent: string;
   utmTerm: string;
+  agentCode: string;
+  agentName: string;
   landingUrl: string;
   referrer: string;
   capturedAt: string;
@@ -91,6 +93,8 @@ const sanitizeAttributionData = (
   utmCampaign: String(data.utmCampaign || '').trim(),
   utmContent: String(data.utmContent || '').trim(),
   utmTerm: String(data.utmTerm || '').trim(),
+  agentCode: String((data as any).agentCode || '').trim(),
+  agentName: String((data as any).agentName || '').trim(),
   landingUrl: String(data.landingUrl || '').trim(),
   referrer: String(data.referrer || '').trim(),
   capturedAt: String(data.capturedAt || '').trim(),
@@ -161,6 +165,22 @@ export const captureMetaAttribution = () => {
   const currentUtmCampaign = String(params.get('utm_campaign') || '').trim();
   const currentUtmContent = String(params.get('utm_content') || '').trim();
   const currentUtmTerm = String(params.get('utm_term') || '').trim();
+  const currentAgentCode = String(
+    params.get('agent_code') ||
+      params.get('agent') ||
+      params.get('support_agent') ||
+      params.get('ref') ||
+      existing.agentCode ||
+      bootstrapAttribution.agentCode ||
+      ''
+  ).trim();
+  const currentAgentName = String(
+    params.get('agent_name') ||
+      params.get('support_name') ||
+      existing.agentName ||
+      bootstrapAttribution.agentName ||
+      ''
+  ).trim();
   const fbclid = params.get('fbclid') || existing.fbclid || bootstrapAttribution.fbclid || '';
   const fbc =
     params.get('fbc') ||
@@ -189,6 +209,8 @@ export const captureMetaAttribution = () => {
     utmCampaign: currentUtmCampaign,
     utmContent: currentUtmContent,
     utmTerm: currentUtmTerm,
+    agentCode: currentAgentCode,
+    agentName: currentAgentName,
     landingUrl: window.location.href,
     referrer: currentReferrer,
     capturedAt: new Date().toISOString(),

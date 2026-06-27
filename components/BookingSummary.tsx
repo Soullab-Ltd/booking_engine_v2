@@ -23,6 +23,7 @@ import {
   trackMetaCustomEvent,
   trackMetaEvent,
 } from '../src/utils/metaTracking';
+import { getStoredSupportAttribution } from '../src/utils/supportAttribution';
 
 declare global {
   interface Window {
@@ -1931,6 +1932,7 @@ const handlePayment = async () => {
       resolvedStartDate;
 
     const metaAttribution = getStoredMetaAttribution();
+    const supportAttribution = getStoredSupportAttribution();
     const primaryGuest = guestsPayload[0] || null;
     const normalizedMetaEmail = normalizeMetaUserField(primaryGuest?.email || '');
     const normalizedMetaPhone = normalizeMetaPhone(primaryGuest?.phoneNumber || '');
@@ -2007,9 +2009,12 @@ const handlePayment = async () => {
         utmCampaign: metaAttribution.utmCampaign || null,
         utmContent: metaAttribution.utmContent || null,
         utmTerm: metaAttribution.utmTerm || null,
+        agentCode: metaAttribution.agentCode || null,
+        agentName: metaAttribution.agentName || null,
         landingUrl: metaAttribution.landingUrl || null,
         referrer: metaAttribution.referrer || null,
       },
+      supportSessionToken: supportAttribution.supportSessionToken || null,
       conversionApiPayload: metaConversionApiPayload,
     };
 

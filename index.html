@@ -100,12 +100,25 @@
           var currentUtmCampaign = String(params.get('utm_campaign') || '').trim();
           var currentUtmContent = String(params.get('utm_content') || '').trim();
           var currentUtmTerm = String(params.get('utm_term') || '').trim();
+          var currentAgentCode = String(
+            params.get('agent_code') ||
+              params.get('agent') ||
+              params.get('support_agent') ||
+              params.get('ref') ||
+              existing.agentCode ||
+              ''
+          ).trim();
+          var currentAgentName = String(
+            params.get('agent_name') || params.get('support_name') || existing.agentName || ''
+          ).trim();
           var hasCurrentCampaignSignal = Boolean(
             currentUtmSource ||
               currentUtmMedium ||
               currentUtmCampaign ||
               currentUtmContent ||
               currentUtmTerm ||
+              currentAgentCode ||
+              currentAgentName ||
               currentReferrer
           );
 
@@ -128,6 +141,8 @@
             utmCampaign: currentUtmCampaign || null,
             utmContent: currentUtmContent || null,
             utmTerm: currentUtmTerm || null,
+            agentCode: currentAgentCode || null,
+            agentName: currentAgentName || null,
             landingUrl: hasCurrentCampaignSignal ? window.location.href : null,
             referrer: currentReferrer || null,
             capturedAt: new Date().toISOString()
