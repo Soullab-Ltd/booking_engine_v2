@@ -1478,7 +1478,16 @@ const getStayEndDate = (startDate: string, days: number) => {
                 </div>
               </div>
 
-              {!!eventAddons.length && (
+              {(() => {
+                const visibleAddons = eventAddons.filter(
+                  (addon) => !shouldHideFoodPassForGuest(guest, addon)
+                );
+
+                if (!visibleAddons.length) {
+                  return null;
+                }
+
+                return (
                 <div className="mt-6">
                   <div className="mb-3 flex items-center justify-between">
                     <h4 className="text-[10px] font-black uppercase tracking-widest text-stone-800">
@@ -1487,11 +1496,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                   </div>
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                    {eventAddons.map((addon) => {
-                      if (shouldHideFoodPassForGuest(guest, addon)) {
-                        return null;
-                      }
-
+                    {visibleAddons.map((addon) => {
                       const addonId = String(addon.id ?? addon.AddonID ?? '');
                       const guestSelections = guest.addOns?.selectedAddons || [];
                       const isSelected = guestSelections.some(
@@ -1565,7 +1570,8 @@ const getStayEndDate = (startDate: string, days: number) => {
                     </div>
                   </div>
                 </div>
-              )}
+                );
+              })()}
 
               {showExtraStaySection && (
                 <div className="mt-6 rounded-2xl border border-stone-100 bg-stone-50 p-4">
