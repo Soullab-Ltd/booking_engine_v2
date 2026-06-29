@@ -716,7 +716,9 @@ const getStayEndDate = (startDate: string, days: number) => {
   const supportNumber = String(ui?.supportNumber || '').trim();
   const whatsappNumber = supportNumber.replace(/\D/g, '');
   const kidsPopupImage = String(
-    ui?.guestCard?.kidsPopupImage || ui?.kidsPopupImage || ''
+    ui?.guestCard?.kidsPopupImage ||
+      ui?.kidsPopupImage ||
+      'https://storage.googleapis.com/soullab_assets/kids_in_dorm.png'
   ).trim();
   const kidsPopupMessage =
     "We've planned something special for the children!\n\nTo make sure they have the best time possible:\n\nWe encourage all children to stay together in the Valley Pods, offering a camp-like experience filled with fun and bonding.\nThis arrangement encourages social activities and helps them make new friends in their age group.\n\nRest assured, the Valley Pods are safe, well-supervised, and designed for their comfort. It's all about creating joyful memories they'll cherish forever!";
@@ -875,7 +877,10 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     const age = Number(guest?.age || 0);
     const isFoodPassBlocked =
-      isFoodPassAddon(addon) && age >= kidsAgeRange.min && age <= kidsAgeRange.max;
+      isFoodPassAddon(addon) &&
+      age >= kidsAgeRange.min &&
+      age <= kidsAgeRange.max &&
+      Boolean(guest?.isKidsPlanOpted);
 
     if (isFoodPassBlocked) return;
 
@@ -1445,7 +1450,8 @@ const getStayEndDate = (startDate: string, days: number) => {
                       const isFoodPassBlocked =
                         isFoodPassAddon(addon) &&
                         guestAge >= kidsAgeRange.min &&
-                        guestAge <= kidsAgeRange.max;
+                        guestAge <= kidsAgeRange.max &&
+                        Boolean(guest?.isKidsPlanOpted);
                       const guestPrice = getAddonPriceForGuest(addon, guest);
 
                       return (
@@ -1837,44 +1843,48 @@ const getStayEndDate = (startDate: string, days: number) => {
         <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[39rem] overflow-hidden rounded-[24px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)] sm:rounded-[28px]"
+            className="w-full max-w-[28rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
           >
-            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-5 text-center sm:px-6 sm:py-7">
-              <h3 className="text-[1.05rem] font-semibold tracking-[0.01em] text-stone-900 sm:text-[1.2rem]">
+            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-4 text-center">
+              <h3 className="text-[1rem] font-semibold tracking-[0.01em] text-stone-900 sm:text-[1.1rem]">
                 Important Note for Parents
               </h3>
             </div>
 
-            <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto sm:max-h-[calc(100dvh-16rem)]">
+            <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto">
               {kidsPopupImage ? (
                 <div className="overflow-hidden border-b border-[#eadfce] bg-white">
                   <img
                     src={kidsPopupImage}
                     alt="Children enjoying the Valley Pods stay experience"
-                    className="h-52 w-full object-cover sm:h-[20rem]"
+                    className="h-72 w-full object-cover"
                   />
                 </div>
               ) : (
-                <div className="border-b border-[#eadfce] bg-[radial-gradient(circle_at_top,_#fff7ed_0%,_#f4ede8_55%,_#efe7f4_100%)] px-6 py-8 text-center sm:px-10 sm:py-10">
-                  <div className="mx-auto max-w-[24rem]">
+                <div className="border-b border-[#eadfce] bg-[radial-gradient(circle_at_top,_#fff7ed_0%,_#f4ede8_55%,_#efe7f4_100%)] px-6 py-8 text-center">
+                  <div className="mx-auto max-w-[20rem]">
                     <div className="text-xs font-black uppercase tracking-[0.28em] text-[#b66a14]">
                       Valley Pods
                     </div>
-                    <div className="mt-3 text-lg font-semibold text-stone-900 sm:text-[1.45rem]">
+                    <div className="mt-3 text-lg font-semibold text-stone-900 sm:text-[1.25rem]">
                       A joyful stay experience for children
                     </div>
-                    <p className="mt-3 text-sm leading-6 text-stone-600 sm:text-[0.98rem]">
+                    <p className="mt-3 text-sm leading-6 text-stone-600">
                       Please add the popup image from the admin panel to match the intended visual.
                     </p>
                   </div>
                 </div>
               )}
 
-              <div className="px-5 pb-4 pt-4 sm:px-6 sm:pb-5 sm:pt-5">
-                <p className="whitespace-pre-line text-[0.96rem] leading-7 text-stone-800 sm:text-[1.06rem] sm:leading-8">
-                  {kidsPopupMessage}
-                </p>
-                <p className="mt-4 rounded-[18px] bg-white/70 px-4 py-3 text-[0.92rem] leading-7 text-stone-700 ring-1 ring-[#eadfce] sm:mt-5 sm:text-[1rem]">
+              <div className="space-y-4 px-4 pb-4 pt-4 sm:px-5">
+                <div className="space-y-3 text-left text-[0.95rem] leading-7 text-stone-800">
+                  {kidsPopupMessage.split('\n\n').map((paragraph, index) => (
+                    <p key={index} className="whitespace-pre-line">
+                      {paragraph}
+                    </p>
+                  ))}
+                </div>
+                <p className="rounded-[16px] bg-white/75 px-4 py-3 text-left text-[0.9rem] leading-6 text-stone-700 ring-1 ring-[#eadfce]">
                   If you select <span className="font-semibold text-stone-900">I Love It</span>, the
                   kids price will be Rs. 10,000. If you select{' '}
                   <span className="font-semibold text-stone-900">Not Interested</span>, the regular
@@ -1882,8 +1892,8 @@ const getStayEndDate = (startDate: string, days: number) => {
                 </p>
               </div>
 
-              <div className="mx-5 mb-5 mt-1 flex flex-col items-start gap-3 rounded-[18px] bg-[#f4d7c0] px-4 py-3 sm:mx-6 sm:mb-6 sm:flex-row sm:items-center sm:justify-between sm:px-5 sm:py-4">
-                <div className="text-sm font-black text-[#2f3171] sm:text-[1.02rem]">
+              <div className="mx-4 mb-4 mt-1 flex flex-col items-start gap-3 rounded-[16px] bg-[#f4d7c0] px-4 py-3 sm:mx-5 sm:flex-row sm:items-center sm:justify-between">
+                <div className="text-sm font-black text-[#2f3171]">
                   Have questions about this?
                 </div>
                 {whatsappNumber ? (
@@ -1891,32 +1901,32 @@ const getStayEndDate = (startDate: string, days: number) => {
                     href={`https://wa.me/${whatsappNumber}`}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#242656] sm:w-auto"
+                    className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#242656] sm:w-auto"
                   >
                     Call Us <Phone className="h-3.5 w-3.5" />
                   </a>
                 ) : (
-                  <span className="inline-flex w-full items-center justify-center gap-2 rounded-[16px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white sm:w-auto">
+                  <span className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white sm:w-auto">
                     Call Us <Phone className="h-3.5 w-3.5" />
                   </span>
                 )}
               </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 bg-[#f5f0f7] px-5 pb-5 pt-0 sm:gap-4 sm:px-6 sm:pb-6">
+            <div className="grid grid-cols-2 gap-3 bg-[#f5f0f7] px-4 pb-4 pt-0 sm:px-5">
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(false)}
-                className="rounded-[16px] bg-[#2f3171] px-3 py-3 text-[0.95rem] font-black text-white transition hover:bg-[#242656] sm:px-4 sm:py-3.5 sm:text-base"
+                className="rounded-[14px] bg-[#2f3171] px-3 py-3 text-[0.95rem] font-black text-white transition hover:bg-[#242656]"
               >
-                Not Interested
+                Not Interested ☹️
               </button>
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(true)}
-                className="rounded-[16px] bg-[#7ec242] px-3 py-3 text-[0.95rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37] sm:px-4 sm:py-3.5 sm:text-base"
+                className="rounded-[14px] bg-[#7ec242] px-3 py-3 text-[0.95rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37]"
               >
-                I Love It
+                I Love It! 😍
               </button>
             </div>
           </div>
