@@ -732,6 +732,8 @@ const getStayEndDate = (startDate: string, days: number) => {
 
   const updateGuest = (id: string, updates: any) => {
     const normalizedUpdates = { ...updates };
+    let normalizedAgeValue: number | null = null;
+    let hasAgeUpdate = false;
 
     if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'name')) {
       normalizedUpdates.name = normalizeGuestNameInput(normalizedUpdates.name);
@@ -739,6 +741,8 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'age')) {
       normalizedUpdates.age = normalizeGuestAgeInput(normalizedUpdates.age);
+      normalizedAgeValue = Number(normalizedUpdates.age);
+      hasAgeUpdate = true;
     }
 
     const updatedGuests = guests.map((guest: any) => {
@@ -762,7 +766,21 @@ const getStayEndDate = (startDate: string, days: number) => {
         };
       }
 
-      return { ...guest, ...normalizedUpdates };
+      const nextGuest = { ...guest, ...normalizedUpdates };
+
+      if (hasAgeUpdate) {
+        const isAgeInKidsRange =
+          Number.isFinite(normalizedAgeValue) &&
+          normalizedAgeValue !== null &&
+          normalizedAgeValue >= kidsAgeRange.min &&
+          normalizedAgeValue <= kidsAgeRange.max;
+
+        if (!isAgeInKidsRange) {
+          nextGuest.isKidsPlanOpted = false;
+        }
+      }
+
+      return nextGuest;
     });
 
     setGuests(updatedGuests);
