@@ -726,11 +726,7 @@ const getStayEndDate = (startDate: string, days: number) => {
   const eligibleKids = useMemo(() => {
     return guests.filter((guest: any) => {
       const age = Number(guest.age);
-      const isAgeInKidsRange = age >= kidsAgeRange.min && age <= kidsAgeRange.max;
-      const needsKidsPlanDecision =
-        guest?.isKidsPlanOpted === undefined || guest?.isKidsPlanOpted === null;
-
-      return isAgeInKidsRange && needsKidsPlanDecision;
+      return age >= kidsAgeRange.min && age <= kidsAgeRange.max;
     });
   }, [guests, kidsAgeRange]);
 
