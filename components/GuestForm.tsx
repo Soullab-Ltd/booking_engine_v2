@@ -706,18 +706,11 @@ const getStayEndDate = (startDate: string, days: number) => {
   }, [guests]);
 
   const kidsAgeRange = useMemo(() => {
-    const selectedPlan = roomTypes.find((plan) => {
-      const planId = Number(plan.planID ?? plan.PlanID ?? plan.id ?? 0);
-      return planId === Number(selectedPlanId);
-    });
-    const minAge = Number(selectedPlan?.ageRangeMin);
-    const maxAge = Number(selectedPlan?.ageRangeMax);
-
     return {
-      min: Number.isFinite(minAge) ? minAge : DEFAULT_KIDS_PLAN_MIN_AGE,
-      max: Number.isFinite(maxAge) ? maxAge : DEFAULT_KIDS_PLAN_MAX_AGE,
+      min: DEFAULT_KIDS_PLAN_MIN_AGE,
+      max: DEFAULT_KIDS_PLAN_MAX_AGE,
     };
-  }, [roomTypes, selectedPlanId]);
+  }, []);
   const supportNumber = String(ui?.supportNumber || '').trim();
   const whatsappNumber = supportNumber.replace(/\D/g, '');
   const kidsPopupImage = String(
