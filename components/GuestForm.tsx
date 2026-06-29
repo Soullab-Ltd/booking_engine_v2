@@ -1924,7 +1924,7 @@ const getStayEndDate = (startDate: string, days: number) => {
         >
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[24rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
+            className="w-full max-w-[21rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
           >
             <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-4 text-center">
               <h3 className="text-[1rem] font-semibold tracking-[0.01em] text-stone-900 sm:text-[1.1rem]">
@@ -1938,7 +1938,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                   <img
                     src={kidsPopupImage}
                     alt="Children enjoying the Valley Pods stay experience"
-                    className="h-56 w-full object-cover"
+                    className="h-44 w-full object-cover"
                   />
                 </div>
               ) : (
