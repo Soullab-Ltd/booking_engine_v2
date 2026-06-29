@@ -1918,7 +1918,10 @@ const getStayEndDate = (startDate: string, days: number) => {
       )}
 
       {showKidsModal && (
-        <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
+        <div
+          onClick={() => setShowKidsModal(false)}
+          className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center"
+        >
           <div
             onClick={(event) => event.stopPropagation()}
             className="w-full max-w-[24rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
