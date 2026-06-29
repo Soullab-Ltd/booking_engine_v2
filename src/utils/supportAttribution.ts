@@ -77,20 +77,6 @@ export const clearSupportAttribution = () => {
   window.localStorage.removeItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
 };
 
-const removeSupportSessionFromUrl = () => {
-  if (typeof window === 'undefined') {
-    return;
-  }
-
-  const url = new URL(window.location.href);
-  if (!url.searchParams.has(SUPPORT_SESSION_QUERY_KEY)) {
-    return;
-  }
-
-  url.searchParams.delete(SUPPORT_SESSION_QUERY_KEY);
-  window.history.replaceState({}, document.title, url.toString());
-};
-
 export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttributionData | null> => {
   if (typeof window === 'undefined') {
     return null;
@@ -111,7 +97,6 @@ export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttribu
 
     if (!response.ok) {
       clearSupportAttribution();
-      removeSupportSessionFromUrl();
       return null;
     }
 
@@ -126,7 +111,6 @@ export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttribu
     });
 
     persistSupportAttribution(resolved);
-    removeSupportSessionFromUrl();
     return resolved;
   } catch {
     return null;

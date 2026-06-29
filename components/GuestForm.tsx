@@ -820,7 +820,25 @@ const getStayEndDate = (startDate: string, days: number) => {
 
     const updatedGuests = guests.map((guest: any) =>
       eligibleKidIds.has(String(guest.id))
-        ? { ...guest, isKidsPlanOpted: opted }
+        ? {
+            ...guest,
+            isKidsPlanOpted: opted,
+            addOns: {
+              ...guest.addOns,
+              selectedAddons: opted
+                ? (guest.addOns?.selectedAddons || []).filter(
+                    (selectedAddon: any) =>
+                      !isFoodPassAddon({
+                        id: selectedAddon?.addonId,
+                        AddonID: selectedAddon?.addonId,
+                        title: selectedAddon?.title,
+                        AddonTitle: selectedAddon?.title,
+                        type: selectedAddon?.type,
+                      })
+                  )
+                : guest.addOns?.selectedAddons || [],
+            },
+          }
         : guest
     );
 
@@ -871,16 +889,45 @@ const getStayEndDate = (startDate: string, days: number) => {
     return selectedAddonsTotal + extraStayTotal;
   };
 
+  const isFoodPassUnavailableForGuest = (guest: any, addon: AddonItem) => {
+    if (!isFoodPassAddon(addon)) return false;
+
+    const rawAge = guest?.age;
+    const hasAge = rawAge !== undefined && rawAge !== null && String(rawAge).trim() !== '';
+    if (!hasAge) return true;
+
+    const age = Number(rawAge);
+    if (!Number.isFinite(age)) return true;
+
+    return (
+      age >= kidsAgeRange.min &&
+      age <= kidsAgeRange.max &&
+      Boolean(guest?.isKidsPlanOpted)
+    );
+  };
+
+  const shouldHideFoodPassForGuest = (guest: any, addon: AddonItem) => {
+    if (!isFoodPassAddon(addon)) return false;
+
+    const rawAge = guest?.age;
+    const hasAge = rawAge !== undefined && rawAge !== null && String(rawAge).trim() !== '';
+    if (!hasAge) return false;
+
+    const age = Number(rawAge);
+    if (!Number.isFinite(age)) return false;
+
+    return (
+      age >= kidsAgeRange.min &&
+      age <= kidsAgeRange.max &&
+      Boolean(guest?.isKidsPlanOpted)
+    );
+  };
+
   const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
     const guest = guests.find((item: any) => String(item.id) === String(guestId));
     if (!guest) return;
 
-    const age = Number(guest?.age || 0);
-    const isFoodPassBlocked =
-      isFoodPassAddon(addon) &&
-      age >= kidsAgeRange.min &&
-      age <= kidsAgeRange.max &&
-      Boolean(guest?.isKidsPlanOpted);
+    const isFoodPassBlocked = isFoodPassUnavailableForGuest(guest, addon);
 
     if (isFoodPassBlocked) return;
 
@@ -1441,17 +1488,16 @@ const getStayEndDate = (startDate: string, days: number) => {
 
                   <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                     {eventAddons.map((addon) => {
+                      if (shouldHideFoodPassForGuest(guest, addon)) {
+                        return null;
+                      }
+
                       const addonId = String(addon.id ?? addon.AddonID ?? '');
                       const guestSelections = guest.addOns?.selectedAddons || [];
                       const isSelected = guestSelections.some(
                         (item: any) => String(item.addonId) === addonId
                       );
-                      const guestAge = Number(guest?.age || 0);
-                      const isFoodPassBlocked =
-                        isFoodPassAddon(addon) &&
-                        guestAge >= kidsAgeRange.min &&
-                        guestAge <= kidsAgeRange.max &&
-                        Boolean(guest?.isKidsPlanOpted);
+                      const isFoodPassBlocked = isFoodPassUnavailableForGuest(guest, addon);
                       const guestPrice = getAddonPriceForGuest(addon, guest);
 
                       return (
@@ -1843,7 +1889,7 @@ const getStayEndDate = (startDate: string, days: number) => {
         <div className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center">
           <div
             onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[28rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
+            className="w-full max-w-[24rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
           >
             <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-4 text-center">
               <h3 className="text-[1rem] font-semibold tracking-[0.01em] text-stone-900 sm:text-[1.1rem]">
@@ -1857,7 +1903,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                   <img
                     src={kidsPopupImage}
                     alt="Children enjoying the Valley Pods stay experience"
-                    className="h-72 w-full object-cover"
+                    className="h-56 w-full object-cover"
                   />
                 </div>
               ) : (
