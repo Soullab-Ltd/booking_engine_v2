@@ -734,7 +734,6 @@ const getStayEndDate = (startDate: string, days: number) => {
     const normalizedUpdates = { ...updates };
     let normalizedAgeValue: number | null = null;
     let hasAgeUpdate = false;
-    let shouldOpenKidsModalForAgeChange = false;
 
     if (Object.prototype.hasOwnProperty.call(normalizedUpdates, 'name')) {
       normalizedUpdates.name = normalizeGuestNameInput(normalizedUpdates.name);
@@ -783,9 +782,6 @@ const getStayEndDate = (startDate: string, days: number) => {
 
         if (!isAgeInKidsRange) {
           nextGuest.isKidsPlanOpted = false;
-        } else if (!wasAgeInKidsRange) {
-          nextGuest.isKidsPlanOpted = undefined;
-          shouldOpenKidsModalForAgeChange = true;
         }
       }
 
@@ -793,10 +789,6 @@ const getStayEndDate = (startDate: string, days: number) => {
     });
 
     setGuests(updatedGuests);
-
-    if (shouldOpenKidsModalForAgeChange) {
-      setShowKidsModal(true);
-    }
   };
 
   const handleCountryChange = (guestId: string, country: string) => {
