@@ -711,8 +711,7 @@ const getStayEndDate = (startDate: string, days: number) => {
       max: DEFAULT_KIDS_PLAN_MAX_AGE,
     };
   }, []);
-  const supportNumber = String(ui?.supportNumber || '').trim();
-  const whatsappNumber = supportNumber.replace(/\D/g, '');
+  const whatsappNumber = '919867666444';
   const kidsPopupImage = String(
     ui?.guestCard?.kidsPopupImage ||
       ui?.kidsPopupImage ||
@@ -1977,9 +1976,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                 </div>
                 {whatsappNumber ? (
                   <a
-                    href={`https://wa.me/${whatsappNumber}`}
-                    target="_blank"
-                    rel="noreferrer"
+                    href={`tel:+${whatsappNumber}`}
                     className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#242656] sm:w-auto"
                   >
                     Call Us <Phone className="h-3.5 w-3.5" />
