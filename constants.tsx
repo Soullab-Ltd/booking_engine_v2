@@ -178,7 +178,7 @@ export const createEmptyGuest = (): Guest => ({
   foodPreference: FoodPreference.REGULAR,
   travelAssistance: false,
   gender: 'Male',
-  isKidsPlanOpted: false,
+  isKidsPlanOpted: undefined as unknown as boolean,
   addOns: {
     foodPass: false,
     adventurePass: false,
