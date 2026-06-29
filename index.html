@@ -95,11 +95,15 @@
           var existing = readStoredAttribution();
           var fbclid = params.get('fbclid') || existing.fbclid || null;
           var currentReferrer = String(document.referrer || '').trim();
-          var currentUtmSource = String(params.get('utm_source') || '').trim();
-          var currentUtmMedium = String(params.get('utm_medium') || '').trim();
-          var currentUtmCampaign = String(params.get('utm_campaign') || '').trim();
-          var currentUtmContent = String(params.get('utm_content') || '').trim();
-          var currentUtmTerm = String(params.get('utm_term') || '').trim();
+          var currentUtmSource = String(params.get('utm_source') || existing.utmSource || '').trim();
+          var currentUtmMedium = String(params.get('utm_medium') || existing.utmMedium || '').trim();
+          var currentUtmCampaign = String(params.get('utm_campaign') || existing.utmCampaign || '').trim();
+          var currentUtmContent = String(params.get('utm_content') || existing.utmContent || '').trim();
+          var currentUtmTerm = String(params.get('utm_term') || existing.utmTerm || '').trim();
+          var currentFbc = String(params.get('fbc') || existing.fbc || '').trim();
+          var currentFbp = String(
+            params.get('fbp') || localStorage.getItem('_fbp') || existing.fbp || ''
+          ).trim();
           var currentAgentCode = String(
             params.get('agent_code') ||
               params.get('agent') ||
@@ -112,6 +116,9 @@
             params.get('agent_name') || params.get('support_name') || existing.agentName || ''
           ).trim();
           var hasCurrentCampaignSignal = Boolean(
+            fbclid ||
+              currentFbc ||
+              currentFbp ||
             currentUtmSource ||
               currentUtmMedium ||
               currentUtmCampaign ||
@@ -126,15 +133,8 @@
             source: 'meta_pixel',
             pixelEventId: getOrCreatePixelEventId(),
             fbclid: fbclid,
-            fbc:
-              params.get('fbc') ||
-              existing.fbc ||
-              buildFbcFromFbclid(fbclid),
-            fbp:
-              params.get('fbp') ||
-              localStorage.getItem('_fbp') ||
-              existing.fbp ||
-              null,
+            fbc: currentFbc || buildFbcFromFbclid(fbclid),
+            fbp: currentFbp || null,
             externalId: params.get('external_id') || existing.externalId || null,
             utmSource: currentUtmSource || null,
             utmMedium: currentUtmMedium || null,
@@ -143,8 +143,11 @@
             utmTerm: currentUtmTerm || null,
             agentCode: currentAgentCode || null,
             agentName: currentAgentName || null,
-            landingUrl: hasCurrentCampaignSignal ? window.location.href : null,
-            referrer: currentReferrer || null,
+            landingUrl:
+              (hasCurrentCampaignSignal ? window.location.href : '') ||
+              existing.landingUrl ||
+              null,
+            referrer: currentReferrer || existing.referrer || null,
             capturedAt: new Date().toISOString()
           };
 
