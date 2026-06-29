@@ -1973,19 +1973,19 @@ const getStayEndDate = (startDate: string, days: number) => {
                 </p>
               </div>
 
-              <div className="mx-4 mb-4 mt-1 flex flex-col items-start gap-3 rounded-[16px] bg-[#f4d7c0] px-4 py-3 sm:mx-5 sm:flex-row sm:items-center sm:justify-between">
-                <div className="text-sm font-black text-[#2f3171]">
+              <div className="mx-4 mb-4 mt-1 flex items-center justify-between gap-3 rounded-[16px] bg-[#f4d7c0] px-4 py-3 sm:mx-5">
+                <div className="text-[0.9rem] font-black text-[#2f3171]">
                   Have questions about this?
                 </div>
                 {whatsappNumber ? (
                   <a
                     href={`tel:+${whatsappNumber}`}
-                    className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white transition hover:bg-[#242656] sm:w-auto"
+                    className="inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-[0.9rem] font-black text-white transition hover:bg-[#242656]"
                   >
                     Call Us <Phone className="h-3.5 w-3.5" />
                   </a>
                 ) : (
-                  <span className="inline-flex w-full items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-sm font-black text-white sm:w-auto">
+                  <span className="inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-[0.9rem] font-black text-white">
                     Call Us <Phone className="h-3.5 w-3.5" />
                   </span>
                 )}
@@ -1996,14 +1996,14 @@ const getStayEndDate = (startDate: string, days: number) => {
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(false)}
-                className="rounded-[14px] bg-[#2f3171] px-3 py-3 text-[0.95rem] font-black text-white transition hover:bg-[#242656]"
+                className="rounded-[14px] bg-[#2f3171] px-3 py-3 text-[0.88rem] font-black text-white transition hover:bg-[#242656]"
               >
                 Not Interested ☹️
               </button>
               <button
                 type="button"
                 onClick={() => proceedWithKidsPlanSelection(true)}
-                className="rounded-[14px] bg-[#7ec242] px-3 py-3 text-[0.95rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37]"
+                className="rounded-[14px] bg-[#7ec242] px-3 py-3 text-[0.88rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37]"
               >
                 I Love It! 😍
               </button>
