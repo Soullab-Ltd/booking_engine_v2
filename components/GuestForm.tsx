@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Guest, FoodPreference } from '../types';
 import { createEmptyGuest } from '../constants';
 import {
@@ -343,6 +343,11 @@ const GuestForm: React.FC<GuestFormProps> = ({
   const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
   const [customIndianStateGuests, setCustomIndianStateGuests] = useState<Record<string, boolean>>({});
+  const latestGuestsRef = useRef(guests);
+
+  useEffect(() => {
+    latestGuestsRef.current = guests;
+  }, [guests]);
 
   const parseIds = (value: any): number[] => {
     if (!value) return [];
@@ -788,6 +793,7 @@ const getStayEndDate = (startDate: string, days: number) => {
       return nextGuest;
     });
 
+    latestGuestsRef.current = updatedGuests;
     setGuests(updatedGuests);
   };
 
@@ -1124,7 +1130,12 @@ const getStayEndDate = (startDate: string, days: number) => {
       if (invalidExtraStayGuest) return;
     }
 
-    if (eligibleKids.length > 0) {
+    const popupEligibleKids = latestGuestsRef.current.filter((guest: any) => {
+      const age = Number(guest?.age);
+      return age >= kidsAgeRange.min && age <= kidsAgeRange.max;
+    });
+
+    if (popupEligibleKids.length > 0) {
       setShowKidsModal(true);
     } else {
       onProceed();
