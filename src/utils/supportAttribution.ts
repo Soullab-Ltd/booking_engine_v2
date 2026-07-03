@@ -42,13 +42,26 @@ export const getStoredSupportAttribution = (): SupportAttributionData => {
     return getEmptySupportAttribution();
   }
 
+  const url = new URL(window.location.href);
+  const currentToken = String(url.searchParams.get(SUPPORT_SESSION_QUERY_KEY) || '').trim();
+
+  if (!currentToken) {
+    return getEmptySupportAttribution();
+  }
+
   try {
     const raw = window.localStorage.getItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
     if (!raw) {
       return getEmptySupportAttribution();
     }
 
-    return sanitizeSupportAttribution(JSON.parse(raw));
+    const stored = sanitizeSupportAttribution(JSON.parse(raw));
+
+    if (stored.supportSessionToken !== currentToken) {
+      return getEmptySupportAttribution();
+    }
+
+    return stored;
   } catch {
     return getEmptySupportAttribution();
   }
@@ -86,6 +99,7 @@ export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttribu
   const token = String(url.searchParams.get(SUPPORT_SESSION_QUERY_KEY) || '').trim();
 
   if (!token) {
+    clearSupportAttribution();
     return null;
   }
 
