@@ -2010,11 +2010,24 @@ const handlePayment = async () => {
         utmContent: metaAttribution.utmContent || null,
         utmTerm: metaAttribution.utmTerm || null,
         agentCode: metaAttribution.agentCode || null,
-        agentName: metaAttribution.agentName || null,
+        agentName: supportAttribution.agentName || metaAttribution.agentName || null,
         landingUrl: metaAttribution.landingUrl || null,
         referrer: metaAttribution.referrer || null,
       },
       supportSessionToken: supportAttribution.supportSessionToken || null,
+      supportTrace: supportAttribution.supportSessionToken
+        ? {
+            agentId: supportAttribution.agentId || null,
+            agentName: supportAttribution.agentName || null,
+            agentEmail: supportAttribution.agentEmail || null,
+          }
+        : null,
+      metadata: {
+        support_session: supportAttribution.supportSessionToken || null,
+        supportAgentId: supportAttribution.agentId || null,
+        supportAgentName: supportAttribution.agentName || null,
+        supportAgentEmail: supportAttribution.agentEmail || null,
+      },
       conversionApiPayload: metaConversionApiPayload,
     };
 
