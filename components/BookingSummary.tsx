@@ -2046,6 +2046,7 @@ const handlePayment = async () => {
       const responseRaw = await fetch('https://bookingapi.thriive.in/bookings', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       const responseText = await responseRaw.text();

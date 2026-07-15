@@ -149,7 +149,10 @@ export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttribu
   try {
     const response = await fetch(
       `${BOOKING_API_BASE_URL}/support/sessions/${encodeURIComponent(token)}`,
-      { method: 'GET' }
+      {
+        method: 'GET',
+        credentials: 'include',
+      }
     );
 
     if (!response.ok) {
