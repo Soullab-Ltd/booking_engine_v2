@@ -657,6 +657,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
     [bookingState]
   );
 
+  const supportAttributionPreview = useMemo(
+    () => getStoredSupportAttribution(),
+    []
+  );
+
   const getBounceFilledDetails = useCallback(() => {
     const primaryGuest = guests?.[0];
     const selectedCouponCode =
@@ -2240,6 +2245,40 @@ const handlePayment = async () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
         <div className="lg:col-span-8 space-y-8">
+          {supportAttributionPreview.supportSessionToken ? (
+            <div className="bg-emerald-50 rounded-[32px] shadow-sm border border-emerald-200 p-8">
+              <h4 className="text-lg font-bold flex items-center gap-2 mb-4 text-emerald-900">
+                <ShieldCheck className="w-5 h-5 text-emerald-600" /> Support Session
+              </h4>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+                <div className="rounded-2xl border border-emerald-100 bg-white/80 px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                    Agent Name
+                  </div>
+                  <div className="mt-1 font-semibold text-stone-900">
+                    {supportAttributionPreview.agentName || '-'}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-emerald-100 bg-white/80 px-4 py-3">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                    Agent Email
+                  </div>
+                  <div className="mt-1 font-semibold text-stone-900 break-all">
+                    {supportAttributionPreview.agentEmail || '-'}
+                  </div>
+                </div>
+                <div className="rounded-2xl border border-emerald-100 bg-white/80 px-4 py-3 md:col-span-2">
+                  <div className="text-[10px] font-bold uppercase tracking-widest text-emerald-700">
+                    Support Session Token
+                  </div>
+                  <div className="mt-1 font-mono text-xs text-stone-900 break-all">
+                    {supportAttributionPreview.supportSessionToken}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
+
           <div className="bg-white rounded-[32px] shadow-sm border border-stone-100 p-8">
             <h4 className="text-lg font-bold flex items-center gap-2 mb-6">
               <Heart className="w-5 h-5 text-[var(--theme)]" /> Review Billing
