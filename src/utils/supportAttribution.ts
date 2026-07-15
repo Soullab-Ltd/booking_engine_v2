@@ -37,31 +37,46 @@ const sanitizeSupportAttribution = (value: Partial<SupportAttributionData> | nul
   capturedAt: String(value?.capturedAt || '').trim(),
 });
 
+const readSupportAttributionStorage = () => {
+  if (typeof window === 'undefined') {
+    return '';
+  }
+
+  try {
+    return (
+      window.sessionStorage.getItem(SUPPORT_ATTRIBUTION_STORAGE_KEY) ||
+      window.localStorage.getItem(SUPPORT_ATTRIBUTION_STORAGE_KEY) ||
+      ''
+    );
+  } catch {
+    return '';
+  }
+};
+
+const removeLegacyLocalSupportAttribution = () => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  try {
+    window.localStorage.removeItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+};
+
 export const getStoredSupportAttribution = (): SupportAttributionData => {
   if (typeof window === 'undefined') {
     return getEmptySupportAttribution();
   }
 
-  const url = new URL(window.location.href);
-  const currentToken = String(url.searchParams.get(SUPPORT_SESSION_QUERY_KEY) || '').trim();
-
-  if (!currentToken) {
-    return getEmptySupportAttribution();
-  }
-
   try {
-    const raw = window.localStorage.getItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
+    const raw = readSupportAttributionStorage();
     if (!raw) {
       return getEmptySupportAttribution();
     }
 
-    const stored = sanitizeSupportAttribution(JSON.parse(raw));
-
-    if (stored.supportSessionToken !== currentToken) {
-      return getEmptySupportAttribution();
-    }
-
-    return stored;
+    return sanitizeSupportAttribution(JSON.parse(raw));
   } catch {
     return getEmptySupportAttribution();
   }
@@ -75,11 +90,24 @@ export const persistSupportAttribution = (value: Partial<SupportAttributionData>
   const normalized = sanitizeSupportAttribution(value);
 
   if (!normalized.supportSessionToken) {
-    window.localStorage.removeItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
+    try {
+      window.sessionStorage.removeItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
+    } catch {
+      // Ignore storage cleanup failures.
+    }
+    removeLegacyLocalSupportAttribution();
     return;
   }
 
-  window.localStorage.setItem(SUPPORT_ATTRIBUTION_STORAGE_KEY, JSON.stringify(normalized));
+  try {
+    window.sessionStorage.setItem(
+      SUPPORT_ATTRIBUTION_STORAGE_KEY,
+      JSON.stringify(normalized)
+    );
+  } catch {
+    // Ignore storage write failures.
+  }
+  removeLegacyLocalSupportAttribution();
 };
 
 export const clearSupportAttribution = () => {
@@ -87,7 +115,12 @@ export const clearSupportAttribution = () => {
     return;
   }
 
-  window.localStorage.removeItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
+  try {
+    window.sessionStorage.removeItem(SUPPORT_ATTRIBUTION_STORAGE_KEY);
+  } catch {
+    // Ignore storage cleanup failures.
+  }
+  removeLegacyLocalSupportAttribution();
 };
 
 export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttributionData | null> => {
@@ -97,10 +130,20 @@ export const resolveSupportAttributionFromUrl = async (): Promise<SupportAttribu
 
   const url = new URL(window.location.href);
   const token = String(url.searchParams.get(SUPPORT_SESSION_QUERY_KEY) || '').trim();
+  const existing = getStoredSupportAttribution();
 
   if (!token) {
-    clearSupportAttribution();
-    return null;
+    return existing.supportSessionToken ? existing : null;
+  }
+
+  if (existing.supportSessionToken) {
+    if (existing.supportSessionToken === token) {
+      return existing;
+    }
+
+    // Lock the first valid support session for this browser session so
+    // mid-journey URL edits cannot steal or drop attribution.
+    return existing;
   }
 
   try {
