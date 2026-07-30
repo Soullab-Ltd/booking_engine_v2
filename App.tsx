@@ -51,6 +51,23 @@ const getStringValue = (...values: unknown[]) => {
   return '';
 };
 
+const getTrackablePlanValue = (plan: Partial<Plan> | null | undefined) => {
+  const candidates = [
+    plan?.OfferPrice,
+    plan?.discountedPrice,
+    plan?.PlanPrice,
+  ];
+
+  for (const candidate of candidates) {
+    const value = Number(candidate);
+    if (Number.isFinite(value) && value > 0) {
+      return value;
+    }
+  }
+
+  return null;
+};
+
 const normalizeBookingGuest = (guest: any, index: number) => {
   const emptyGuest = createEmptyGuest();
   const parsedAge = Number(
@@ -575,9 +592,7 @@ const App: React.FC = () => {
       content_ids: planId ? [planId] : undefined,
       content_type: 'product',
       booking_id: payload.bookingId || '',
-      value: Number(
-        state.selectedPlan?.OfferPrice || state.selectedPlan?.discountedPrice || state.selectedPlan?.PlanPrice || 0
-      ),
+      value: getTrackablePlanValue(state.selectedPlan) ?? undefined,
       currency: 'INR',
       guest_count: payload.guestCount,
     }, eventId);
@@ -1013,8 +1028,14 @@ const App: React.FC = () => {
   useEffect(() => {
     const plan = bookingState.selectedPlan;
     const planKey = String(plan?.planID || plan?.PlanID || plan?.id || '').trim();
+    const trackableValue = getTrackablePlanValue(plan);
 
-    if (bookingState.currentStep !== 3 || !planKey || hasTrackedViewContentRef.current === planKey) {
+    if (
+      bookingState.currentStep !== 3 ||
+      !planKey ||
+      trackableValue === null ||
+      hasTrackedViewContentRef.current === planKey
+    ) {
       return;
     }
 
@@ -1022,7 +1043,7 @@ const App: React.FC = () => {
       content_name: plan?.PlanTitle || plan?.PlanName || plan?.title || 'Selected Plan',
       content_ids: [planKey],
       content_type: 'product',
-      value: Number(plan?.OfferPrice || plan?.discountedPrice || plan?.PlanPrice || 0),
+      value: trackableValue,
       currency: 'INR',
     });
 
@@ -1044,6 +1065,7 @@ const App: React.FC = () => {
 
     const primaryGuest = bookingState.guests?.[0];
     const attribution = getStoredMetaAttribution();
+    const trackableValue = getTrackablePlanValue(bookingState.selectedPlan);
     const planIdentifier = String(
       bookingState.selectedPlan?.planID ||
         bookingState.selectedPlan?.PlanID ||
@@ -1051,15 +1073,14 @@ const App: React.FC = () => {
         ''
     ).trim();
 
+    if (trackableValue === null) {
+      return;
+    }
+
     trackMetaEvent(
       'Purchase',
       {
-        value: Number(
-          bookingState.selectedPlan?.OfferPrice ||
-            bookingState.selectedPlan?.discountedPrice ||
-            bookingState.selectedPlan?.PlanPrice ||
-            0
-        ),
+        value: trackableValue,
         currency: 'INR',
         content_name:
           bookingState.selectedPlan?.PlanTitle ||
