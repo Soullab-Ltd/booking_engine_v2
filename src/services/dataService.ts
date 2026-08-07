@@ -39,6 +39,20 @@ export interface EventResponse {
   addons?: any[]; // ✅ add this
 }
 
+const buildEventApiUrl = (
+  path: string,
+  bookingLinkToken?: string | null
+) => {
+  const url = new URL(path, serverUrl);
+  const normalizedToken = String(bookingLinkToken || '').trim();
+
+  if (normalizedToken) {
+    url.searchParams.set('bookingLinkToken', normalizedToken);
+  }
+
+  return url.toString();
+};
+
 const EVENT_BANNER_FALLBACK =
   'https://images.unsplash.com/photo-1519834785169-98be25ec3f84?w=1600&auto=format&fit=crop';
 const EVENT_DESCRIPTION_FALLBACK =
@@ -529,9 +543,12 @@ const getEventAdditionalAssets = (apiData: any) => {
 
 export const getAllData = async (
   eventId: string | number,
-  bookingId?: string | null
+  bookingId?: string | null,
+  bookingLinkToken?: string | null
 ) => {
-  const apiResponse = await fetch(`${serverUrl}events/${eventId}`);
+  const apiResponse = await fetch(
+    buildEventApiUrl(`events/${eventId}`, bookingLinkToken)
+  );
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -619,7 +636,7 @@ console.log(
 
   const eventAdditionalAssets = getEventAdditionalAssets(apiData);
 
- const eventData: EventResponse = {
+  const eventData: EventResponse = {
   event: {
     id: apiData.EventID,
     EventID: apiData.EventID,
@@ -639,6 +656,7 @@ console.log(
     venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
     description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
     additionalAssets: eventAdditionalAssets,
+    bookingLink: apiData.bookingLink || null,
     schedules: apiData.schedules || [],
     plans: mappedPlans || [],
     addons: mappedAddons || [],
@@ -669,9 +687,12 @@ console.log(
 
 export const getAllDataBySlug = async (
   slug: string,
-  bookingId?: string | null
+  bookingId?: string | null,
+  bookingLinkToken?: string | null
 ) => {
-  const apiResponse = await fetch(`${serverUrl}events/slug/${slug}`);
+  const apiResponse = await fetch(
+    buildEventApiUrl(`events/slug/${slug}`, bookingLinkToken)
+  );
 
   if (!apiResponse.ok) throw new Error("Event not found or API down");
   const apiData = await apiResponse.json();
@@ -771,6 +792,7 @@ export const getAllDataBySlug = async (
       venue: normalizeVenueText(apiData.venue || "Pyramid Valley International, Bengaluru"),
       description: normalizeVenueText(apiData.description) || EVENT_DESCRIPTION_FALLBACK,
       additionalAssets: eventAdditionalAssets,
+      bookingLink: apiData.bookingLink || null,
       schedules: apiData.schedules || [],
       plans: mappedPlans || [],
       addons: mappedAddons || [],

@@ -251,10 +251,12 @@ const buildDashboardUrl = ({
   eventId,
   slug,
   bookingId,
+  bookingLinkToken,
 }: {
   eventId?: string | number | null;
   slug?: string | null;
   bookingId?: string | number | null;
+  bookingLinkToken?: string | null;
 }) => {
   if (typeof window === 'undefined' || !bookingId) {
     return '';
@@ -267,6 +269,10 @@ const buildDashboardUrl = ({
 
   if (eventId) {
     baseUrl.searchParams.set('id', String(eventId));
+  }
+
+  if (bookingLinkToken) {
+    baseUrl.searchParams.set('bookingLinkToken', String(bookingLinkToken));
   }
 
   baseUrl.searchParams.set('booking', String(bookingId));
@@ -646,6 +652,7 @@ const App: React.FC = () => {
         const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');
         const eventId = urlParams.get('id');
         const bookingIdFromUrl = urlParams.get('booking');
+        const bookingLinkToken = urlParams.get('bookingLinkToken');
         const view = urlParams.get('view');
         const eventIdentifier = slug || eventId || '44';
         const effectiveBookingId = bookingIdFromUrl || null;
@@ -653,9 +660,17 @@ const App: React.FC = () => {
         let allData;
 
         if (slug) {
-          allData = await getAllDataBySlug(slug, effectiveBookingId);
+          allData = await getAllDataBySlug(
+            slug,
+            effectiveBookingId,
+            bookingLinkToken,
+          );
         } else {
-          allData = await getAllData(eventId || '2', effectiveBookingId);
+          allData = await getAllData(
+            eventId || '2',
+            effectiveBookingId,
+            bookingLinkToken,
+          );
         }
         console.log('✅ API Response:', allData);
 
@@ -1463,6 +1478,10 @@ case 6:
                 eventId: data.eventData.event?.EventID || data.eventData.event?.id,
                 slug: data.eventData.event?.slug,
                 bookingId: bookingState.bookingId,
+                bookingLinkToken:
+                  typeof window !== 'undefined'
+                    ? new URLSearchParams(window.location.search).get('bookingLinkToken')
+                    : '',
               });
 
               if (dashboardUrl) {

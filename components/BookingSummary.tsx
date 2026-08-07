@@ -2020,6 +2020,10 @@ const handlePayment = async () => {
         referrer: metaAttribution.referrer || null,
       },
       supportSessionToken: supportAttribution.supportSessionToken || null,
+      customPlanLinkToken:
+        (typeof window !== 'undefined'
+          ? new URLSearchParams(window.location.search).get('bookingLinkToken')
+          : '') || null,
       supportTrace: supportAttribution.supportSessionToken
         ? {
             agentId: supportAttribution.agentId || null,
