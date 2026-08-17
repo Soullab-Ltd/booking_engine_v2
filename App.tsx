@@ -68,6 +68,32 @@ const getTrackablePlanValue = (plan: Partial<Plan> | null | undefined) => {
   return null;
 };
 
+const META_PURCHASE_BOOKING_STORAGE_KEY = 'meta_last_purchase_booking_id';
+
+const hasTrackedMetaPurchaseForBooking = (bookingId: string) => {
+  if (typeof window === 'undefined' || !bookingId) {
+    return false;
+  }
+
+  try {
+    return window.sessionStorage.getItem(META_PURCHASE_BOOKING_STORAGE_KEY) === bookingId;
+  } catch {
+    return false;
+  }
+};
+
+const markMetaPurchaseTrackedForBooking = (bookingId: string) => {
+  if (typeof window === 'undefined' || !bookingId) {
+    return;
+  }
+
+  try {
+    window.sessionStorage.setItem(META_PURCHASE_BOOKING_STORAGE_KEY, bookingId);
+  } catch {
+    // Ignore sessionStorage failures so purchase flow still works.
+  }
+};
+
 const normalizeBookingGuest = (guest: any, index: number) => {
   const emptyGuest = createEmptyGuest();
   const parsedAge = Number(
@@ -517,9 +543,7 @@ const hasConfirmedMetaPurchasePayment = (
   const hasManualSettlementSignal = ['manual payment', 'bank transfer', 'manual'].includes(
     paymentId
   );
-  const hasOnlineSettlementSignal =
-    ['paid', 'authorized', 'captured', 'success'].includes(backendPaymentStatus) ||
-    paymentId.startsWith('pay_');
+  const hasOnlineSettlementSignal = ['paid', 'captured'].includes(backendPaymentStatus);
 
   return isConfirmed && (hasManualSettlementSignal || hasOnlineSettlementSignal);
 };
@@ -1098,6 +1122,11 @@ const App: React.FC = () => {
       return;
     }
 
+    const resolvedBookingId = String(bookingState.bookingId || '').trim();
+    if (resolvedBookingId && hasTrackedMetaPurchaseForBooking(resolvedBookingId)) {
+      return;
+    }
+
     const eventId =
       String(bookingState.metaPurchaseEventId || '').trim() ||
       createMetaEventId('purchase');
@@ -1145,6 +1174,9 @@ const App: React.FC = () => {
     );
 
     markMetaPurchaseTracked(eventId);
+    if (resolvedBookingId) {
+      markMetaPurchaseTrackedForBooking(resolvedBookingId);
+    }
 
     if (!bookingState.metaPurchaseEventId) {
       setBookingState((prev) => ({
