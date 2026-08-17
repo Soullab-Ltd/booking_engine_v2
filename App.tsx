@@ -499,6 +499,31 @@ const getBookingPresentationState = (bookingData: any) => {
   };
 };
 
+const hasConfirmedMetaPurchasePayment = (
+  bookingState: BookingState,
+  paymentResult: 'SUCCESS' | 'PENDING' | 'FAILED' | null
+) => {
+  if (paymentResult !== 'SUCCESS') {
+    return false;
+  }
+
+  const confirmationStatus = String(bookingState.bookingStatus || '').trim().toLowerCase();
+  const backendPaymentStatus = String(bookingState.backendPaymentStatus || '').trim().toLowerCase();
+  const paymentId = String(bookingState.razorpayPaymentId || bookingState.paymentId || '')
+    .trim()
+    .toLowerCase();
+  const isConfirmed =
+    confirmationStatus === 'confirmed' || confirmationStatus.includes('confirm');
+  const hasManualSettlementSignal = ['manual payment', 'bank transfer', 'manual'].includes(
+    paymentId
+  );
+  const hasOnlineSettlementSignal =
+    ['paid', 'authorized', 'captured', 'success'].includes(backendPaymentStatus) ||
+    paymentId.startsWith('pay_');
+
+  return isConfirmed && (hasManualSettlementSignal || hasOnlineSettlementSignal);
+};
+
 type PaymentConfirmationDetails = {
   paymentId?: string;
   razorpayPaymentId?: string;
@@ -1066,7 +1091,10 @@ const App: React.FC = () => {
   }, [bookingState.currentStep, bookingState.selectedPlan]);
 
   useEffect(() => {
-    if (bookingState.currentStep !== 6 || paymentResult !== 'SUCCESS') {
+    if (
+      bookingState.currentStep !== 6 ||
+      !hasConfirmedMetaPurchasePayment(bookingState, paymentResult)
+    ) {
       return;
     }
 
