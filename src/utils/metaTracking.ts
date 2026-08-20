@@ -34,12 +34,15 @@ declare global {
     _fbq?: any;
     fbq?: (...args: any[]) => void;
     __META_PIXEL_ID__?: string;
+    dataLayer?: Array<Record<string, unknown>>;
     getBookingAttribution?: () => Partial<MetaAttributionData> & {
       pixelEventId?: string;
       source?: string;
     };
   }
 }
+
+type DataLayerPayload = Record<string, unknown>;
 
 const getMetaPixelId = (): string => {
   const env = (import.meta as any)?.env || {};
@@ -230,6 +233,7 @@ export const initMetaPixel = () => {
   }
 
   if (window.fbq) {
+    pushToDataLayer('PageView', {});
     console.log('[Meta Pixel] Reusing existing pixel instance', {
       pixelId,
       url: window.location.href,
@@ -266,6 +270,7 @@ export const initMetaPixel = () => {
   })(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
 
   const fbq = window.fbq;
+  pushToDataLayer('PageView', {});
   fbq?.('init', pixelId);
   fbq?.('track', 'PageView');
   console.log('[Meta Pixel] Initialized and fired PageView', {
@@ -273,6 +278,87 @@ export const initMetaPixel = () => {
     url: window.location.href,
   });
   return true;
+};
+
+const toNumber = (value: unknown): number | undefined => {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) ? parsed : undefined;
+};
+
+const buildDataLayerPayload = (
+  eventName: string,
+  params: Record<string, string | number | boolean | string[]>,
+  eventId?: string
+): DataLayerPayload => {
+  const attribution = getStoredMetaAttribution();
+  const contentIds = Array.isArray(params.content_ids)
+    ? params.content_ids.filter((value): value is string => typeof value === 'string' && Boolean(value))
+    : [];
+  const value = toNumber(params.value);
+  const numItems = toNumber(params.num_items) || 1;
+  const currency =
+    typeof params.currency === 'string' && params.currency.trim() ? params.currency.trim() : 'INR';
+  const contentName =
+    typeof params.content_name === 'string' && params.content_name.trim()
+      ? params.content_name.trim()
+      : 'Selected Plan';
+
+  const payload: DataLayerPayload = {
+    event: eventName,
+    meta_event_name: eventName,
+    meta_event_id: eventId || null,
+    event_source_url:
+      (typeof params.event_source_url === 'string' && params.event_source_url) ||
+      window.location.href,
+    fbc: attribution.fbc || undefined,
+    fbp: attribution.fbp || undefined,
+    fbclid: attribution.fbclid || undefined,
+    external_id:
+      (typeof params.external_id === 'string' && params.external_id) || attribution.externalId || undefined,
+    utm_source: attribution.utmSource || undefined,
+    utm_medium: attribution.utmMedium || undefined,
+    utm_campaign: attribution.utmCampaign || undefined,
+    utm_content: attribution.utmContent || undefined,
+    utm_term: attribution.utmTerm || undefined,
+    ecommerce: {
+      currency,
+      value,
+      items: contentIds.length
+        ? contentIds.map((itemId) => ({
+            item_id: itemId,
+            item_name: contentName,
+            price: value,
+            quantity: numItems,
+          }))
+        : [
+            {
+              item_name: contentName,
+              price: value,
+              quantity: numItems,
+            },
+          ],
+    },
+  };
+
+  return {
+    ...params,
+    ...payload,
+  };
+};
+
+const pushToDataLayer = (
+  eventName: string,
+  params: Record<string, string | number | boolean | string[]>,
+  eventId?: string
+) => {
+  if (typeof window === 'undefined') {
+    return;
+  }
+
+  window.dataLayer = window.dataLayer || [];
+  const payload = buildDataLayerPayload(eventName, params, eventId);
+  window.dataLayer.push(payload);
+  console.log('[GTM] dataLayer event pushed', payload);
 };
 
 export const createMetaEventId = (prefix: string) =>
@@ -283,6 +369,11 @@ export const trackMetaEvent = (
   params: MetaEventParams = {},
   eventId?: string
 ) => {
+  const cleanedParams = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
+  );
+  pushToDataLayer(eventName, cleanedParams, eventId);
+
   const pixelId = getMetaPixelId();
   if (!pixelId || typeof window.fbq !== 'function') {
     console.warn('[Meta Pixel] Event skipped', {
@@ -294,10 +385,6 @@ export const trackMetaEvent = (
     });
     return;
   }
-
-  const cleanedParams = Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
-  );
 
   if (eventName === 'PageView') {
     window.fbq('track', eventName);
@@ -336,9 +423,18 @@ export const trackMetaCustomEvent = (
   eventId?: string
 ) => {
   const normalizedEventName = String(eventName || '').trim();
+  if (!normalizedEventName) {
+    return;
+  }
+
+  const cleanedParams = Object.fromEntries(
+    Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
+  );
+  pushToDataLayer(normalizedEventName, cleanedParams, eventId);
+
   const pixelId = getMetaPixelId();
 
-  if (!normalizedEventName || !pixelId || typeof window.fbq !== 'function') {
+  if (!pixelId || typeof window.fbq !== 'function') {
     console.warn('[Meta Pixel] Custom event skipped', {
       eventName: normalizedEventName || null,
       eventId: eventId || null,
@@ -348,10 +444,6 @@ export const trackMetaCustomEvent = (
     });
     return;
   }
-
-  const cleanedParams = Object.fromEntries(
-    Object.entries(params).filter(([, value]) => value !== undefined && value !== '')
-  );
 
   if (eventId) {
     window.fbq('trackCustom', normalizedEventName, cleanedParams, { eventID: eventId });

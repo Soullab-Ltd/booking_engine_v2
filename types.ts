@@ -155,6 +155,13 @@ export interface EventData {
   description: string;
   additionalAssets?: any[];
   otherInfoLinks?: any[];
+  bookingLink?: {
+    token: string;
+    title?: string | null;
+    eventId: number;
+    allowedPlanIds: number[];
+    expiresAt?: string | null;
+  } | null;
 
   schedules?: any[];
   plans?: any[];
@@ -220,4 +227,5 @@ export interface BookingState {
   completionCertificateUrl?: string;
   additionalAssets?: any[];
   bounceTrackedStages?: string[];
+  bookingLinkToken?: string;
 }
