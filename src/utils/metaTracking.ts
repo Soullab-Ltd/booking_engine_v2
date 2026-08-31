@@ -285,6 +285,24 @@ const toNumber = (value: unknown): number | undefined => {
   return Number.isFinite(parsed) ? parsed : undefined;
 };
 
+// Map Meta event names to Google GA4 standard event names
+const mapToGtmEventName = (eventName: string): string => {
+  switch (eventName) {
+    case 'Purchase':
+      return 'purchase';
+    case 'InitiateCheckout':
+      return 'begin_checkout';
+    case 'AddPaymentInfo':
+      return 'add_payment_info';
+    case 'ViewContent':
+      return 'view_item';
+    case 'PageView':
+      return 'page_view';
+    default:
+      return eventName.toLowerCase();
+  }
+};
+
 const buildDataLayerPayload = (
   eventName: string,
   params: Record<string, string | number | boolean | string[]>,
@@ -294,7 +312,7 @@ const buildDataLayerPayload = (
   const contentIds = Array.isArray(params.content_ids)
     ? params.content_ids.filter((value): value is string => typeof value === 'string' && Boolean(value))
     : [];
-  const value = toNumber(params.value);
+  const value = toNumber(params.value) || 0;
   const numItems = toNumber(params.num_items) || 1;
   const currency =
     typeof params.currency === 'string' && params.currency.trim() ? params.currency.trim() : 'INR';
@@ -303,10 +321,67 @@ const buildDataLayerPayload = (
       ? params.content_name.trim()
       : 'Selected Plan';
 
+  const gtmEventName = mapToGtmEventName(eventName);
+  const transactionId =
+    (typeof params.booking_id === 'string' && params.booking_id) ||
+    (typeof params.order_id === 'string' && params.order_id) ||
+    eventId ||
+    '';
+  const coupon = typeof params.coupon === 'string' ? params.coupon : undefined;
+  const paymentType = typeof params.payment_type === 'string' ? params.payment_type : 'Razorpay';
+
+  // Construct standard GA4 Items array
+  const items = contentIds.length
+    ? contentIds.map((itemId, idx) => ({
+        item_id: String(itemId),
+        item_name: contentName,
+        affiliation: 'SoulLab',
+        coupon: coupon,
+        discount: toNumber(params.discount) || 0,
+        index: idx,
+        item_brand: 'SoulLab',
+        item_category: 'Events',
+        price: value,
+        quantity: numItems,
+      }))
+    : [
+        {
+          item_id: String(params.content_id || 'PLAN_DEFAULT'),
+          item_name: contentName,
+          affiliation: 'SoulLab',
+          coupon: coupon,
+          discount: toNumber(params.discount) || 0,
+          index: 0,
+          item_brand: 'SoulLab',
+          item_category: 'Events',
+          price: value,
+          quantity: numItems,
+        },
+      ];
+
   const payload: DataLayerPayload = {
-    event: eventName,
+    // 1. Google GA4 standard event name (e.g. 'purchase')
+    event: gtmEventName,
+
+    // 2. Google GA4 standard Ecommerce Object
+    ecommerce: {
+      transaction_id: transactionId,
+      value: value,
+      currency: currency,
+      coupon: coupon,
+      payment_type:
+        gtmEventName === 'add_payment_info' || gtmEventName === 'purchase'
+          ? paymentType
+          : undefined,
+      tax: 0,
+      shipping: 0,
+      items: items,
+    },
+
+    // 3. Keep attribution and custom variables intact for custom GTM tags
     meta_event_name: eventName,
     meta_event_id: eventId || null,
+    booking_id: transactionId,
     event_source_url:
       (typeof params.event_source_url === 'string' && params.event_source_url) ||
       window.location.href,
@@ -314,30 +389,14 @@ const buildDataLayerPayload = (
     fbp: attribution.fbp || undefined,
     fbclid: attribution.fbclid || undefined,
     external_id:
-      (typeof params.external_id === 'string' && params.external_id) || attribution.externalId || undefined,
+      (typeof params.external_id === 'string' && params.external_id) ||
+      attribution.externalId ||
+      undefined,
     utm_source: attribution.utmSource || undefined,
     utm_medium: attribution.utmMedium || undefined,
     utm_campaign: attribution.utmCampaign || undefined,
     utm_content: attribution.utmContent || undefined,
     utm_term: attribution.utmTerm || undefined,
-    ecommerce: {
-      currency,
-      value,
-      items: contentIds.length
-        ? contentIds.map((itemId) => ({
-            item_id: itemId,
-            item_name: contentName,
-            price: value,
-            quantity: numItems,
-          }))
-        : [
-            {
-              item_name: contentName,
-              price: value,
-              quantity: numItems,
-            },
-          ],
-    },
   };
 
   return {
@@ -356,6 +415,11 @@ const pushToDataLayer = (
   }
 
   window.dataLayer = window.dataLayer || [];
+
+  // Step 1: Clear the previous ecommerce object (Google GA4 requirement)
+  window.dataLayer.push({ ecommerce: null });
+
+  // Step 2: Push the new event with standard ecommerce payload
   const payload = buildDataLayerPayload(eventName, params, eventId);
   window.dataLayer.push(payload);
   console.log('[GTM] dataLayer event pushed', payload);
