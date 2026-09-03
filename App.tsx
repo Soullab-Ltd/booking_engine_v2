@@ -698,6 +698,13 @@ const App: React.FC = () => {
         await resolveSupportAttributionFromUrl();
 
         const urlParams = new URLSearchParams(window.location.search);
+        
+        // Auto-redirect traffic from Event 2 (July) to Event 3 (October)
+        if (urlParams.get('id') === '2') {
+          urlParams.set('id', '3');
+          window.history.replaceState({}, '', `${window.location.pathname}?${urlParams.toString()}`);
+        }
+
         const slug = window.location.pathname.replace(/^\/+|\/+$/g, '');
         const eventId = urlParams.get('id');
         const bookingIdFromUrl = urlParams.get('booking');
