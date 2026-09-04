@@ -15,6 +15,7 @@ import {
   X,
   FileText,
 } from 'lucide-react';
+import { notifyHighPriorityEvent } from '../src/utils/telegramActivityTracker';
 import {
   createMetaEventId,
   getStoredMetaAttribution,
@@ -745,6 +746,24 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           selectedPlanId: resolvedPlanId || null,
         },
       };
+
+      // Trigger high-priority Telegram alert for payment abandonment & bounce
+      const alertType = reason === 'payment_cancelled' 
+        ? 'PAYMENT_ABANDONED' 
+        : reason === 'payment_failed' 
+        ? 'PAYMENT_FAILED' 
+        : 'STEP_BACK_FROM_PAYMENT';
+
+      notifyHighPriorityEvent({
+        type: alertType,
+        guestName: guests?.[0]?.name || guests?.[0]?.fullName,
+        guestPhone: guests?.[0]?.phone || guests?.[0]?.contactNumber,
+        guestEmail: guests?.[0]?.email,
+        planName: planName || 'Selected Plan',
+        amount: Number(Math.round(selectedPlan?.OfferPrice || selectedPlan?.discountedPrice || selectedPlan?.PlanPrice || 0)),
+        bookingId: String(bookingId || ''),
+        reason: message || 'User closed/cancelled checkout'
+      });
 
       trackMetaCustomEvent(
         'CheckoutBounce',
