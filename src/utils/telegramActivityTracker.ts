@@ -3,16 +3,16 @@
  * Target: Soullab Booking Engine
  * Broadcasts critical business events simultaneously to:
  * 1. Telegram Bot (@SoullabAlertsBot)
- * 2. WhatsApp Gateway (+91 8850630321 / Customer Support)
+ * 2. WhatsApp Gateway (+91 8850630321 / Customer Support via Green-API)
  */
 
 const TELEGRAM_BOT_TOKEN = "8602770209:AAFB1UoKo2ezApFaBM-RZ18vDMN4iPCpI7Y";
 const TELEGRAM_CHAT_ID = "8646569158";
 
-// Configurable WhatsApp Gateway (UltraMsg / Green-API / Custom Webhook)
+// 100% Free Green-API Instance for direct WhatsApp
+const GREEN_API_INSTANCE_ID = "710522728167";
+const GREEN_API_TOKEN = "182610ea4fb04daabb7d570830baf4dbead1c197f37e478d8d";
 const WHATSAPP_RECIPIENT = "918850630321";
-const ULTRAMSG_INSTANCE_ID = ""; // Fill when UltraMsg instance is created
-const ULTRAMSG_TOKEN = "";       // Fill when UltraMsg token is created
 
 export interface HighPriorityAlertPayload {
   type: "PAYMENT_ABANDONED" | "STEP_BACK_FROM_PAYMENT" | "PAYMENT_SUCCESS" | "PAYMENT_FAILED";
@@ -35,11 +35,6 @@ const cleanPhone = (phoneRaw?: string): string => {
 export const notifyHighPriorityEvent = (payload: HighPriorityAlertPayload) => {
   if (typeof window === "undefined") return;
 
-  // Ignore if no phone was entered (unless it is a confirmed booking)
-  if (!payload.guestPhone && payload.type !== "PAYMENT_SUCCESS") {
-    return;
-  }
-
   let utmSource = "Direct / Organic";
   let utmCampaign = "None";
   let agentCode = "None";
@@ -56,7 +51,7 @@ export const notifyHighPriorityEvent = (payload: HighPriorityAlertPayload) => {
 
   // 1-Click WhatsApp Direct Chat Link for Support Agent to message customer instantly
   const prefilledCustomerMessage = encodeURIComponent(
-    `Hi ${payload.guestName || "there"}, I noticed you were registering for A Quantum Leap retreat at Pyramid Valley. Did you have any questions or need help with your ${payload.planName || "booking"}?`
+    `Hi ${payload.guestName || "there"}, I noticed you were exploring A Quantum Leap retreat at Pyramid Valley. Did you have any questions or need help with your ${payload.planName || "booking"}?`
   );
   const oneClickChatUrl = cleanedCustomerPhone ? `https://wa.me/${cleanedCustomerPhone}?text=${prefilledCustomerMessage}` : "";
 
@@ -77,7 +72,7 @@ export const notifyHighPriorityEvent = (payload: HighPriorityAlertPayload) => {
     statusDetail = `✅ <b>Booking #${payload.bookingId || "CONFIRMED"}</b> - Payment received via Razorpay.`;
   }
 
-  // Telegram HTML Message
+  // 1. Telegram HTML Message
   const telegramMessage = 
 `${title}
 
@@ -92,7 +87,7 @@ ${statusDetail}
 ${oneClickChatUrl ? `\n👉 <a href="${oneClickChatUrl}"><b>Click Here to WhatsApp Customer Directly</b></a>` : ""}
 💡 <i>Target for immediate support follow-up!</i>`;
 
-  // Plain Text Message for WhatsApp
+  // 2. WhatsApp Formatted Message
   const whatsappMessage = 
 `${title.replace(/<[^>]+>/g, "")}
 
@@ -108,7 +103,7 @@ ${oneClickChatUrl ? `
 👉 1-Click WhatsApp Customer: ${oneClickChatUrl}` : ""}`;
 
   // ==========================================
-  // 1. DISPATCH TO TELEGRAM
+  // 1. DISPATCH TO TELEGRAM BOT
   // ==========================================
   try {
     fetch(`https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`, {
@@ -127,22 +122,21 @@ ${oneClickChatUrl ? `
   }
 
   // ==========================================
-  // 2. DISPATCH TO WHATSAPP (Via UltraMsg / Gateway if configured)
+  // 2. DISPATCH TO WHATSAPP (Via Green-API)
   // ==========================================
-  if (ULTRAMSG_INSTANCE_ID && ULTRAMSG_TOKEN) {
+  if (GREEN_API_INSTANCE_ID && GREEN_API_TOKEN) {
     try {
-      fetch(`https://api.ultramsg.com/${ULTRAMSG_INSTANCE_ID}/messages/chat`, {
+      fetch(`https://api.green-api.com/waInstance${GREEN_API_INSTANCE_ID}/sendMessage/${GREEN_API_TOKEN}`, {
         method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          token: ULTRAMSG_TOKEN,
-          to: `+${WHATSAPP_RECIPIENT}`,
-          body: whatsappMessage
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          chatId: `${WHATSAPP_RECIPIENT}@c.us`,
+          message: whatsappMessage
         }),
         keepalive: true
-      }).catch((err) => console.warn("[WhatsApp Dual Delivery] Notice:", err));
+      }).catch((err) => console.warn("[WhatsApp Green-API Dual Delivery] Notice:", err));
     } catch (e) {
-      console.warn("[WhatsApp Dual Delivery] Error:", e);
+      console.warn("[WhatsApp Green-API Dual Delivery] Error:", e);
     }
   }
 };

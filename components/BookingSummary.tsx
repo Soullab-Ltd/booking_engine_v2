@@ -747,20 +747,26 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
         },
       };
 
-      // Trigger high-priority Telegram alert for payment abandonment & bounce
+      // Trigger high-priority Telegram + WhatsApp alert for payment abandonment & bounce
       const alertType = reason === 'payment_cancelled' 
         ? 'PAYMENT_ABANDONED' 
         : reason === 'payment_failed' 
         ? 'PAYMENT_FAILED' 
         : 'STEP_BACK_FROM_PAYMENT';
 
+      const guestObj = (guests && guests[0]) || (bookingState as any)?.guests?.[0] || {};
+      const resolvedGuestName = guestObj?.name || guestObj?.fullName || (bookingState as any)?.name || 'Guest';
+      const resolvedGuestPhone = guestObj?.phone || guestObj?.phoneNumber || guestObj?.contactNumber || (bookingState as any)?.phone || '';
+      const resolvedGuestEmail = guestObj?.email || (bookingState as any)?.email || '';
+      const resolvedAmount = Number(Math.round(pricingBreakdown?.totalAmount || selectedPlan?.OfferPrice || selectedPlan?.discountedPrice || selectedPlan?.PlanPrice || 0));
+
       notifyHighPriorityEvent({
         type: alertType,
-        guestName: guests?.[0]?.name || guests?.[0]?.fullName,
-        guestPhone: guests?.[0]?.phone || guests?.[0]?.contactNumber,
-        guestEmail: guests?.[0]?.email,
+        guestName: resolvedGuestName,
+        guestPhone: resolvedGuestPhone,
+        guestEmail: resolvedGuestEmail,
         planName: planName || 'Selected Plan',
-        amount: Number(Math.round(selectedPlan?.OfferPrice || selectedPlan?.discountedPrice || selectedPlan?.PlanPrice || 0)),
+        amount: resolvedAmount,
         bookingId: String(bookingId || ''),
         reason: message || 'User closed/cancelled checkout'
       });
@@ -1784,8 +1790,32 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
           },
           modal: {
             ondismiss: () => {
+              const guestObj = (guests && guests[0]) || (bookingState as any)?.guests?.[0] || {};
+              const resolvedGuestName = guestObj?.name || guestObj?.fullName || (bookingState as any)?.name || 'Guest';
+              const resolvedGuestPhone = guestObj?.phone || guestObj?.phoneNumber || guestObj?.contactNumber || (bookingState as any)?.phone || '';
+              const resolvedGuestEmail = guestObj?.email || (bookingState as any)?.email || '';
+              const resolvedAmount = Number(Math.round(pricingBreakdown?.totalAmount || selectedPlan?.OfferPrice || selectedPlan?.discountedPrice || selectedPlan?.PlanPrice || 0));
+
+              notifyHighPriorityEvent({
+                type: 'PAYMENT_ABANDONED',
+                guestName: resolvedGuestName,
+                guestPhone: resolvedGuestPhone,
+                guestEmail: resolvedGuestEmail,
+                planName: planTitle || 'Selected Plan',
+                amount: resolvedAmount,
+                bookingId: String(bookingId || ''),
+                reason: 'User closed/dismissed Razorpay payment modal'
+              });
+
+              void reportBounce(
+                'payment_cancelled',
+                bookingId || null,
+                'User closed Razorpay modal without completing payment.'
+              );
+
               resolve({
                 pending_external_confirmation: true,
+                cancelled: true,
               });
             },
           },
