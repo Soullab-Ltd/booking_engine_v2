@@ -73,6 +73,19 @@ export const getKidsPlanPrice = (plan: any, adultPlanPrice?: number): number => 
       0
   );
 
+  // Plan X / Dummy Test Plan: Adult ₹1 -> Kids ₹500
+  if (
+    planTitle.includes('plan x') ||
+    planTitle.includes('plann x') ||
+    planTitle.includes('do not book') ||
+    planTitle.startsWith('x:') ||
+    planTitle.startsWith('x -') ||
+    planId === 'px' ||
+    planId === 'x'
+  ) {
+    return 500;
+  }
+
   // Plan A / Dorms: ₹9,500 (100% of adult price)
   if (
     planTitle.includes('plan a') ||
@@ -1177,10 +1190,9 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   const getGuestBasePrice = (guest: Guest | any, planPrice: number) => {
     const age = Number(guest?.age || 0);
-    const isKidsPlanOpted = Boolean(guest?.isKidsPlanOpted);
 
     if (age <= 0) return 0;
-    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max && isKidsPlanOpted) {
+    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max) {
       return getKidsPlanPrice(bookingState?.selectedPlan, planPrice);
     }
 
@@ -1189,13 +1201,11 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
   const getGuestPricingLabel = (guest: Guest | any) => {
     const age = Number(guest?.age || 0);
-    const isKidsPlanOpted = Boolean(guest?.isKidsPlanOpted);
 
     if (age <= 0) return 'Not selected';
-    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max && isKidsPlanOpted) {
+    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max) {
       return 'Kids Explorer Plan';
     }
-    if (age >= kidsAgeRange.min && age <= kidsAgeRange.max) return 'Regular Plan';
     return 'Regular Plan';
   };
 

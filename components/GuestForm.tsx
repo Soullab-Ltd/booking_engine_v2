@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Guest, FoodPreference } from '../types';
 import { createEmptyGuest } from '../constants';
-import { getKidsPlanPrice } from './BookingSummary';
 import {
   Trash2,
   Info,
@@ -22,7 +21,6 @@ import {
   Flower2,
   Utensils,
   AlertCircle,
-  Phone,
 } from 'lucide-react';
 
 const INDIAN_STATES = [
@@ -341,7 +339,6 @@ const GuestForm: React.FC<GuestFormProps> = ({
 }) => {
   const [showAddOnInfo, setShowAddOnInfo] = useState<string | null>(null);
   const [isAddonInfoImageLoading, setIsAddonInfoImageLoading] = useState(false);
-  const [showKidsModal, setShowKidsModal] = useState(false);
   const [touched, setTouched] = useState(false);
   const [customIndianStateGuests, setCustomIndianStateGuests] = useState<Record<string, boolean>>({});
   const latestGuestsRef = useRef(guests);
@@ -712,35 +709,6 @@ const getStayEndDate = (startDate: string, days: number) => {
       max: DEFAULT_KIDS_PLAN_MAX_AGE,
     };
   }, []);
-  const whatsappNumber = '919867666444';
-  const kidsPopupImage = String(
-    ui?.guestCard?.kidsPopupImage ||
-      ui?.kidsPopupImage ||
-      'https://storage.googleapis.com/soullab_assets/kids_in_dorm.png'
-  ).trim();
-  const kidsPopupMessage =
-    "We've planned something special for the children!\n\nTo make sure they have the best time possible:\n\nWe encourage all children to stay together in the Valley Pods, offering a camp-like experience filled with fun and bonding.\nThis arrangement encourages social activities and helps them make new friends in their age group.\n\nRest assured, the Valley Pods are safe, well-supervised, and designed for their comfort. It's all about creating joyful memories they'll cherish forever!";
-
-  const selectedPlan = useMemo(() => {
-    return (
-      (roomTypes || []).find(
-        (p: any) =>
-          Number(p.planID ?? p.PlanID ?? p.id) === Number(selectedPlanId) ||
-          String(p.id) === String(selectedPlanId)
-      ) || (roomTypes && roomTypes[0]) || null
-    );
-  }, [roomTypes, selectedPlanId]);
-
-  const currentKidsPrice = useMemo(() => {
-    return getKidsPlanPrice(selectedPlan);
-  }, [selectedPlan]);
-
-  const eligibleKids = useMemo(() => {
-    return guests.filter((guest: any) => {
-      const age = Number(guest.age);
-      return age >= kidsAgeRange.min && age <= kidsAgeRange.max;
-    });
-  }, [guests, kidsAgeRange]);
 
   const updateGuest = (id: string, updates: any) => {
     const normalizedUpdates = { ...updates };
@@ -781,20 +749,13 @@ const getStayEndDate = (startDate: string, days: number) => {
       const nextGuest = { ...guest, ...normalizedUpdates };
 
       if (hasAgeUpdate) {
-        const previousAge = Number(guest?.age);
-        const wasAgeInKidsRange =
-          Number.isFinite(previousAge) &&
-          previousAge >= kidsAgeRange.min &&
-          previousAge <= kidsAgeRange.max;
         const isAgeInKidsRange =
           Number.isFinite(normalizedAgeValue) &&
           normalizedAgeValue !== null &&
           normalizedAgeValue >= kidsAgeRange.min &&
           normalizedAgeValue <= kidsAgeRange.max;
 
-        if (!isAgeInKidsRange) {
-          nextGuest.isKidsPlanOpted = false;
-        }
+        nextGuest.isKidsPlanOpted = isAgeInKidsRange;
       }
 
       return nextGuest;
@@ -847,48 +808,6 @@ const getStayEndDate = (startDate: string, days: number) => {
   const removeGuest = (id: string) => {
     if (guests.length <= 1) return;
     setGuests(guests.filter((guest: any) => String(guest.id) !== String(id)));
-  };
-
-  const proceedWithKidsPlanSelection = (opted: boolean) => {
-    const eligibleKidIds = new Set(
-      eligibleKids.map((guest: any) => String(guest.id))
-    );
-
-    const updatedGuests = guests.map((guest: any) =>
-      eligibleKidIds.has(String(guest.id))
-        ? {
-            ...guest,
-            isKidsPlanOpted: opted,
-            addOns: {
-              ...guest.addOns,
-              selectedAddons: opted
-                ? (guest.addOns?.selectedAddons || []).filter(
-                    (selectedAddon: any) =>
-                      !isFoodPassAddon({
-                        id: selectedAddon?.addonId,
-                        AddonID: selectedAddon?.addonId,
-                        title: selectedAddon?.title,
-                        AddonTitle: selectedAddon?.title,
-                        type: selectedAddon?.type,
-                      })
-                  )
-                : guest.addOns?.selectedAddons || [],
-            },
-          }
-        : guest
-    );
-
-    setGuests(updatedGuests);
-    setShowKidsModal(false);
-
-    if (onProceedWithGuests) {
-      onProceedWithGuests(updatedGuests);
-      return;
-    }
-
-    window.setTimeout(() => {
-      onProceed();
-    }, 0);
   };
 
   const getAddonPriceForGuest = (addon: AddonItem, guest: any) => {
@@ -1137,16 +1056,12 @@ const getStayEndDate = (startDate: string, days: number) => {
       if (invalidExtraStayGuest) return;
     }
 
-    const popupEligibleKids = latestGuestsRef.current.filter((guest: any) => {
-      const age = Number(guest?.age);
-      return age >= kidsAgeRange.min && age <= kidsAgeRange.max;
-    });
-
-    if (popupEligibleKids.length > 0) {
-      setShowKidsModal(true);
-    } else {
-      onProceed();
+    if (onProceedWithGuests) {
+      onProceedWithGuests(latestGuestsRef.current);
+      return;
     }
+
+    onProceed();
   };
 
   return (
@@ -1927,101 +1842,6 @@ const getStayEndDate = (startDate: string, days: number) => {
               <p className="whitespace-pre-line text-sm leading-6 text-stone-700">
                 {currentAddOnInfo?.desc || 'No details available.'}
               </p>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {showKidsModal && (
-        <div
-          onClick={() => setShowKidsModal(false)}
-          className="fixed inset-0 z-[210] flex items-end justify-center overflow-y-auto bg-black/50 p-4 sm:items-center"
-        >
-          <div
-            onClick={(event) => event.stopPropagation()}
-            className="w-full max-w-[23rem] overflow-hidden rounded-[22px] border border-[#e6dccf] bg-[#f5f0f7] shadow-[0_30px_90px_rgba(15,23,42,0.22)]"
-          >
-            <div className="bg-[linear-gradient(180deg,_#ffb347_0%,_#ff9d2d_100%)] px-4 py-4 text-center">
-              <h3 className="text-[1rem] font-semibold tracking-[0.01em] text-stone-900 sm:text-[1.1rem]">
-                Important Note for Parents
-              </h3>
-            </div>
-
-            <div className="max-h-[calc(100dvh-10rem)] overflow-y-auto">
-              {kidsPopupImage ? (
-                <div className="overflow-hidden border-b border-[#eadfce] bg-white">
-                  <img
-                    src={kidsPopupImage}
-                    alt="Children enjoying the Valley Pods stay experience"
-                    className="h-40 w-full object-cover object-center"
-                  />
-                </div>
-              ) : (
-                <div className="border-b border-[#eadfce] bg-[radial-gradient(circle_at_top,_#fff7ed_0%,_#f4ede8_55%,_#efe7f4_100%)] px-6 py-8 text-center">
-                  <div className="mx-auto max-w-[20rem]">
-                    <div className="text-xs font-black uppercase tracking-[0.28em] text-[#b66a14]">
-                      Valley Pods
-                    </div>
-                    <div className="mt-3 text-lg font-semibold text-stone-900 sm:text-[1.25rem]">
-                      A joyful stay experience for children
-                    </div>
-                    <p className="mt-3 text-sm leading-6 text-stone-600">
-                      Please add the popup image from the admin panel to match the intended visual.
-                    </p>
-                  </div>
-                </div>
-              )}
-
-              <div className="space-y-4 px-4 pb-4 pt-4 sm:px-5">
-                <div className="space-y-3 text-left text-[0.95rem] leading-7 text-stone-800">
-                  {kidsPopupMessage.split('\n\n').map((paragraph, index) => (
-                    <p key={index} className="whitespace-pre-line">
-                      {paragraph}
-                    </p>
-                  ))}
-                </div>
-                <p className="rounded-[16px] bg-white/75 px-4 py-3 text-left text-[0.9rem] leading-6 text-stone-700 ring-1 ring-[#eadfce]">
-                  If you select <span className="font-semibold text-stone-900">I Love It</span>, the
-                  kids price will be Rs. {currentKidsPrice.toLocaleString('en-IN')}. If you select{' '}
-                  <span className="font-semibold text-stone-900">Not Interested</span>, the regular
-                  plan price will apply.
-                </p>
-              </div>
-
-              <div className="mx-4 mb-4 mt-1 flex items-center justify-between gap-3 rounded-[16px] bg-[#f4d7c0] px-4 py-3 sm:mx-5">
-                <div className="text-[0.9rem] font-black text-[#2f3171]">
-                  Have questions about this?
-                </div>
-                {whatsappNumber ? (
-                  <a
-                    href={`tel:+${whatsappNumber}`}
-                    className="inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-[0.9rem] font-black text-white transition hover:bg-[#242656]"
-                  >
-                    Call Us <Phone className="h-3.5 w-3.5" />
-                  </a>
-                ) : (
-                  <span className="inline-flex shrink-0 whitespace-nowrap items-center justify-center gap-2 rounded-[14px] bg-[#2f3171] px-4 py-2.5 text-[0.9rem] font-black text-white">
-                    Call Us <Phone className="h-3.5 w-3.5" />
-                  </span>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3 bg-[#f5f0f7] px-4 pb-4 pt-0 sm:px-5">
-              <button
-                type="button"
-                onClick={() => proceedWithKidsPlanSelection(false)}
-                className="rounded-[14px] bg-[#2f3171] px-3 py-3 text-[0.88rem] font-black text-white transition hover:bg-[#242656]"
-              >
-                Not Interested ☹️
-              </button>
-              <button
-                type="button"
-                onClick={() => proceedWithKidsPlanSelection(true)}
-                className="rounded-[14px] bg-[#7ec242] px-3 py-3 text-[0.88rem] font-black text-[#1f2a0f] transition hover:bg-[#6dad37]"
-              >
-                I Love It! 😍
-              </button>
             </div>
           </div>
         </div>
