@@ -28,6 +28,7 @@ import {
   trackMetaEvent,
 } from './src/utils/metaTracking';
 import { resolveSupportAttributionFromUrl } from './src/utils/supportAttribution';
+import { trackTelegramActivity } from './src/utils/telegramActivityTracker';
 
 
 const formatDisplayDate = (dateStr: any) => {
@@ -1227,6 +1228,14 @@ const App: React.FC = () => {
 
   const moveToStep = async (nextStepValue: number) => {
     if (nextStepValue < bookingState.currentStep) {
+      trackTelegramActivity({
+        actionSummary: `⬅️ Clicked 'Back' (Returned to Step ${nextStepValue})`,
+        status: 'Hesitating / Comparing Options',
+        guestName: bookingState.guests[0]?.fullName,
+        guestPhone: bookingState.guests[0]?.contactNumber,
+        planName: bookingState.selectedPlan?.PlanName,
+      });
+
       if (bookingState.currentStep === 6) {
         trackBounce('payment', 'step_back', { toStep: nextStepValue, fromStep: bookingState.currentStep });
       } else if (bookingState.currentStep === 5) {
@@ -1235,6 +1244,14 @@ const App: React.FC = () => {
           fromStep: bookingState.currentStep,
         });
       }
+    } else if (nextStepValue === 5) {
+      trackTelegramActivity({
+        actionSummary: 'Completed Guest Form ➔ Proceeded to Order Summary',
+        status: 'Reviewing Order & Addons',
+        guestName: bookingState.guests[0]?.fullName,
+        guestPhone: bookingState.guests[0]?.contactNumber,
+        planName: bookingState.selectedPlan?.PlanName,
+      });
     }
 
     setStepLoadingMessage(STEP_LOADING_COPY[nextStepValue] || 'Loading...');
@@ -1249,6 +1266,12 @@ const App: React.FC = () => {
   const prevStep = () => moveToStep(Math.max(2, bookingState.currentStep - 1));
 
   const selectPlan = async (plan: Plan) => {
+    trackTelegramActivity({
+      actionSummary: `Selected <b>${plan.PlanName || 'Plan'}</b> (₹${plan.OfferPrice || plan.PlanPrice || 'N/A'})`,
+      status: 'Viewing Plan Details',
+      planName: plan.PlanName,
+      planPrice: plan.OfferPrice,
+    });
     setStepLoadingMessage(STEP_LOADING_COPY[3]);
     await waitForTransitionFrame();
     setBookingState((prev) => ({
