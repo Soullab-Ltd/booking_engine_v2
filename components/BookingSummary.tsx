@@ -57,7 +57,82 @@ interface BookingSummaryProps {
   onBack: () => void;
 }
 
-const KIDS_PLAN_PRICE = 10000;
+export const getKidsPlanPrice = (plan: any, adultPlanPrice?: number): number => {
+  const planTitle = String(
+    plan?.PlanTitle || plan?.title || plan?.PlanName || plan?.name || ''
+  ).trim().toLowerCase();
+
+  const planId = String(plan?.id || plan?.planID || plan?.PlanID || '').trim().toLowerCase();
+
+  const rawAdultPrice = Number(
+    adultPlanPrice ??
+      plan?.OfferPrice ??
+      plan?.PlanPrice ??
+      plan?.finalPrice ??
+      plan?.discountedPrice ??
+      0
+  );
+
+  // Plan A / Dorms: ₹9,500 (100% of adult price)
+  if (
+    planTitle.includes('plan a') ||
+    planTitle.startsWith('a:') ||
+    planTitle.startsWith('a -') ||
+    planId === 'pa' ||
+    (planTitle.includes('dorm') && !planTitle.includes('deluxe') && !planTitle.includes('premium'))
+  ) {
+    return rawAdultPrice > 0 ? rawAdultPrice : 9500;
+  }
+
+  // Plan B: Deluxe Rooms -> ₹12,000 (50% of adult price)
+  if (
+    planTitle.includes('plan b') ||
+    planTitle.startsWith('b:') ||
+    planTitle.startsWith('b -') ||
+    planId === 'pb' ||
+    (planTitle.includes('deluxe') && !planTitle.includes('triple') && !planTitle.includes('double') && !planTitle.includes('single'))
+  ) {
+    return rawAdultPrice > 0 ? Math.round(rawAdultPrice / 2) : 12000;
+  }
+
+  // Plan C: Premium Triple -> ₹16,000 (50% of adult price)
+  if (
+    planTitle.includes('plan c') ||
+    planTitle.startsWith('c:') ||
+    planTitle.startsWith('c -') ||
+    planId === 'pc' ||
+    planTitle.includes('triple')
+  ) {
+    return rawAdultPrice > 0 ? Math.round(rawAdultPrice / 2) : 16000;
+  }
+
+  // Plan D: Premium Double -> ₹23,000 (50% of adult price)
+  if (
+    planTitle.includes('plan d') ||
+    planTitle.startsWith('d:') ||
+    planTitle.startsWith('d -') ||
+    planId === 'pd' ||
+    (planTitle.includes('double') && !planTitle.includes('triple'))
+  ) {
+    return rawAdultPrice > 0 ? Math.round(rawAdultPrice / 2) : 23000;
+  }
+
+  // Plan E: Premium Single -> ₹45,000 (50% of adult price)
+  if (
+    planTitle.includes('plan e') ||
+    planTitle.startsWith('e:') ||
+    planTitle.startsWith('e -') ||
+    planId === 'pe' ||
+    planTitle.includes('single') ||
+    planTitle.includes('solitary')
+  ) {
+    return rawAdultPrice > 0 ? Math.round(rawAdultPrice / 2) : 45000;
+  }
+
+  // General fallback: 50% if price known, else 9500
+  return rawAdultPrice > 0 ? Math.round(rawAdultPrice / 2) : 9500;
+};
+
 const MAX_GUEST_AGE = 99;
 const NAME_ALLOWED_CHARACTERS_REGEX = /^[A-Za-z\s'.-]+$/;
 const RAZORPAY_CHECKOUT_SCRIPT = 'https://checkout.razorpay.com/v1/checkout.js';
@@ -1106,7 +1181,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
 
     if (age <= 0) return 0;
     if (age >= kidsAgeRange.min && age <= kidsAgeRange.max && isKidsPlanOpted) {
-      return KIDS_PLAN_PRICE;
+      return getKidsPlanPrice(bookingState?.selectedPlan, planPrice);
     }
 
     return planPrice;

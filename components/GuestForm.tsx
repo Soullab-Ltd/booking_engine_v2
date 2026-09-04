@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Guest, FoodPreference } from '../types';
 import { createEmptyGuest } from '../constants';
+import { getKidsPlanPrice } from './BookingSummary';
 import {
   Trash2,
   Info,
@@ -719,6 +720,20 @@ const getStayEndDate = (startDate: string, days: number) => {
   ).trim();
   const kidsPopupMessage =
     "We've planned something special for the children!\n\nTo make sure they have the best time possible:\n\nWe encourage all children to stay together in the Valley Pods, offering a camp-like experience filled with fun and bonding.\nThis arrangement encourages social activities and helps them make new friends in their age group.\n\nRest assured, the Valley Pods are safe, well-supervised, and designed for their comfort. It's all about creating joyful memories they'll cherish forever!";
+
+  const selectedPlan = useMemo(() => {
+    return (
+      (roomTypes || []).find(
+        (p: any) =>
+          Number(p.planID ?? p.PlanID ?? p.id) === Number(selectedPlanId) ||
+          String(p.id) === String(selectedPlanId)
+      ) || (roomTypes && roomTypes[0]) || null
+    );
+  }, [roomTypes, selectedPlanId]);
+
+  const currentKidsPrice = useMemo(() => {
+    return getKidsPlanPrice(selectedPlan);
+  }, [selectedPlan]);
 
   const eligibleKids = useMemo(() => {
     return guests.filter((guest: any) => {
@@ -1967,7 +1982,7 @@ const getStayEndDate = (startDate: string, days: number) => {
                 </div>
                 <p className="rounded-[16px] bg-white/75 px-4 py-3 text-left text-[0.9rem] leading-6 text-stone-700 ring-1 ring-[#eadfce]">
                   If you select <span className="font-semibold text-stone-900">I Love It</span>, the
-                  kids price will be Rs. 10,000. If you select{' '}
+                  kids price will be Rs. {currentKidsPrice.toLocaleString('en-IN')}. If you select{' '}
                   <span className="font-semibold text-stone-900">Not Interested</span>, the regular
                   plan price will apply.
                 </p>
