@@ -183,13 +183,13 @@ const getSafeTrimmedString = (value: unknown): string => {
   return typeof value === 'string' ? value.trim() : '';
 };
 
-const getKidsAgeRange = (plan: any) => {
-  const minAge = Number(plan?.ageRangeMin);
-  const maxAge = Number(plan?.ageRangeMax);
+const KIDS_MIN_AGE = 8;
+const KIDS_MAX_AGE = 17;
 
+const getKidsAgeRange = () => {
   return {
-    min: Number.isFinite(minAge) ? minAge : 8,
-    max: Number.isFinite(maxAge) ? maxAge : 17,
+    min: KIDS_MIN_AGE,
+    max: KIDS_MAX_AGE,
   };
 };
 
@@ -1186,7 +1186,7 @@ const BookingSummary: React.FC<BookingSummaryProps> = ({
       : '';
   const selectedPlanGuestLabel =
     guestCount === 1 ? '1 Guest Selected' : `${guestCount} Guests Selected`;
-  const kidsAgeRange = getKidsAgeRange(bookingState?.selectedPlan);
+  const kidsAgeRange = getKidsAgeRange();
 
   const getGuestBasePrice = (guest: Guest | any, planPrice: number) => {
     const age = Number(guest?.age || 0);
