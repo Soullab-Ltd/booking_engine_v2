@@ -845,37 +845,11 @@ const getStayEndDate = (startDate: string, days: number) => {
   };
 
   const isFoodPassUnavailableForGuest = (guest: any, addon: AddonItem) => {
-    if (!isFoodPassAddon(addon)) return false;
-
-    const rawAge = guest?.age;
-    const hasAge = rawAge !== undefined && rawAge !== null && String(rawAge).trim() !== '';
-    if (!hasAge) return true;
-
-    const age = Number(rawAge);
-    if (!Number.isFinite(age)) return true;
-
-    return (
-      age >= kidsAgeRange.min &&
-      age <= kidsAgeRange.max &&
-      Boolean(guest?.isKidsPlanOpted)
-    );
+    return false;
   };
 
   const shouldHideFoodPassForGuest = (guest: any, addon: AddonItem) => {
-    if (!isFoodPassAddon(addon)) return false;
-
-    const rawAge = guest?.age;
-    const hasAge = rawAge !== undefined && rawAge !== null && String(rawAge).trim() !== '';
-    if (!hasAge) return false;
-
-    const age = Number(rawAge);
-    if (!Number.isFinite(age)) return false;
-
-    return (
-      age >= kidsAgeRange.min &&
-      age <= kidsAgeRange.max &&
-      Boolean(guest?.isKidsPlanOpted)
-    );
+    return false;
   };
 
   const toggleGuestAddon = (guestId: string, addon: AddonItem) => {
