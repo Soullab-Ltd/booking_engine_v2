@@ -621,7 +621,6 @@ const getStayEndDate = (startDate: string, days: number) => {
         addonEventIds.includes(Number(selectedEventId));
 
       const planMatch =
-        isFoodPassAddon(addon) ||
         addonPlanIds.length === 0 ||
         addonPlanIds.includes(Number(selectedPlanId));
 
