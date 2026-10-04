@@ -1069,8 +1069,7 @@ const App: React.FC = () => {
       hasAttemptedAutoPayRef.current ||
       bookingState.currentStep !== 6 ||
       !bookingState.bookingId ||
-      !data ||
-      !isMobileBrowser()
+      !data
     ) {
       return;
     }

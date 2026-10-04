@@ -77,33 +77,40 @@ const PaymentStatus: React.FC<PaymentStatusProps> = ({
     }
   }, [status]);
 
-  if (status === 'FAILED') {
+  if (status === 'FAILED' || status === 'PENDING') {
     return (
       <div className="max-w-md mx-auto py-24 px-6 text-center animate-fadeIn">
-        <div className="w-24 h-24 bg-rose-50 text-rose-500 rounded-[30px] flex items-center justify-center mx-auto mb-8 shadow-inner rotate-12">
-          <X className="w-12 h-12" />
+        <div className={`w-24 h-24 rounded-[30px] flex items-center justify-center mx-auto mb-8 shadow-inner ${status === 'FAILED' ? 'bg-rose-50 text-rose-500 rotate-12' : 'bg-amber-50 text-amber-500'}`}>
+          {status === 'FAILED' ? <X className="w-12 h-12" /> : <Clock className="w-12 h-12" />}
         </div>
 
         <h2 className="text-4xl font-black mb-4 tracking-tighter text-stone-900">
-          {statusUI.failed.title}
+          {status === 'FAILED' ? statusUI.failed.title : statusUI.pending.title}
         </h2>
 
         <p className="text-stone-500 mb-8 font-medium">
-          {statusUI.failed.desc}
+          {status === 'FAILED' ? statusUI.failed.desc : 'Your booking is currently pending. Please complete your payment below.'}
         </p>
 
         <div className="flex flex-col gap-3">
           <button
             onClick={() => (onRetry ? onRetry() : window.location.reload())}
             disabled={isRetrying}
-            className="w-full bg-stone-900 text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-black transition-all disabled:cursor-not-allowed disabled:opacity-70"
+            className="w-full bg-[var(--theme)] text-white py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-[var(--theme-dark)] transition-all disabled:cursor-not-allowed disabled:opacity-70"
           >
-            {isRetrying ? 'Opening payment...' : statusUI.failed.cta}
+            {isRetrying ? 'Loading...' : (status === 'FAILED' ? 'Retry Payment' : 'Pay Now')}
+          </button>
+          <button
+            onClick={onDashboard}
+            className="w-full bg-stone-100 text-stone-700 py-4 rounded-2xl font-bold flex items-center justify-center gap-2 hover:bg-stone-200 transition-all"
+          >
+            Go to Dashboard
           </button>
         </div>
       </div>
     );
   }
+
 
   const isPending = status === 'PENDING';
   const activeStatusUI = isPending ? statusUI.pending : statusUI.success;
